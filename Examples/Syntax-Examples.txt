@@ -1,0 +1,66 @@
+﻿class Animal
+{
+	public abstract void Speak();
+}
+
+// dog, is smart enouph to have a name
+class Dog extends Animal
+{
+	char[]& m_Name;
+
+	public Dog(char[]& name)
+	{
+		m_Name = name;
+	}
+
+	public char[]& GetName() { return m_Name; }
+
+	public override void Speak()
+	{
+		print("Bark!");
+	}
+}
+
+// Cat, hisses when wet, or angry
+class Cat extends Animal
+{
+	private bool m_IsAngry = false;
+	private bool m_IsWet = false;
+
+	public void SetIsAngry(bool isAngry)
+	{
+		m_IsAngry = isAngry;
+	}
+
+	public void SetIsWet(bool isWet)
+	{
+		m_IsWet = isWet;
+	}
+
+	public override void Speak()
+	{
+		if(m_IsAngry or m_IsWet)
+		{
+			print("Hiss");
+		}
+		else
+		{
+			print("Meow");
+		}
+	}
+}
+
+// main function
+int Main()
+{
+	Animal&[]& animals = new Animal&[2];
+	animals[0] = new Dog("Spots");
+	animals[1] = new Cat();
+
+	((Cat&)animals[1]).SetIsWet(true);
+
+	for(int i = 0; i < 2; i++)
+	{
+		animals[i].Speak();
+	}
+}
