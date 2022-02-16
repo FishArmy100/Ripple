@@ -1,0 +1,43 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Ripple
+{
+    static class RippleKeywords
+    {
+        public static readonly Dictionary<string, TokenType> Keywords = new Dictionary<string, TokenType>()
+        {
+            { "and", TokenType.And },
+            { "or", TokenType.Or },
+            { "xor", TokenType.Xor },
+            { "true", TokenType.True },
+            { "false", TokenType.False },
+            { "return", TokenType.Return },
+            { "null", TokenType.Null },
+            { "if", TokenType.If },
+            { "Else", TokenType.Else },
+            { "class", TokenType.Class },
+            { "extends", TokenType.Extends },
+            { "base", TokenType.Base },
+            { "this", TokenType.This },
+            { "while", TokenType.While },
+            { "for", TokenType.For },
+            { "public", TokenType.Public },
+            { "private", TokenType.Private },
+            { "protected", TokenType.Protected },
+            { "friend", TokenType.Friend },
+            { "new", TokenType.New },
+            { "break", TokenType.Break },
+            { "continue", TokenType.Continue },
+            { "void", TokenType.Void },
+            { "virutal", TokenType.Virtual },
+            { "bool", TokenType.BoolType },
+            { "char", TokenType.CharType },
+            { "int", TokenType.IntType },
+            { "uint", TokenType.UintType },
+            { "float", TokenType.FloatType },
+            { "string", TokenType.StringType },
+        };
+    }
+}
