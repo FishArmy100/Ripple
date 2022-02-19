@@ -1,0 +1,47 @@
+﻿
+Rules: based on Backus-Naur form
+	Terminal: "Value"
+	Nonterminal: Name
+	Nonterminal definition: Name -> "Value"
+		| = either the left, or the right side
+		() = grouping
+		* = Can repeat 0 or more times
+	End of line: ;
+
+
+Grammer:
+	block          -> statement*;
+
+	statement       -> while | for | if | variable;
+
+	while          -> "while" "(" equality ")" block;
+
+	for            -> "for" "(" variable ";" equality ";" variable ")" block;
+	
+	if			   -> "if" "(" expression ")" block;
+
+	variable	   -> (TYPE_NAME VARIABLE_NAME "=" expression)
+			       | (VARIABLE_NAME "=" expression);
+
+	expression     -> equality;
+	
+	equality       -> comparison ( ( "!=" | "==" ) comparison )*;
+	
+	comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )*;
+	
+	term           -> factor ( ( "-" | "+" ) factor )*;
+	
+	factor         -> unary ( ( "/" | "*" ) unary )*;
+	
+	unary          -> ( "!" | "-" ) unary
+				   | primary;
+	
+	primary		   -> FLOAT 
+				   | INT 
+				   | UINT 
+				   | "true" 
+				   | "false" 
+				   | "null"
+				   | CHAR
+				   | STRING
+				   | "(" expression ")";
