@@ -1,47 +1,39 @@
 ﻿
-Rules: based on Backus-Naur form
-	Terminal: "Value"
-	Nonterminal: Name
-	Nonterminal definition: Name -> "Value"
-		| = either the left, or the right side
-		() = grouping
-		* = Can repeat 0 or more times
-	End of line: ;
+Grammer Key: Based on https://craftinginterpreters.com/representing-code.html
+	Rule: Terminal -> "Non Terminal" "In Series";
+	Series of Productions seperated by: |
+	Can be grouped using: ()
+	Thing reapeted 0 or more times prefix: *
+	Thing reapeated 1 or more times prefix: +
+	Thing reapeated 0 or 1 times prefix: ?
+	Between <> = complex rule
+	Comments: // example comments
 
 
-Grammer:
-	block          -> statement*;
 
-	statement       -> while | for | if | variable;
 
-	while          -> "while" "(" equality ")" block;
+Basic Rules: created in lexer
+	DIGIT -> "0" ... "9";
+	charactor -> <any charactor exept ' and ">
+	CHAR -> "'" charactor "'";
+	STRING -> """ charactor* """;
+	INT -> DIGIT+
+	FLOAT -> DIGIT+ "." DIGIT+
+	ALPHA -> "a" ... "z" | "A" ... "Z" | "_"
+	IDENTIFIER -> ALPHA (ALPHA | DIGIT)*
 
-	for            -> "for" "(" variable ";" equality ";" variable ")" block;
-	
-	if			   -> "if" "(" expression ")" block;
 
-	variable	   -> (TYPE_NAME VARIABLE_NAME "=" expression)
-			       | (VARIABLE_NAME "=" expression);
 
-	expression     -> equality;
+Expression Rules:
+	primary			-> INT | FLOAT | "(" expression ")";
+	unary			-> "-" unary | primary;
+
+	factor			-> unary (("*" | "/" | "%") unary)*; // Example: 5 * -3 / 2;
+	term			-> factor (("+" | "-") factor)* // Example: 5 + (3 * 2);
+	comparison		-> term ((">" | ">=" | "<" | "<=") term)*;
+	equality		-> comparison (("==" | "!=") comparison)*;
+	logic_and		-> equality ("&&" equality)*;
+	logic_or		-> logic_and ("||" logic_and)*;
 	
-	equality       -> comparison ( ( "!=" | "==" ) comparison )*;
-	
-	comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )*;
-	
-	term           -> factor ( ( "-" | "+" ) factor )*;
-	
-	factor         -> unary ( ( "/" | "*" ) unary )*;
-	
-	unary          -> ( "!" | "-" ) unary
-				   | primary;
-	
-	primary		   -> FLOAT 
-				   | INT 
-				   | UINT 
-				   | "true" 
-				   | "false" 
-				   | "null"
-				   | CHAR
-				   | STRING
-				   | "(" expression ")";
+	expression -> logic_or;
+

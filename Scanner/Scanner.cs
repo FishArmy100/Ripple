@@ -35,6 +35,7 @@ namespace Ripple
                 }
             }
 
+            Tokens.Add(new Token(TokenType.EndOfFile, "", Reader.Line));
             return new ScanResult(Tokens, Errors);
         }
 
@@ -58,7 +59,23 @@ namespace Ripple
                     Reader.AdvanceCurrent();
 
                 if(RippleKeywords.Keywords.TryGetValue(Reader.GetStartToCurrentString(), out TokenType type))
-                    AddToken(type);
+                {
+                    switch (type)
+                    {
+                        case TokenType.True:
+                            AddToken(type, true);
+                            break;
+                        case TokenType.False:
+                            AddToken(type, false);
+                            break;
+                        case TokenType.Null:
+                            AddToken(type, null);
+                            break;
+                        default:
+                            AddToken(type);
+                            break;
+                    }
+                }
                 else
                     AddToken(TokenType.Identifier, Reader.GetStartToCurrentString());
 
@@ -181,11 +198,11 @@ namespace Ripple
                 case '*':
                     FoundToken(TokenType.Star);
                     break;
-                case '&':
-                    FoundToken(TokenType.Ampersand);
+                case '%':
+                    FoundToken(TokenType.Percent);
                     break;
                 case '^':
-                    FoundToken(TokenType.Carrot);
+                    FoundToken(TokenType.Caret);
                     break;
                 case '.':
                     FoundToken(TokenType.Dot);
@@ -214,6 +231,9 @@ namespace Ripple
                 case ';':
                     FoundToken(TokenType.Semicolon);
                     break;
+                case ':':
+                    FoundToken(TokenType.Colon);
+                    break;
 
                 // multiple charictor symbols
                 case '!':
@@ -233,6 +253,8 @@ namespace Ripple
                 case '<':
                     if (Reader.PeekCurrent(1) == '=')
                         FoundToken(TokenType.LessThenEqual, 2);
+                    else if (Reader.PeekCurrent(1) == '<')
+                        FoundToken(TokenType.LessThanLessThan, 2);
                     else
                         FoundToken(TokenType.LessThen);
                     foundSymbol = true;
@@ -240,12 +262,28 @@ namespace Ripple
                 case '>':
                     if (Reader.PeekCurrent(1) == '=')
                         FoundToken(TokenType.GreaterThenEqual, 2);
+                    else if (Reader.PeekCurrent(1) == '>')
+                        FoundToken(TokenType.GreaterThanGreaterThan, 2);
                     else
                         FoundToken(TokenType.GreaterThen);
                     foundSymbol = true;
                     break;
+                case '&':
+                    if (Reader.PeekCurrent(1) == '&')
+                        FoundToken(TokenType.AmpersandAmpersand, 2);
+                    else 
+                        FoundToken(TokenType.Ampersand);
+                    foundSymbol = true;
+                    break;
+                case '|':
+                    if (Reader.PeekCurrent(1) == '|')
+                        FoundToken(TokenType.PipePipe, 2);
+                    else
+                        FoundToken(TokenType.Pipe);
+                    foundSymbol = true;
+                    break;
 
-                    // Comments and /
+                // Comments and /
                 case '/':
                     if (Reader.PeekCurrent(1) == '/')
                     {

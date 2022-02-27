@@ -8,7 +8,7 @@ namespace Ripple
     {
         public readonly List<Token> Tokens;
         public readonly List<ScannerError> ScannerErrors;
-        public bool HadError => ScannerErrors.Count > 0;
+        public bool HasError => ScannerErrors.Count > 0;
 
         public ScanResult(List<Token> tokens, List<ScannerError> errors)
         {

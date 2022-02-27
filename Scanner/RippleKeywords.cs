@@ -8,9 +8,6 @@ namespace Ripple
     {
         public static readonly Dictionary<string, TokenType> Keywords = new Dictionary<string, TokenType>()
         {
-            { "and", TokenType.And },
-            { "or", TokenType.Or },
-            { "xor", TokenType.Xor },
             { "true", TokenType.True },
             { "false", TokenType.False },
             { "return", TokenType.Return },
@@ -18,7 +15,6 @@ namespace Ripple
             { "if", TokenType.If },
             { "Else", TokenType.Else },
             { "class", TokenType.Class },
-            { "extends", TokenType.Extends },
             { "base", TokenType.Base },
             { "this", TokenType.This },
             { "while", TokenType.While },
@@ -38,6 +34,10 @@ namespace Ripple
             { "uint", TokenType.UintType },
             { "float", TokenType.FloatType },
             { "string", TokenType.StringType },
+            { "override", TokenType.Override},
+            { "abstract", TokenType.Abstract },
+            { "final", TokenType.Final },
+            { "const", TokenType.Const }
         };
     }
 }

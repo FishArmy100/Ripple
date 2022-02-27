@@ -6,30 +6,32 @@ namespace Ripple
         Invalid,
 
         // single charictor tokens
-        Dot, Comma, Minus, Plus, Slash, 
-        Star, Semicolon, Carrot, Ampersand,
+        Dot, Comma, Minus, Plus, Slash,
+        Star, Semicolon, Colon, Caret, 
+        Ampersand, Pipe, Percent,
 
         OpenParen, CloseParen, OpenBracket, CloseBracket,
         OpenBrace, CloseBrace,
 
         // One or tow character tokens
         Bang, BangEqual, Equal, EqualEqual, GreaterThen, GreaterThenEqual,
-        LessThen, LessThenEqual, 
+        LessThen, LessThenEqual, AmpersandAmpersand, PipePipe, LessThanLessThan, 
+        GreaterThanGreaterThan,
 
         // Literals
         Float, Int, Uint, Char, String,
 
         // Keywords
-        And, Or, Xor, True, False, Return, Null, If, Else, Class,
-        Extends, Base, This, While, For, Public, Private, 
+        True, False, Return, Null, If, Else, Class,
+        Base, This, While, For, Public, Private, 
         Protected, Friend, New, Break, Continue, Void, Virtual,
-        Override,
+        Override, Abstract, Final, Const,
 
-        // type names
-        BoolType, CharType, IntType, UintType, FloatType, StringType,
+        // types
+        BoolType, CharType, IntType, UintType, FloatType, StringType, ObjectType,
 
         Identifier,
 
-        EOF
+        EndOfFile
     }
 }

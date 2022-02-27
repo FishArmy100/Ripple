@@ -4,7 +4,7 @@
 }
 
 // dog, is smart enouph to have a name
-class Dog extends Animal
+class Dog : Animal
 {
 	char[]& m_Name;
 
@@ -22,7 +22,7 @@ class Dog extends Animal
 }
 
 // Cat, hisses when wet, or angry
-class Cat extends Animal
+class Cat : Animal
 {
 	private bool m_IsAngry = false;
 	private bool m_IsWet = false;
@@ -39,7 +39,7 @@ class Cat extends Animal
 
 	public override void Speak()
 	{
-		if(m_IsAngry or m_IsWet)
+		if(m_IsAngry || m_IsWet)
 		{
 			print("Hiss");
 		}
