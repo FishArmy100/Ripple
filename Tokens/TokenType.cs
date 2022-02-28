@@ -34,4 +34,33 @@ namespace Ripple
 
         EndOfFile
     }
+
+    static class TokenTypeExtentions
+    {
+        public static bool IsLiteral(this TokenType type)
+        {
+            return type == TokenType.Int ||
+                   type == TokenType.Uint ||
+                   type == TokenType.Float ||
+                   type == TokenType.Char ||
+                   type == TokenType.String;
+
+        }
+
+        public static bool IsBuiltInType(this TokenType type)
+        {
+            return type == TokenType.IntType ||
+                   type == TokenType.UintType ||
+                   type == TokenType.FloatType ||
+                   type == TokenType.CharType ||
+                   type == TokenType.StringType ||
+                   type == TokenType.ObjectType;
+
+        }
+
+        public static bool IsIdentifier(this TokenType type)
+        {
+            return type == TokenType.Identifier;
+        }
+    }
 }

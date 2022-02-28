@@ -37,5 +37,33 @@ namespace Ripple
 
             return Type + ": \"" + Lexeme + "\"";
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Token token &&
+                   Type == token.Type &&
+                   Lexeme == token.Lexeme &&
+                   EqualityComparer<object>.Default.Equals(Literal, token.Literal) &&
+                   Line == token.Line &&
+                   IsLiteral == token.IsLiteral;
+        }
+
+        public override int GetHashCode()
+        {
+            return Type.GetHashCode() * 17 + 
+                   Lexeme.GetHashCode() * 31 + 
+                   Line.GetHashCode() * 43 + 
+                   (Literal == null ? 0 : Literal.GetHashCode());
+        }
+
+        public static bool operator==(Token left, Token right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator!=(Token left, Token right)
+        {
+            return !left.Equals(right);
+        }
     }
 }

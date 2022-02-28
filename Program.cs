@@ -45,7 +45,10 @@ namespace Ripple
                 if (!parserResult.HasError)
                 {
                     Console.WriteLine(ASTPrinter.PrintTree(parserResult.ParsedExpression));
-                    Console.WriteLine(Transpiler.TranspileExpression(parserResult.ParsedExpression));
+
+                    var typeCheckErrors = TypeChecker.CheckExpression(parserResult.ParsedExpression);
+                    if (typeCheckErrors.Count > 0)
+                        Console.WriteLine(typeCheckErrors[0].Message);
                 }
                 else
                 {

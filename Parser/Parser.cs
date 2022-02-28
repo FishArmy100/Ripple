@@ -49,7 +49,7 @@ namespace Ripple
 
         private static Expression Unary(TokenReader reader)
         {
-            if(reader.MatchCurrent(TokenType.Minus))
+            if(reader.MatchCurrent(TokenType.Minus, TokenType.Bang))
             {
                 Token op = reader.Previous();
                 Expression right = Unary(reader);
