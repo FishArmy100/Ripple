@@ -6,12 +6,11 @@ using System.Threading.Tasks;
 
 namespace Ripple
 {
-    class TypeCheckExeption : Exception
-    { 
-        public TypeCheckExeption(string message) : base(message)
-        {
-
-        }
+    interface IASTVisitor<T> : Expression.IExpressionVisitor<T>
+    {
     }
 
+    interface IASTVisitor : Expression.IExpressionVisitor
+    {
+    }
 }

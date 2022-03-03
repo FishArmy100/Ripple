@@ -19,7 +19,7 @@ namespace Ripple
         GreaterThanGreaterThan,
 
         // Literals
-        Float, Int, Uint, Char, String,
+        FloatLiteral, IntLiteral, UintLiteral, CharLiteral, StringLiteral,
 
         // Keywords
         True, False, Return, Null, If, Else, Class,
@@ -39,11 +39,11 @@ namespace Ripple
     {
         public static bool IsLiteral(this TokenType type)
         {
-            return type == TokenType.Int ||
-                   type == TokenType.Uint ||
-                   type == TokenType.Float ||
-                   type == TokenType.Char ||
-                   type == TokenType.String;
+            return type == TokenType.IntLiteral ||
+                   type == TokenType.UintLiteral ||
+                   type == TokenType.FloatLiteral ||
+                   type == TokenType.CharLiteral ||
+                   type == TokenType.StringLiteral;
 
         }
 

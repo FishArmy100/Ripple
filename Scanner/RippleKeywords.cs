@@ -39,5 +39,11 @@ namespace Ripple
             { "final", TokenType.Final },
             { "const", TokenType.Const }
         };
+
+        public const string BOOL_TYPE_NAME = "bool";
+        public const string CHAR_TYPE_NAME = "char";
+        public const string INT_TYPE_NAME = "int";
+        public const string FLOAT_TYPE_NAME = "float";
+        public const string STRING_TYPE_NAME = "string";
     }
 }

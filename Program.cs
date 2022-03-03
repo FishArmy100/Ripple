@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections;
 
 namespace Ripple
 {
@@ -45,10 +47,8 @@ namespace Ripple
                 if (!parserResult.HasError)
                 {
                     Console.WriteLine(ASTPrinter.PrintTree(parserResult.ParsedExpression));
-
-                    var typeCheckErrors = TypeChecker.CheckExpression(parserResult.ParsedExpression);
-                    if (typeCheckErrors.Count > 0)
-                        Console.WriteLine(typeCheckErrors[0].Message);
+                    TypeChecker.CheckAST(new AbstractSyntaxTree(parserResult.ParsedExpression), out string message);
+                    Console.WriteLine(message);
                 }
                 else
                 {

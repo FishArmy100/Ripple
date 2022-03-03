@@ -99,7 +99,7 @@ namespace Ripple
                 if (Reader.IsAtEnd() && Reader.PeekCurrent(-1) != '\"')
                     AddError("Untermenated string");
 
-                AddToken(TokenType.String, Reader.Source[(Reader.Start + 1)..(Reader.Current - 1)]);
+                AddToken(TokenType.StringLiteral, Reader.Source[(Reader.Start + 1)..(Reader.Current - 1)]);
                 return true;
             }
 
@@ -127,7 +127,7 @@ namespace Ripple
                 if (Reader.IsAtEnd() && Reader.PeekCurrent(-1) != '\'')
                     AddError("Untermenated char");
 
-                AddToken(TokenType.Char, Reader.Source[(Reader.Start + 1)..(Reader.Current - 1)]);
+                AddToken(TokenType.CharLiteral, Reader.Source[(Reader.Start + 1)..(Reader.Current - 1)]);
                 return true;
             }
 
@@ -166,9 +166,9 @@ namespace Ripple
             }
 
             if (dotCount == 1)
-                AddToken(TokenType.Float, float.Parse(Reader.GetStartToCurrentString()));
+                AddToken(TokenType.FloatLiteral, float.Parse(Reader.GetStartToCurrentString()));
             if(dotCount == 0)
-                AddToken(TokenType.Int, int.Parse(Reader.GetStartToCurrentString()));
+                AddToken(TokenType.IntLiteral, int.Parse(Reader.GetStartToCurrentString()));
 
             return true;
         }

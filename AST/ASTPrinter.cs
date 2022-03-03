@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Ripple
 {
-    class ASTPrinter : Expression.IExpressionVisitor<string>
+    class ASTPrinter : IASTVisitor<string>
     {
         private int IndentCount = 0;
 

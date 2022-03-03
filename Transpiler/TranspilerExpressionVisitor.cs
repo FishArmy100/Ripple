@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple
 {
-    struct TranspilerExpressionVisitor : Expression.IExpressionVisitor<string>
+    struct TranspilerExpressionVisitor : IASTVisitor<string>
     {
         public string VisitBinary(Expression.Binary binary)
         {
@@ -22,19 +22,19 @@ namespace Ripple
         {
             switch(literal.Value.Type)
             {
-                case TokenType.Int:
+                case TokenType.IntLiteral:
                     return literal.Value.Literal.ToString();
-                case TokenType.Uint:
+                case TokenType.UintLiteral:
                     return literal.Value.Literal.ToString();
-                case TokenType.Float:
+                case TokenType.FloatLiteral:
                     return literal.Value.Literal.ToString();
                 case TokenType.True:
                     return "true";
                 case TokenType.False:
                     return "false";
-                case TokenType.String:
+                case TokenType.StringLiteral:
                     return literal.Value.Lexeme;
-                case TokenType.Char:
+                case TokenType.CharLiteral:
                     return literal.Value.Lexeme;
                 default:
                     return string.Empty;

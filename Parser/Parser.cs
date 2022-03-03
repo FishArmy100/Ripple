@@ -61,7 +61,7 @@ namespace Ripple
 
         private static Expression Primary(TokenReader reader)
         {
-            if(reader.MatchCurrent(TokenType.Int, TokenType.Float, TokenType.True, TokenType.False, TokenType.Null))
+            if(reader.MatchCurrent(TokenType.IntLiteral, TokenType.FloatLiteral, TokenType.CharLiteral, TokenType.StringLiteral, TokenType.True, TokenType.False, TokenType.Null))
             {
                 return new Expression.Literal(reader.Previous());
             }
