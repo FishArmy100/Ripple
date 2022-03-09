@@ -34,6 +34,32 @@ Expression Rules:
 	equality		-> comparison (("==" | "!=") comparison)*;
 	logic_and		-> equality ("&&" equality)*;
 	logic_or		-> logic_and ("||" logic_and)*;
+	assignment		-> IDENTIFIER "=" logic_or;
 	
-	expression -> logic_or;
+	expression		-> assignment;
+
+	varDecl			-> IDENTIFIER IDENTIFIER ( "=" expression)? ";";
+	declaration		-> varDecl
+
+	exprStmt		-> expression ";";
+	ifStmt			-> "if" "(" expression ")" statement
+					( "else" statement )?;
+	whileStmt		-> "while (" expression ")" 
+							statement;
+	forStmt			-> "for (" (varDecl | exprStmt | ";") expression? ";" expression? ")"
+							statment;
+
+	continueStmt	-> "continue;";
+	breakStmt		-> "break;";
+
+	statement		-> declaration 
+					 | exprStmt 
+					 | ifStmt 
+					 | block 
+					 | continueStmt 
+					 | breakStmt;
+
+	block			->  "{" statement* "}";
+
+	program			-> declaration*  EOF; // final ast for a file
 

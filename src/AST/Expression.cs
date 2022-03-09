@@ -95,6 +95,48 @@ namespace Ripple
             }
         }
 
+        public class Assignment : Expression
+        {
+            public readonly Token Name;
+            public readonly Expression Value;
+
+            public Assignment(Token name, Expression value)
+            {
+                Name = name;
+                Value = value;
+            }
+
+            public override T Accept<T>(IExpressionVisitor<T> visitor)
+            {
+                return visitor.VisitAssignment(this);
+            }
+
+            public override void Accept(IExpressionVisitor visitor)
+            {
+                visitor.VisitAssignment(this);
+            }
+        }
+
+        public class Variable : Expression
+        {
+            public readonly Token Name;
+
+            public Variable(Token name)
+            {
+                Name = name;
+            }
+
+            public override T Accept<T>(IExpressionVisitor<T> visitor)
+            {
+                return visitor.VisitVariable(this);
+            }
+
+            public override void Accept(IExpressionVisitor visitor)
+            {
+                visitor.VisitVariable(this);
+            }
+        }
+
 
         public interface IExpressionVisitor<T>
         {
@@ -102,6 +144,8 @@ namespace Ripple
             public T VisitLiteral(Literal literal);
             public T VisitUnary(Unary unary);
             public T VisitGrouping(Grouping grouping);
+            public T VisitAssignment(Assignment assignment);
+            public T VisitVariable(Variable variable);
         }
 
         public interface IExpressionVisitor
@@ -110,6 +154,8 @@ namespace Ripple
             public void VisitLiteral(Literal literal);
             public void VisitUnary(Unary unary);
             public void VisitGrouping(Grouping grouping);
+            public void VisitAssignment(Assignment assignment);
+            public void VisitVariable(Variable variable);
         }
     }
 }

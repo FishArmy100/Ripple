@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Ripple.Utils;
 
 namespace Ripple
 {
@@ -10,7 +11,7 @@ namespace Ripple
         private static List<ScannerError> Errors;
         private static SourceReader Reader;
 
-        public static ScanResult GetTokens(string source)
+        public static OperationResult<List<Token>, ScannerError> GetTokens(string source)
         {
             Reset(source);
             while(!Reader.IsAtEnd())
@@ -36,7 +37,7 @@ namespace Ripple
             }
 
             Tokens.Add(new Token(TokenType.EndOfFile, "", Reader.Line));
-            return new ScanResult(Tokens, Errors);
+            return new OperationResult<List<Token>, ScannerError>(Tokens, Errors);
         }
 
         private static bool ScanEmpty()

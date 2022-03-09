@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple
+namespace Ripple.Utils
 {
-    class Utils
+    class TokenUtils
     {
         public static bool TryGetTypeFromTokenType(TokenType tokenType, ASTInfo info, out ASTType astType)
         {
