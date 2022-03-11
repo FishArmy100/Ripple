@@ -9,24 +9,22 @@ namespace Ripple
 {
     struct CompilerError
     {
-        public readonly string ErrorMessage;
-        public readonly Token? Token;
+        public readonly string FilePath;
         public readonly int Line;
+        public readonly int Column;
+        public readonly string Message;
 
-        public bool HasToken => Token.HasValue;
-
-        public CompilerError(ParserError error)
+        public CompilerError(string filePath, int line, int column, string message)
         {
-            ErrorMessage = error.Message;
-            Token = error.Token;
-            Line = error.Token.Line;
+            FilePath = filePath;
+            Line = line;
+            Column = column;
+            Message = message;
         }
 
-        public CompilerError(ScannerError error)
+        public override string ToString()
         {
-            ErrorMessage = error.Message;
-            Token = null;
-            Line = error.Line;
+            return FilePath + ":" + Line + ":" + Column + ": " + Message;
         }
     }
 }

@@ -137,6 +137,28 @@ namespace Ripple
             }
         }
 
+        public class Call : Expression
+        {
+            public readonly Token Name;
+            public readonly List<Expression> Parameters;
+
+            public Call(Token name, List<Expression> parameters)
+            {
+                Name = name;
+                Parameters = parameters;
+            }
+
+            public override T Accept<T>(IExpressionVisitor<T> visitor)
+            {
+                return visitor.VisitCall(this);
+            }
+
+            public override void Accept(IExpressionVisitor visitor)
+            {
+                visitor.VisitCall(this);
+            }
+        }
+
 
         public interface IExpressionVisitor<T>
         {
@@ -146,6 +168,7 @@ namespace Ripple
             public T VisitGrouping(Grouping grouping);
             public T VisitAssignment(Assignment assignment);
             public T VisitVariable(Variable variable);
+            public T VisitCall(Call call);
         }
 
         public interface IExpressionVisitor
@@ -156,6 +179,7 @@ namespace Ripple
             public void VisitGrouping(Grouping grouping);
             public void VisitAssignment(Assignment assignment);
             public void VisitVariable(Variable variable);
+            public void VisitCall(Call call);
         }
     }
 }

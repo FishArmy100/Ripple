@@ -10,24 +10,27 @@ namespace Ripple
         public readonly string Lexeme;
         public readonly object Literal;
         public readonly int Line;
+        public readonly int Column;
 
         public bool IsLiteral => Literal != null;
-        public static Token Invalid => new Token(TokenType.Invalid, null, 0);
+        public static Token Invalid => new Token(TokenType.Invalid, null, 0, 0);
 
-        public Token(TokenType type, string lexeme, object literal, int line)
+        public Token(TokenType type, string lexeme, object literal, int line, int column)
         {
             Type = type;
             Lexeme = lexeme;
             Literal = literal;
             Line = line;
+            Column = column;
         }
 
-        public Token(TokenType type, string lexeme, int line)
+        public Token(TokenType type, string lexeme, int line, int column)
         {
             Type = type;
             Lexeme = lexeme;
             Literal = null;
             Line = line;
+            Column = column;
         }
 
         public override string ToString()

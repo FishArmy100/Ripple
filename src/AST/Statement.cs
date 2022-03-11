@@ -163,6 +163,28 @@ namespace Ripple
             }
         }
 
+        public class ReturnStmt : Statement
+        {
+            public readonly Token ReturnToken;
+            public readonly Expression ReturnExpression;
+
+            public ReturnStmt(Token returnToken, Expression returnExpression)
+            {
+                ReturnToken = returnToken;
+                ReturnExpression = returnExpression;
+            }
+
+            public override void Accept(IStatementVisitor visitor)
+            {
+                visitor.VisitReturnStmt(this);
+            }
+
+            public override T Accept<T>(IStatementVisitor<T> visitor)
+            {
+                return visitor.VisitReturnStmt(this);
+            }
+        }
+
         public abstract class Declaration : Statement { }
 
         public class VarDeclaration : Declaration
@@ -189,28 +211,59 @@ namespace Ripple
             }
         }
 
+        public class FuncDeclaration : Declaration
+        {
+            public readonly Token ReturnType;
+            public readonly Token Name;
+            public readonly List<Tuple<Token, Token>> Parameters;
+            public readonly Block Body;
+
+            public FuncDeclaration(Token returnType, Token name, List<Tuple<Token, Token>> parameters, Block body)
+            {
+                ReturnType = returnType;
+                Name = name;
+                Parameters = parameters;
+                Body = body;
+            }
+
+            public override void Accept(IStatementVisitor visitor)
+            {
+                visitor.VisitFuncDeclaration(this);
+            }
+
+            public override T Accept<T>(IStatementVisitor<T> visitor)
+            {
+                return visitor.VisitFuncDeclaration(this);
+            }
+        }
+
+
         public interface IStatementVisitor
         {
             public void VisitExpressionStmt(ExpressionStmt expressionStmt);
             public void VisitVarDeclaration(VarDeclaration variable);
+            public void VisitFuncDeclaration(FuncDeclaration funcDeclaration);
             public void VisitBlock(Block block);
             public void VisitIfStmt(IfStmt ifStmt);
             public void VisitWhileLoop(WhileLoop whileLoop);
             public void VisitForLoop(ForLoop forLoop);
             public void VisitContinueStmt(ContinueStmt continueStmt);
             public void VisitBreakStmt(BreakStmt breakStmt);
+            public void VisitReturnStmt(ReturnStmt returnStmt);
         }
 
         public interface IStatementVisitor<T>
         {
             public T VisitExpressionStmt(ExpressionStmt expressionStmt);
             public T VisitVarDeclaration(VarDeclaration variable);
+            public T VisitFuncDeclaration(FuncDeclaration funcDeclaration);
             public T VisitBlock(Block block);
             public T VisitIfStmt(IfStmt ifStmt);
             public T VisitWhileLoop(WhileLoop whileLoop);
             public T VisitForLoop(ForLoop forLoop);
             public T VisitContinueStmt(ContinueStmt continueStmt);
             public T VisitBreakStmt(BreakStmt breakStmt);
+            public T VisitReturnStmt(ReturnStmt returnStmt);
         }
     }
 }

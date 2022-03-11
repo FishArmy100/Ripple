@@ -84,6 +84,25 @@ namespace Ripple
             return sExpr;
         }
 
+        public string VisitFuncDeclaration(Statement.FuncDeclaration funcDeclaration)
+        {
+            string sFunc = GetOffset() + "Func declaration: " + funcDeclaration.Name.Lexeme + "\n";
+            m_IndentCount++;
+            sFunc += GetOffset() + "Return type: " + funcDeclaration.ReturnType.Lexeme + "\n";
+
+            sFunc += GetOffset() + "Parameters: ";
+            foreach (Tuple<Token, Token> parameter in funcDeclaration.Parameters)
+                sFunc += "type: " + parameter.Item1.Lexeme + ", name: " + parameter.Item2.Lexeme + "; ";
+            sFunc = sFunc.Remove(sFunc.Length - 2);
+
+            sFunc += "\n";
+
+            sFunc += funcDeclaration.Body.Accept(this);
+
+            m_IndentCount--;
+            return sFunc;
+        }
+
         public string VisitExpressionStmt(Statement.ExpressionStmt expressionStmt)
         {
             string sExpr = GetOffset() + "Expression Statement: ";
@@ -101,6 +120,24 @@ namespace Ripple
                 sBlock += s.Accept(this);
             m_IndentCount--;
             return sBlock;
+        }
+
+        public string VisitCall(Expression.Call call)
+        {
+            string sCall = GetOffset() + "Call expression: \n";
+
+            m_IndentCount++;
+            sCall += GetOffset() + "Name: " + call.Name.Lexeme + "\n";
+            
+            sCall += GetOffset() + "Parameters: \n";
+            m_IndentCount++;
+            foreach (Expression e in call.Parameters)
+                sCall += e.Accept(this);
+            m_IndentCount--;
+
+            m_IndentCount--;
+
+            return sCall;
         }
 
         public string VisitIfStmt(Statement.IfStmt ifStmt)
@@ -159,6 +196,25 @@ namespace Ripple
         public string VisitBreakStmt(Statement.BreakStmt breakStmt)
         {
             return GetOffset() + "Break statement \n";
+        }
+
+        public string VisitReturnStmt(Statement.ReturnStmt returnStmt)
+        {
+            string sReturn = GetOffset() + "Return statment: \n";
+            
+
+            if(returnStmt.ReturnExpression != null)
+            {
+                m_IndentCount++;
+                sReturn += GetOffset() + "Expression: \n";
+
+                m_IndentCount++;
+                sReturn += returnStmt.ReturnExpression.Accept(this);
+                m_IndentCount--;
+
+                m_IndentCount--;
+            }
+            return sReturn;
         }
 
         public string VisitForLoop(Statement.ForLoop forLoop)

@@ -10,6 +10,7 @@ namespace Ripple
         public int Start { get; private set; }
         public int Current { get; private set; }
         public int Line { get; private set; }
+        public int Column { get; private set; }
 
         public SourceReader(string source)
         {
@@ -17,6 +18,7 @@ namespace Ripple
             Start = 0;
             Current = 0;
             Line = 1;
+            Column = 1;
         }
 
         public char AdvanceCurrent()
@@ -25,7 +27,11 @@ namespace Ripple
                 return '\0';
 
             if (PeekCurrent() == '\n')
+            {
+                Column = 0;
                 Line++;
+            }
+            Column++;
 
             return Source[Current++];
         }

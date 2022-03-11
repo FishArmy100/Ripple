@@ -8,18 +8,15 @@ namespace Ripple
     {
         public readonly string Message;
         public readonly int Line;
+        public readonly int Column;
         public readonly string Where;
 
-        public ScannerError(string message, int line, string where = "")
+        public ScannerError(string message, int line, int column, string where = "")
         {
             Message = message;
             Line = line;
             Where = where;
-        }
-
-        public override string ToString()
-        {
-            return "[line: " + Line + "] Error" + Where + ": " + Message;
+            Column = column;
         }
     }
 }

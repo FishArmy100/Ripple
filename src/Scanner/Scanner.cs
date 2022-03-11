@@ -36,7 +36,7 @@ namespace Ripple
                 }
             }
 
-            Tokens.Add(new Token(TokenType.EndOfFile, "", Reader.Line));
+            Tokens.Add(new Token(TokenType.EndOfFile, "", Reader.Line, Reader.Column));
             return new OperationResult<List<Token>, ScannerError>(Tokens, Errors);
         }
 
@@ -235,6 +235,9 @@ namespace Ripple
                 case ':':
                     FoundToken(TokenType.Colon);
                     break;
+                case '~':
+                    FoundToken(TokenType.Tilda);
+                    break;
 
                 // multiple charictor symbols
                 case '!':
@@ -316,12 +319,12 @@ namespace Ripple
 
         private static void AddError(string message, string where = "")
         {
-            Errors.Add(new ScannerError(message, Reader.Line, where));
+            Errors.Add(new ScannerError(message, Reader.Line, Reader.Column, where));
         }
 
         private static void AddToken(TokenType type, object literal = null)
         {
-            Tokens.Add(new Token(type, Reader.GetStartToCurrentString(), literal, Reader.Line));
+            Tokens.Add(new Token(type, Reader.GetStartToCurrentString(), literal, Reader.Line, Reader.Column));
         }
 
         private static bool IsDigit(char c)

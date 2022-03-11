@@ -44,23 +44,10 @@ namespace Ripple
         {
             Utils.OperationResult<CompilerResult, CompilerError> result = Compiler.CompileSource(src);
 
-            string scannerTokens = "";
-
-            foreach (Token token in result.Result.Tokens)
-            {
-                scannerTokens += token.ToString() + ", ";
-            }
-
-            Console.WriteLine(scannerTokens);
-
-            string errorString = "Errors: \n";
+            Console.WriteLine("Compiler Errors:");
             foreach (CompilerError error in result.Errors)
-            {
-                errorString += "\t" + error.ErrorMessage;
-                errorString += "\n";
-            }
-
-            Console.WriteLine(errorString);
+                Console.WriteLine("\t" + error.ToString());
+            Console.WriteLine("");
 
             Console.WriteLine(ASTPrinter.PrintTree(result.Result.AST, "     "));
         }

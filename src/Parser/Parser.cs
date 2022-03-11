@@ -15,42 +15,110 @@ namespace Ripple
 
             while (!reader.IsAtEnd())
             {
-                Statement decl = Declaration(reader, out ParserError error);
-                if (decl != null)
-                    statements.Add(decl);
-                else
-                    errors.Add(error);
+                try
+                {
+                    Statement declaration = CreateDeclaration(reader);
+                    statements.Add(declaration);
+                }
+                catch(ParserException e)
+                {
+                    errors.Add(e.Error);
+                    reader.AdvanceCurrent();
+                    Synchronize(reader);
+                }
             }
 
             AbstractSyntaxTree ast = new AbstractSyntaxTree(statements);
             return new OperationResult<AbstractSyntaxTree, ParserError>(ast, errors);
         }
 
-        private static Statement Declaration(TokenReader reader, out ParserError error)
+        // ------------------------------------------------------------------------------------
+        // Declaration:
+        // ------------------------------------------------------------------------------------
+        private static Statement CreateDeclaration(TokenReader reader)
         {
-            error = new ParserError();
-
-            try
-            {
-                return Declaration(reader);
-            }
-            catch (ParserException e)
-            {
-                error = e.Error;
-                reader.AdvanceCurrent();
-                //Synchronize(); TODO: Implement
-                return null;
-            }
-        }
-
-        private static Statement Declaration(TokenReader reader)
-        {
-            if (IsVariableDeclaration(reader))
+            if (IsCurrentVariableDeclaration(reader))
                 return VariableDeclaration(reader);
 
-            return CreateStatement(reader);
+            if (IsCurrentFunctionDeclaration(reader))
+                return FunctionDeclaration(reader);
+
+            throw new ParserException("Expected declaration", reader.PeekCurrent(), reader.Current);
         }
 
+        private static Statement VariableDeclaration(TokenReader reader)
+        {
+            Token type = reader.AdvanceCurrent();
+            Token name = reader.AdvanceCurrent();
+            Expression initializer = null;
+
+            if (reader.MatchCurrent(TokenType.Equal))
+                initializer = CreateExpression(reader);
+
+            Consume(reader, TokenType.Semicolon, "Expect ';' after variable declaration.");
+            return new Statement.VarDeclaration(type, name, initializer);
+        }
+
+        private static Statement FunctionDeclaration(TokenReader reader)
+        {
+            Token returnType = reader.AdvanceCurrent();
+            Token name = reader.AdvanceCurrent();
+            reader.AdvanceCurrent(); // gets rid of '(' token
+
+            List<Tuple<Token, Token>> parameters = new List<Tuple<Token, Token>>();
+
+            if (!reader.CheckCurrent(TokenType.CloseParen))
+            {
+                do
+                {
+                    if (parameters.Count >= 255)
+                        throw new ParserException("Cant have more then 255 parameters.", reader.PeekCurrent(), reader.Current);
+
+                    if (!TokenUtils.IsTokenAType(reader.PeekCurrent()))
+                        throw new ParserException("Expected type name.", reader.PeekCurrent(), reader.Current);
+                    Token paramType = reader.AdvanceCurrent();
+
+                    Token paramName = Consume(reader, TokenType.Identifier, "Expected parameter name.");
+                    parameters.Add(Tuple.Create(paramType, paramName));
+                }
+                while (reader.MatchCurrent(TokenType.Comma));
+            }
+
+            Consume(reader, TokenType.CloseParen, "Expect ')' after parameters.");
+
+            Consume(reader, TokenType.OpenBrace, "Expect '{' after function definition.");
+            Statement.Block body = (Statement.Block)Block(reader);
+            return new Statement.FuncDeclaration(returnType, name, parameters, body);
+        }
+
+        private static bool IsCurrentDeclaration(TokenReader reader)
+        {
+            return IsCurrentFunctionDeclaration(reader) ||
+                   IsCurrentVariableDeclaration(reader);
+        }
+
+        private static bool IsCurrentVariableDeclaration(TokenReader reader)
+        {
+            Token type = reader.PeekCurrent();
+            Token name = reader.PeekCurrent(1);
+            Token equals = reader.PeekCurrent(2);
+            return TokenUtils.IsTokenAType(type) && name.Type == TokenType.Identifier && equals.Type == TokenType.Equal;
+        }
+
+        private static bool IsCurrentFunctionDeclaration(TokenReader reader)
+        {
+            Token type = reader.PeekCurrent();
+            Token name = reader.PeekCurrent(1);
+            Token openParen = reader.PeekCurrent(2);
+
+            bool isReturnType = TokenUtils.IsTokenAType(type) || type.Type == TokenType.Void;
+
+            return isReturnType && name.Type == TokenType.Identifier && openParen.Type == TokenType.OpenParen;
+        }
+
+        // ------------------------------------------------------------------------------------
+        // Statement:
+        // ------------------------------------------------------------------------------------
         private static Statement CreateStatement(TokenReader reader)
         {
             if (reader.MatchCurrent(TokenType.While))
@@ -70,6 +138,12 @@ namespace Ripple
 
             if (reader.MatchCurrent(TokenType.Break))
                 return BreakStatement(reader);
+
+            if (reader.MatchCurrent(TokenType.Return))
+                return ReturnStatement(reader);
+
+            if (IsCurrentDeclaration(reader))
+                return CreateDeclaration(reader);
 
             return ExpressionStatment(reader);
         }
@@ -92,7 +166,7 @@ namespace Ripple
             Consume(reader, TokenType.OpenParen, "Expect '(' after 'for'.");
 
             Statement initializer = null;
-            if (IsVariableDeclaration(reader))
+            if (IsCurrentVariableDeclaration(reader))
                 initializer = VariableDeclaration(reader);
             else
                 initializer = ExpressionStatment(reader);
@@ -117,7 +191,7 @@ namespace Ripple
             List<Statement> statements = new List<Statement>();
 
             while (!reader.CheckCurrent(TokenType.CloseBrace) && !reader.IsAtEnd())
-                statements.Add(Declaration(reader));
+                statements.Add(CreateStatement(reader));
 
             Consume(reader, TokenType.CloseBrace, "Expect '}' after block statement");
             return new Statement.Block(statements);
@@ -152,17 +226,16 @@ namespace Ripple
             return new Statement.BreakStmt(token);
         }
 
-        private static Statement VariableDeclaration(TokenReader reader)
+        private static Statement ReturnStatement(TokenReader reader)
         {
-            Token type = reader.AdvanceCurrent();
-            Token name = reader.AdvanceCurrent();
-            Expression initializer = null;
+            Token returnToken = reader.Previous();
+            Expression expression = null;
 
-            if (reader.MatchCurrent(TokenType.Equal))
-                initializer = CreateExpression(reader);
+            if (!reader.CheckCurrent(TokenType.Semicolon))
+                expression = CreateExpression(reader);
 
-            Consume(reader, TokenType.Semicolon, "Expect ';' after variable declaration.");
-            return new Statement.VarDeclaration(type, name, initializer);
+            Consume(reader, TokenType.Semicolon, "Expect ';' after return value");
+            return new Statement.ReturnStmt(returnToken, expression);
         }
 
         private static Statement ExpressionStatment(TokenReader reader)
@@ -171,6 +244,10 @@ namespace Ripple
             Consume(reader, TokenType.Semicolon, "Expect ';' after expression");
             return new Statement.ExpressionStmt(expr);
         }
+
+        // ------------------------------------------------------------------------------------
+        // Expression:
+        // ------------------------------------------------------------------------------------
 
         private static Expression CreateExpression(TokenReader reader)
         {
@@ -200,7 +277,11 @@ namespace Ripple
         private static Expression LogicOr(TokenReader reader) => GetBinaryExpression(reader, LogicAnd, TokenType.PipePipe); 
         private static Expression LogicAnd(TokenReader reader) => GetBinaryExpression(reader, Equality, TokenType.AmpersandAmpersand);
         private static Expression Equality(TokenReader reader) => GetBinaryExpression(reader, Comparison, TokenType.EqualEqual, TokenType.BangEqual);
-        private static Expression Comparison(TokenReader reader) => GetBinaryExpression(reader, Term, TokenType.LessThen, TokenType.LessThenEqual, TokenType.GreaterThen, TokenType.GreaterThenEqual);
+        private static Expression Comparison(TokenReader reader) => GetBinaryExpression(reader, BitOr, TokenType.LessThen, TokenType.LessThenEqual, TokenType.GreaterThen, TokenType.GreaterThenEqual);
+        private static Expression BitOr(TokenReader reader) => GetBinaryExpression(reader, BitXOr, TokenType.Pipe);
+        private static Expression BitXOr(TokenReader reader) => GetBinaryExpression(reader, BitAnd, TokenType.Caret);
+        private static Expression BitAnd(TokenReader reader) => GetBinaryExpression(reader, BitShift, TokenType.Ampersand);
+        private static Expression BitShift(TokenReader reader) => GetBinaryExpression(reader, Term, TokenType.GreaterThanGreaterThan, TokenType.LessThanLessThan);
         private static Expression Term(TokenReader reader) => GetBinaryExpression(reader, Factor, TokenType.Plus, TokenType.Minus);
         private static Expression Factor(TokenReader reader) => GetBinaryExpression(reader, Unary, TokenType.Star, TokenType.Slash, TokenType.Percent);
 
@@ -219,7 +300,7 @@ namespace Ripple
 
         private static Expression Unary(TokenReader reader)
         {
-            if(reader.MatchCurrent(TokenType.Minus, TokenType.Bang))
+            if(reader.MatchCurrent(TokenType.Minus, TokenType.Bang, TokenType.Tilda))
             {
                 Token op = reader.Previous();
                 Expression right = Unary(reader);
@@ -231,6 +312,9 @@ namespace Ripple
 
         private static Expression Primary(TokenReader reader)
         {
+            if (Call(reader, out Expression callExpr))
+                return callExpr;
+
             if(reader.MatchCurrent(TokenType.IntLiteral, TokenType.FloatLiteral, TokenType.CharLiteral, TokenType.StringLiteral, TokenType.True, TokenType.False, TokenType.Null))
             {
                 return new Expression.Literal(reader.Previous());
@@ -256,19 +340,75 @@ namespace Ripple
             throw new ParserException("Invalid primary token: \"" + token.Lexeme + "\" at line " + token.Line, token, reader.Current);
         }
 
+        private static bool Call(TokenReader reader, out Expression callExpr)
+        {
+            callExpr = null;
+
+            Token name = reader.PeekCurrent();
+            if(name.Type == TokenType.Identifier && reader.PeekCurrent(1).Type == TokenType.OpenParen)
+            {
+                reader.AdvanceCurrent();
+                reader.AdvanceCurrent();
+                List<Expression> parameters = new List<Expression>();
+
+                if(!reader.CheckCurrent(TokenType.CloseParen))
+                {
+                    do
+                    {
+                        parameters.Add(CreateExpression(reader));
+                    }
+                    while (reader.MatchCurrent(TokenType.Comma));
+                }
+                Consume(reader, TokenType.CloseParen, "Expect ')' after function call");
+
+                callExpr = new Expression.Call(name, parameters);
+                return true;
+            }
+
+            return false;
+        }
+
+        // ------------------------------------------------------------------------------------
+        // Utilities:
+        // ------------------------------------------------------------------------------------
+
         private static Token Consume(TokenReader reader, TokenType type, string errorMessage)
         {
             if (reader.CheckCurrent(type))
                 return reader.AdvanceCurrent();
 
-            throw new ParserException(errorMessage, reader.PeekCurrent(), reader.Current);
+            throw new ParserException(errorMessage, reader.Previous(), reader.Current - 1);
         }
 
-        private static bool IsVariableDeclaration(TokenReader reader)
+        private static void Synchronize(TokenReader reader)
         {
-            Token type = reader.PeekCurrent();
-            Token name = reader.PeekCurrent(1);
-            return (type.Type == TokenType.Identifier || type.Type.IsBuiltInType()) && name.Type == TokenType.Identifier;
+            Token current = reader.PeekCurrent();
+
+            while (!reader.IsAtEnd())
+            {
+                if (IsCurrentDeclaration(reader))
+                    return;
+
+                if (TokenUtils.IsTokenAType(current))
+                    return;
+
+                if (IsSynchronizeableKeyword(current.Type))
+                    return;
+
+                reader.AdvanceCurrent();
+            }
+        }
+
+        private static bool IsSynchronizeableKeyword(TokenType type)
+        {
+            return type == TokenType.Class ||
+                   type == TokenType.For ||
+                   type == TokenType.While ||
+                   type == TokenType.Return ||
+                   type == TokenType.Break ||
+                   type == TokenType.Continue ||
+                   type == TokenType.If ||
+                   type == TokenType.Else;
         }
     }
 }

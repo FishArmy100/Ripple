@@ -8,6 +8,13 @@ namespace Ripple.Utils
 {
     class TokenUtils
     {
+        /// <summary>
+        /// Converts a token type into a AST type based on the information in a AST info
+        /// </summary>
+        /// <param name="tokenType"></param>
+        /// <param name="info"></param>
+        /// <param name="astType"></param>
+        /// <returns></returns>
         public static bool TryGetTypeFromTokenType(TokenType tokenType, ASTInfo info, out ASTType astType)
         {
             astType = new ASTType();
@@ -40,6 +47,16 @@ namespace Ripple.Utils
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Checks if a token could be a type name ei: int, string, or a user defined type. Does not include void
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public static bool IsTokenAType(Token token)
+        {
+            return token.Type == TokenType.Identifier || token.Type.IsBuiltInType();
         }
     }
 }

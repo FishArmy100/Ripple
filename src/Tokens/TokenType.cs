@@ -8,7 +8,7 @@ namespace Ripple
         // single charictor tokens
         Dot, Comma, Minus, Plus, Slash,
         Star, Semicolon, Colon, Caret, 
-        Ampersand, Pipe, Percent,
+        Ampersand, Pipe, Percent, Tilda,
 
         OpenParen, CloseParen, OpenBracket, CloseBracket,
         OpenBrace, CloseBrace,

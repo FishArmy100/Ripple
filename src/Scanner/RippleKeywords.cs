@@ -13,7 +13,7 @@ namespace Ripple
             { "return", TokenType.Return },
             { "null", TokenType.Null },
             { "if", TokenType.If },
-            { "Else", TokenType.Else },
+            { "else", TokenType.Else },
             { "class", TokenType.Class },
             { "base", TokenType.Base },
             { "this", TokenType.This },
