@@ -26,10 +26,25 @@ Basic Rules: created in lexer
 Utility Rules:
 	parameters		-> typeName IDENTIFIER ("," typeName IDENTIFIER)*;
 	arguments		-> expression ("," expression)*;
+	typeName		-> "int" | "float" | "string" | "char" | "object" | "uint" | IDENTIFIER;		
+	
+	accessLevel		-> "public" | "private" | "protected";
 
 Expression Rules:
-	call			-> IDENTIFIER "(" arguments? ")";
-	primary			-> INT | FLOAT | CHAR | STRING | call | IDENTIFIER | "(" expression ")";
+	primary			-> INT 
+					 | FLOAT 
+					 | CHAR 
+					 | STRING 
+					 | call 
+					 | IDENTIFIER 
+					 | "(" expression ")" 
+					 | "this" 
+					 | "base"
+					 | "new" typeName "(" parameters ")";
+
+
+	call			-> primary ("(" arguments? ")" | "." IDIENTIFIER)*;
+
 	unary			-> ("-" | "!" | "~") unary | primary;
 
 	factor			-> unary (("*" | "/" | "%") unary)*; // Example: 5 * -3 / 2;
@@ -47,36 +62,51 @@ Expression Rules:
 	expression		-> assignment;
 
 Statement Rules:
-	typeName		-> "int" | "float" | "string" | "char" | "object" | "uint" | IDENTIFIER;
-
-	varDecl			-> typeName IDENTIFIER ( "=" expression)? ";";
-
-	
-	funcDecl		-> typeName IDENTIFIER "(" parameters? ")" block;
-	returnStmt		-> "return" expression? ";";
-
-	declaration		-> varDecl | funcDecl
-
 	exprStmt		-> expression ";";
-	ifStmt			-> "if" "(" expression ")" statement
-					( "else" statement )?;
+	ifStmt			-> "if" "(" expression ")" instructionStmt
+					( "else" instructionStmt )?;
 	whileStmt		-> "while (" expression ")" 
-							statement;
+							instructionStmt;
+
 	forStmt			-> "for (" (varDecl | exprStmt | ";") expression? ";" expression? ")"
-							statment;
+							instructionStmt;
 
 	continueStmt	-> "continue;";
 	breakStmt		-> "break;";
+	returnStmt		-> "return" expression? ";";
 
-	statement		-> declaration 
+
+	instructionStmt	-> declaration 
 					 | exprStmt 
 					 | ifStmt 
 					 | block 
+					 | whileStmt
+					 | forStmt
 					 | continueStmt 
 					 | breakStmt;
 					 | returnStmt;
 
-	block			->  "{" statement* "}";
+	block			->  "{" instructionStmt* "}";
+
+Declaration Rules:
+
+	varDecl			-> typeName IDENTIFIER ( "=" expression)? ";";
+	
+	funcDecl		-> typeName IDENTIFIER "(" parameters? ")" block
+
+	constructor		-> IDENTIFIER "(" parameters? ")" block;
+	memberAttrib	-> public | protected | private | virtual | override;
+
+	memberDecl		-> constructor | declaration;
+
+	classMember		-> memberAttrib* memberDecl;
+
+	classDecl		-> "class" IDENTIFIER (":" IDENTIFIER)?
+					 "{"
+						  classMember*
+					 "}";
+
+	declaration		-> varDecl | funcDecl | classDecl
 
 	program			-> declaration*  EOF; // final ast for a file
 

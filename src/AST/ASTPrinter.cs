@@ -27,7 +27,7 @@ namespace Ripple
             m_IndentCount = 0;
         }
 
-        public string VisitAssignment(Expression.Assignment assignment)
+        public string VisitAssignment(AssignmentExpr assignment)
         {
             string sExpr = GetOffset() + "Assignment Expression: Name " + assignment.Name.Lexeme;
             m_IndentCount++;
@@ -36,7 +36,7 @@ namespace Ripple
             return sExpr;
         }
 
-        public string VisitBinary(Expression.Binary binary)
+        public string VisitBinary(BinaryExpr binary)
         {
             string sExpr = GetOffset() + "Binary Expression: operator " + binary.Operator.Lexeme;
             m_IndentCount++;
@@ -45,7 +45,7 @@ namespace Ripple
             return sExpr;
         }
 
-        public string VisitGrouping(Expression.Grouping grouping)
+        public string VisitGrouping(GroupingExpr grouping)
         {
             string sExpr = GetOffset() + "Grouped Expression: \n";
             m_IndentCount++;
@@ -54,13 +54,29 @@ namespace Ripple
             return sExpr;
         }
 
-        public string VisitLiteral(Expression.Literal literal)
+        public string VisitLiteral(LiteralExpr literal)
         {
             string sExpr = GetOffset() + "Literal: " + literal.Value.Lexeme + "\n";
             return sExpr;
         }
 
-        public string VisitUnary(Expression.Unary unary)
+        public string VisitNew(NewExpr newExpr)
+        {
+            string sNew = GetOffset() + "New expression\n";
+            m_IndentCount++;
+            sNew += GetOffset() + "Type: " + newExpr.Type.Lexeme + "\n";
+            sNew += GetOffset() + "Arguments: \n";
+
+            m_IndentCount++;
+            foreach (Expression expr in newExpr.Arguments)
+                sNew += expr.Accept(this);
+            m_IndentCount--;
+
+            m_IndentCount--;
+            return sNew;
+        }
+
+        public string VisitUnary(UnaryExpr unary)
         {
             string sExpr = GetOffset() + "Binary Expression: operator " + unary.Operator.Lexeme;
             m_IndentCount++;
@@ -69,13 +85,13 @@ namespace Ripple
             return sExpr;
         }
 
-        public string VisitVariable(Expression.Variable variable)
+        public string VisitIdentifier(IdentifierExpr variable)
         {
-            string sExpr = GetOffset() + "Variable: " + variable.Name.Lexeme + "\n";
+            string sExpr = GetOffset() + "Identifier: " + variable.Name.Lexeme + "\n";
             return sExpr;
         }
 
-        public string VisitVarDeclaration(Statement.VarDeclaration variable)
+        public string VisitVarDeclaration(VariableDecl variable)
         {
             string sExpr = GetOffset() + "Variable declaration: " + variable.TypeName.Lexeme + " " + variable.Name.Lexeme;
             m_IndentCount++;
@@ -84,15 +100,15 @@ namespace Ripple
             return sExpr;
         }
 
-        public string VisitFuncDeclaration(Statement.FuncDeclaration funcDeclaration)
+        public string VisitFuncDeclaration(FunctionDecl funcDeclaration)
         {
             string sFunc = GetOffset() + "Func declaration: " + funcDeclaration.Name.Lexeme + "\n";
             m_IndentCount++;
             sFunc += GetOffset() + "Return type: " + funcDeclaration.ReturnType.Lexeme + "\n";
 
             sFunc += GetOffset() + "Parameters: ";
-            foreach (Tuple<Token, Token> parameter in funcDeclaration.Parameters)
-                sFunc += "type: " + parameter.Item1.Lexeme + ", name: " + parameter.Item2.Lexeme + "; ";
+            foreach (FunctionParameter parameter in funcDeclaration.Parameters)
+                sFunc += "type: " + parameter.Type.Lexeme + ", name: " + parameter.Name.Lexeme + "; ";
             sFunc = sFunc.Remove(sFunc.Length - 2);
 
             sFunc += "\n";
@@ -103,7 +119,65 @@ namespace Ripple
             return sFunc;
         }
 
-        public string VisitExpressionStmt(Statement.ExpressionStmt expressionStmt)
+        public string VisitClassDeclaration(ClassDecl classDecl)
+        {
+            string sClass = GetOffset() + "Class declaration: Name:" + classDecl.Name.Lexeme;
+            sClass += classDecl.IsDerived ? "; Base: " + classDecl.Base.Value.Lexeme + "\n" : "\n";
+
+            m_IndentCount++;
+            sClass += GetOffset() + "Members:\n";
+
+            m_IndentCount++;
+            foreach (MemberDeclarationStmt memberDeclaration in classDecl.MemberDeclarations)
+                sClass += memberDeclaration.Accept(this);
+            m_IndentCount--;
+
+            m_IndentCount--;
+
+            return sClass;
+        }
+
+        public string VisitConstructorDecl(ConstructorDecl constructorDecl)
+        {
+            string sConstructor = GetOffset() + "Constructor declaration:\n";
+            m_IndentCount++;
+
+            sConstructor += GetOffset() + "Parameters: ";
+            foreach (FunctionParameter parameter in constructorDecl.Parameters)
+                sConstructor += "type: " + parameter.Type.Lexeme + ", name: " + parameter.Name.Lexeme + "; ";
+            sConstructor = sConstructor.Remove(sConstructor.Length - 2);
+
+            sConstructor += "\n";
+
+            sConstructor += constructorDecl.Body.Accept(this);
+
+            m_IndentCount--;
+            return sConstructor;
+        }
+
+        public string VisitMemberDeclaration(MemberDeclarationStmt memberDeclaration)
+        {
+            string sMember = GetOffset() + "Class member declaration:\n";
+
+            m_IndentCount++;
+            sMember += GetOffset() + "Attributes: ";
+
+            foreach (var attrib in memberDeclaration.Attributes)
+                sMember += attrib.Type.ToString() + ", ";
+            sMember = sMember.Remove(sMember.Length - 2);
+            sMember += '\n';
+
+            sMember += GetOffset() + "Declaration: \n";
+            m_IndentCount++;
+            sMember += memberDeclaration.Member.Accept(this);
+            m_IndentCount--;
+
+            m_IndentCount--;
+
+            return sMember;
+        }
+
+        public string VisitExpressionStmt(ExpressionStmt expressionStmt)
         {
             string sExpr = GetOffset() + "Expression Statement: ";
             m_IndentCount++;
@@ -112,7 +186,7 @@ namespace Ripple
             return sExpr;
         }
 
-        public string VisitBlock(Statement.Block block)
+        public string VisitBlock(BlockStmt block)
         {
             string sBlock = GetOffset() + "Block statement: \n";
             m_IndentCount++;
@@ -122,12 +196,15 @@ namespace Ripple
             return sBlock;
         }
 
-        public string VisitCall(Expression.Call call)
+        public string VisitCall(CallExpr call)
         {
             string sCall = GetOffset() + "Call expression: \n";
 
             m_IndentCount++;
-            sCall += GetOffset() + "Name: " + call.Name.Lexeme + "\n";
+            sCall += GetOffset() + "Callee:\n";
+            m_IndentCount++;
+            sCall += call.Callee.Accept(this);
+            m_IndentCount--;
             
             sCall += GetOffset() + "Parameters: \n";
             m_IndentCount++;
@@ -140,7 +217,7 @@ namespace Ripple
             return sCall;
         }
 
-        public string VisitIfStmt(Statement.IfStmt ifStmt)
+        public string VisitIfStmt(IfStmt ifStmt)
         {
             string sIf = GetOffset() + "If statement:\n";
             m_IndentCount++;
@@ -167,7 +244,7 @@ namespace Ripple
             return sIf;
         }
 
-        public string VisitWhileLoop(Statement.WhileLoop whileLoop)
+        public string VisitWhileLoop(WhileLoopStmt whileLoop)
         {
             string sWhile = GetOffset() + "While loop:\n";
             m_IndentCount++;
@@ -188,17 +265,17 @@ namespace Ripple
             return sWhile;
         }
 
-        public string VisitContinueStmt(Statement.ContinueStmt continueStmt)
+        public string VisitContinueStmt(ContinueStmt continueStmt)
         {
             return GetOffset() + "Continue statement \n";
         }
 
-        public string VisitBreakStmt(Statement.BreakStmt breakStmt)
+        public string VisitBreakStmt(BreakStmt breakStmt)
         {
             return GetOffset() + "Break statement \n";
         }
 
-        public string VisitReturnStmt(Statement.ReturnStmt returnStmt)
+        public string VisitReturnStmt(ReturnStmt returnStmt)
         {
             string sReturn = GetOffset() + "Return statment: \n";
             
@@ -217,7 +294,7 @@ namespace Ripple
             return sReturn;
         }
 
-        public string VisitForLoop(Statement.ForLoop forLoop)
+        public string VisitForLoop(ForLoopStmt forLoop)
         {
             string sFor = GetOffset() + "For loop:\n";
             m_IndentCount++;
@@ -263,6 +340,18 @@ namespace Ripple
             }
 
             return offset;
+        }
+
+        public string VisitGet(GetExpr get)
+        {
+            string sGet = "Get: Name:" + get.Name.Lexeme +"\n";
+            m_IndentCount++;
+            sGet += GetOffset() + "Object:\n";
+            m_IndentCount++;
+            sGet += get.Object.Accept(this);
+            m_IndentCount--;
+            m_IndentCount--;
+            return sGet;
         }
     }
 }

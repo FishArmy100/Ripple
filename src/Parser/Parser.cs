@@ -7,6 +7,8 @@ namespace Ripple
 {
     static class Parser
     {
+        private static readonly TokenType[] MemberAttributes = { TokenType.Public, TokenType.Protected, TokenType.Private, TokenType.Virtual, TokenType.Override };
+
         public static OperationResult<AbstractSyntaxTree, ParserError> Parse(List<Token> tokens)
         {
             TokenReader reader = new TokenReader(tokens);
@@ -43,6 +45,9 @@ namespace Ripple
             if (IsCurrentFunctionDeclaration(reader))
                 return FunctionDeclaration(reader);
 
+            if (IsCurrentClassDeclaration(reader))
+                return ClassDeclaration(reader);
+
             throw new ParserException("Expected declaration", reader.PeekCurrent(), reader.Current);
         }
 
@@ -56,45 +61,90 @@ namespace Ripple
                 initializer = CreateExpression(reader);
 
             Consume(reader, TokenType.Semicolon, "Expect ';' after variable declaration.");
-            return new Statement.VarDeclaration(type, name, initializer);
+            return new VariableDecl(type, name, initializer);
         }
 
         private static Statement FunctionDeclaration(TokenReader reader)
         {
             Token returnType = reader.AdvanceCurrent();
             Token name = reader.AdvanceCurrent();
-            reader.AdvanceCurrent(); // gets rid of '(' token
 
-            List<Tuple<Token, Token>> parameters = new List<Tuple<Token, Token>>();
-
-            if (!reader.CheckCurrent(TokenType.CloseParen))
-            {
-                do
-                {
-                    if (parameters.Count >= 255)
-                        throw new ParserException("Cant have more then 255 parameters.", reader.PeekCurrent(), reader.Current);
-
-                    if (!TokenUtils.IsTokenAType(reader.PeekCurrent()))
-                        throw new ParserException("Expected type name.", reader.PeekCurrent(), reader.Current);
-                    Token paramType = reader.AdvanceCurrent();
-
-                    Token paramName = Consume(reader, TokenType.Identifier, "Expected parameter name.");
-                    parameters.Add(Tuple.Create(paramType, paramName));
-                }
-                while (reader.MatchCurrent(TokenType.Comma));
-            }
-
-            Consume(reader, TokenType.CloseParen, "Expect ')' after parameters.");
+            List<FunctionParameter> parameters = ReadParameters(reader);
 
             Consume(reader, TokenType.OpenBrace, "Expect '{' after function definition.");
-            Statement.Block body = (Statement.Block)Block(reader);
-            return new Statement.FuncDeclaration(returnType, name, parameters, body);
+            BlockStmt body = (BlockStmt)Block(reader);
+            return new FunctionDecl(returnType, name, parameters, body);
+        }
+
+        private static Statement ClassDeclaration(TokenReader reader)
+        {
+            reader.AdvanceCurrent(); // gets rid of class
+
+            Token name = Consume(reader, TokenType.Identifier, "Expected class name.");
+            Token? baseName = null;
+
+            if (reader.MatchCurrent(TokenType.Colon))
+                baseName = Consume(reader, TokenType.Identifier, "Expected identifier as base name.");
+
+            Consume(reader, TokenType.OpenBrace, "Expected '{' after class name");
+
+            List<MemberDeclarationStmt> classMembers = new List<MemberDeclarationStmt>();
+            while (IsCurrentMemberDeclaration(reader) && !reader.IsAtEnd())
+                classMembers.Add(MemberDeclaration(reader));
+
+            Consume(reader, TokenType.CloseBrace, "Expected '}' at end of class declaration");
+
+            return new ClassDecl(name, baseName, classMembers);
+        }
+
+        private static MemberDeclarationStmt MemberDeclaration(TokenReader reader)
+        {
+            List<Token> attributes = new List<Token>();
+            while(reader.CheckCurrent(MemberAttributes) && !reader.IsAtEnd())
+            {
+                attributes.Add(reader.AdvanceCurrent());
+            }
+
+            if(IsCurrentDeclaration(reader))
+                return new MemberDeclarationStmt(attributes, CreateDeclaration(reader));
+
+            if (IsCurrentConstructorDeclaration(reader))
+                return new MemberDeclarationStmt(attributes, ConstructorDeclaration(reader));
+
+            ThrowError(reader, "Expected declaration.");
+            return null;
+        }
+
+        private static Statement ConstructorDeclaration(TokenReader reader)
+        {
+            Token name = reader.AdvanceCurrent();
+            List<FunctionParameter> parameters = ReadParameters(reader);
+
+            Consume(reader, TokenType.OpenBrace, "Expect '{' after function definition.");
+            BlockStmt body = (BlockStmt)Block(reader);
+            return new ConstructorDecl(name, parameters, body);
+        }
+
+        private static bool IsCurrentClassDeclaration(TokenReader reader)
+        {
+            return reader.PeekCurrent().Type == TokenType.Class;
         }
 
         private static bool IsCurrentDeclaration(TokenReader reader)
         {
             return IsCurrentFunctionDeclaration(reader) ||
-                   IsCurrentVariableDeclaration(reader);
+                   IsCurrentVariableDeclaration(reader) ||
+                   IsCurrentClassDeclaration(reader);
+        }
+
+        private static bool IsCurrentMemberDeclaration(TokenReader reader)
+        {
+            return reader.CheckCurrent(MemberAttributes) || IsCurrentDeclaration(reader) || IsCurrentConstructorDeclaration(reader);
+        }
+
+        private static bool IsCurrentConstructorDeclaration(TokenReader reader)
+        {
+            return reader.PeekCurrent().Type == TokenType.Identifier && reader.PeekCurrent(1).Type == TokenType.OpenParen;
         }
 
         private static bool IsCurrentVariableDeclaration(TokenReader reader)
@@ -119,7 +169,7 @@ namespace Ripple
         // ------------------------------------------------------------------------------------
         // Statement:
         // ------------------------------------------------------------------------------------
-        private static Statement CreateStatement(TokenReader reader)
+        private static Statement InstructionStatment(TokenReader reader)
         {
             if (reader.MatchCurrent(TokenType.While))
                 return WhileLoop(reader);
@@ -157,8 +207,8 @@ namespace Ripple
                 condition = CreateExpression(reader);
             Consume(reader, TokenType.CloseParen, "Expect ')' after while clause");
 
-            Statement body = CreateStatement(reader);
-            return new Statement.WhileLoop(condition, body);
+            Statement body = InstructionStatment(reader);
+            return new WhileLoopStmt(condition, body);
         }
 
         private static Statement ForLoop(TokenReader reader)
@@ -181,9 +231,9 @@ namespace Ripple
                 increment = CreateExpression(reader);
             Consume(reader, TokenType.CloseParen, "Expect ')' after for clauses");
 
-            Statement body = CreateStatement(reader);
+            Statement body = InstructionStatment(reader);
 
-            return new Statement.ForLoop(initializer, condition, increment, body);
+            return new ForLoopStmt(initializer, condition, increment, body);
         }
 
         private static Statement Block(TokenReader reader)
@@ -191,10 +241,10 @@ namespace Ripple
             List<Statement> statements = new List<Statement>();
 
             while (!reader.CheckCurrent(TokenType.CloseBrace) && !reader.IsAtEnd())
-                statements.Add(CreateStatement(reader));
+                statements.Add(InstructionStatment(reader));
 
             Consume(reader, TokenType.CloseBrace, "Expect '}' after block statement");
-            return new Statement.Block(statements);
+            return new BlockStmt(statements);
         }
 
         private static Statement IfStatement(TokenReader reader)
@@ -203,27 +253,27 @@ namespace Ripple
             Expression condition = CreateExpression(reader);
             Consume(reader, TokenType.CloseParen, "Expect ')' after if condition");
 
-            Statement thenBranch = CreateStatement(reader);
+            Statement thenBranch = InstructionStatment(reader);
 
             Statement elseBranch = null;
             if (reader.MatchCurrent(TokenType.Else))
-                elseBranch = CreateStatement(reader);
+                elseBranch = InstructionStatment(reader);
 
-            return new Statement.IfStmt(condition, thenBranch, elseBranch);
+            return new IfStmt(condition, thenBranch, elseBranch);
         }
 
         private static Statement ContinueStatement(TokenReader reader)
         {
             Token token = reader.Previous();
             Consume(reader, TokenType.Semicolon, "Expected ';' after 'continue'");
-            return new Statement.ContinueStmt(token);
+            return new ContinueStmt(token);
         }
 
         private static Statement BreakStatement(TokenReader reader)
         {
             Token token = reader.Previous();
             Consume(reader, TokenType.Semicolon, "Expected ';' after 'break'");
-            return new Statement.BreakStmt(token);
+            return new BreakStmt(token);
         }
 
         private static Statement ReturnStatement(TokenReader reader)
@@ -235,14 +285,14 @@ namespace Ripple
                 expression = CreateExpression(reader);
 
             Consume(reader, TokenType.Semicolon, "Expect ';' after return value");
-            return new Statement.ReturnStmt(returnToken, expression);
+            return new ReturnStmt(returnToken, expression);
         }
 
-        private static Statement ExpressionStatment(TokenReader reader)
+        private static ExpressionStmt ExpressionStatment(TokenReader reader)
         {
             Expression expr = CreateExpression(reader);
             Consume(reader, TokenType.Semicolon, "Expect ';' after expression");
-            return new Statement.ExpressionStmt(expr);
+            return new ExpressionStmt(expr);
         }
 
         // ------------------------------------------------------------------------------------
@@ -262,10 +312,10 @@ namespace Ripple
                 Token equal = reader.Previous();
                 Expression value = Assignment(reader);
 
-                if(expr is Expression.Variable variable)
+                if(expr is IdentifierExpr variable)
                 {
                     Token name = variable.Name;
-                    return new Expression.Assignment(name, value);
+                    return new AssignmentExpr(name, value);
                 }
 
                 throw new ParserException("Invalid assignment target.", equal, reader.Current);
@@ -292,7 +342,7 @@ namespace Ripple
             {
                 Token op = reader.Previous();
                 Expression right = previouseExpr(reader);
-                return new Expression.Binary(expr, op, right);
+                return new BinaryExpr(expr, op, right);
             }
 
             return expr;
@@ -304,32 +354,79 @@ namespace Ripple
             {
                 Token op = reader.Previous();
                 Expression right = Unary(reader);
-                return new Expression.Unary(right, op);
+                return new UnaryExpr(right, op);
             }
 
-            return Primary(reader);
+            return Call(reader);
+        }
+
+        private static Expression Call(TokenReader reader)
+        {
+            Expression expr = Primary(reader);
+
+            while (true)
+            { // [while-true]
+                if (reader.MatchCurrent(TokenType.OpenParen))
+                {
+                    expr = FinishFuncCallExpr(reader, expr);
+                }
+                else if (reader.MatchCurrent(TokenType.Dot))
+                {
+                    Token name = Consume(reader, TokenType.Identifier, "Expect property name after '.'.");
+                    expr = new GetExpr(expr, name);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return expr;
+        }
+
+        private static Expression FinishFuncCallExpr(TokenReader reader, Expression callee)
+        {
+            List<Expression> arguments = new List<Expression>();
+            if (!reader.CheckCurrent(TokenType.CloseParen))
+            {
+                do
+                {
+                    if (arguments.Count >= 255)
+                    {
+                        ThrowError(reader, "Can't have more than 255 arguments.");
+                    }
+                    arguments.Add(CreateExpression(reader));
+                } while (reader.MatchCurrent(TokenType.Comma));
+            }
+
+            Consume(reader, TokenType.CloseParen, "Expect ')' after arguments.");
+
+            return new CallExpr(callee, arguments);
         }
 
         private static Expression Primary(TokenReader reader)
         {
-            if (Call(reader, out Expression callExpr))
-                return callExpr;
-
-            if(reader.MatchCurrent(TokenType.IntLiteral, TokenType.FloatLiteral, TokenType.CharLiteral, TokenType.StringLiteral, TokenType.True, TokenType.False, TokenType.Null))
+            if(reader.MatchCurrent(TokenType.IntLiteral, TokenType.FloatLiteral, 
+                                   TokenType.CharLiteral, TokenType.StringLiteral, 
+                                   TokenType.True, TokenType.False, TokenType.Null,
+                                   TokenType.This, TokenType.Base))
             {
-                return new Expression.Literal(reader.Previous());
+                return new LiteralExpr(reader.Previous());
             }
 
             if(reader.MatchCurrent(TokenType.OpenParen))
             {
                 Expression expr = CreateExpression(reader);
                 Consume(reader, TokenType.CloseParen, "Expect ')' after expression.");
-                return new Expression.Grouping(expr);
+                return new GroupingExpr(expr);
             }
+
+            if (reader.MatchCurrent(TokenType.New))
+                return NewExpression(reader);
 
             if(reader.MatchCurrent(TokenType.Identifier))
             {
-                return new Expression.Variable(reader.Previous());
+                return new IdentifierExpr(reader.Previous());
             }
 
             Token token = reader.PeekCurrent();
@@ -340,44 +437,50 @@ namespace Ripple
             throw new ParserException("Invalid primary token: \"" + token.Lexeme + "\" at line " + token.Line, token, reader.Current);
         }
 
-        private static bool Call(TokenReader reader, out Expression callExpr)
+        private static Expression NewExpression(TokenReader reader)
         {
-            callExpr = null;
+            Token keyword = reader.Previous();
 
-            Token name = reader.PeekCurrent();
-            if(name.Type == TokenType.Identifier && reader.PeekCurrent(1).Type == TokenType.OpenParen)
+            Token type = reader.PeekCurrent();
+            if (!type.Type.IsBuiltInType() && !type.Type.IsIdentifier())
+                ThrowError(reader, "Expected type name");
+
+            reader.AdvanceCurrent();
+            Consume(reader, TokenType.OpenParen, "Expected '('");
+            List<Expression> arguments = new List<Expression>();
+            if (!reader.CheckCurrent(TokenType.CloseParen))
             {
-                reader.AdvanceCurrent();
-                reader.AdvanceCurrent();
-                List<Expression> parameters = new List<Expression>();
-
-                if(!reader.CheckCurrent(TokenType.CloseParen))
+                do
                 {
-                    do
+                    if (arguments.Count >= 255)
                     {
-                        parameters.Add(CreateExpression(reader));
+                        ThrowError(reader, "Can't have more than 255 arguments.");
                     }
-                    while (reader.MatchCurrent(TokenType.Comma));
-                }
-                Consume(reader, TokenType.CloseParen, "Expect ')' after function call");
-
-                callExpr = new Expression.Call(name, parameters);
-                return true;
+                    arguments.Add(CreateExpression(reader));
+                } while (reader.MatchCurrent(TokenType.Comma));
             }
 
-            return false;
+            Consume(reader, TokenType.CloseParen, "Expect ')' after arguments.");
+
+            return new NewExpr(keyword, type, arguments);
         }
 
         // ------------------------------------------------------------------------------------
         // Utilities:
         // ------------------------------------------------------------------------------------
 
+        private static void ThrowError(TokenReader reader, string errorMessage)
+        {
+            throw new ParserException(errorMessage, reader.Previous(), reader.Current - 1);
+        }
+
         private static Token Consume(TokenReader reader, TokenType type, string errorMessage)
         {
             if (reader.CheckCurrent(type))
                 return reader.AdvanceCurrent();
 
-            throw new ParserException(errorMessage, reader.Previous(), reader.Current - 1);
+            ThrowError(reader, errorMessage);
+            return Token.Invalid;
         }
 
         private static void Synchronize(TokenReader reader)
@@ -397,6 +500,33 @@ namespace Ripple
 
                 reader.AdvanceCurrent();
             }
+        }
+
+        private static List<FunctionParameter> ReadParameters(TokenReader reader)
+        {
+            List<FunctionParameter> parameters = new List<FunctionParameter>();
+            Consume(reader, TokenType.OpenParen, "Expected '('.");
+
+            if (!reader.CheckCurrent(TokenType.CloseParen))
+            {
+                do
+                {
+                    if (parameters.Count >= 255)
+                        throw new ParserException("Cant have more then 255 parameters.", reader.PeekCurrent(), reader.Current);
+
+                    if (!TokenUtils.IsTokenAType(reader.PeekCurrent()))
+                        throw new ParserException("Expected type name.", reader.PeekCurrent(), reader.Current);
+                    Token paramType = reader.AdvanceCurrent();
+
+                    Token paramName = Consume(reader, TokenType.Identifier, "Expected parameter name.");
+                    parameters.Add(new FunctionParameter(paramType, paramName));
+                }
+                while (reader.MatchCurrent(TokenType.Comma));
+            }
+
+            Consume(reader, TokenType.CloseParen, "Expected ')'.");
+
+            return parameters;
         }
 
         private static bool IsSynchronizeableKeyword(TokenType type)

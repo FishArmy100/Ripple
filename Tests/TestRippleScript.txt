@@ -1,7 +1,16 @@
 ﻿
 
+class Test : Test2
+{
+	public int Value = 0;
+	public void SetValue(int newVal)
+	{
+		Value = newVal;
+	}
+}
+
 int Main()
 {
-	int c = 3 & 5 ^ 4 & 2 | 10;
+	Test t = new Test(5);
 }
 

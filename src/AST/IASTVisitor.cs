@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Ripple
 {
-    interface IASTVisitor<T> : Expression.IExpressionVisitor<T>, Statement.IStatementVisitor<T>
+    interface IASTVisitor<T> : IExpressionVisitor<T>, IStatementVisitor<T>
     {
     }
 
-    interface IASTVisitor : Expression.IExpressionVisitor, Statement.IStatementVisitor
+    interface IASTVisitor : IExpressionVisitor, IStatementVisitor
     {
     }
 }
