@@ -25,7 +25,7 @@ namespace Ripple
         True, False, Return, Null, If, Else, Class,
         Base, This, While, For, Public, Private, 
         Protected, Friend, New, Break, Continue, Void, Virtual,
-        Override, Abstract, Final, Const,
+        Override, Abstract, Final, Const, Static,
 
         // types
         BoolType, CharType, IntType, UintType, FloatType, StringType, ObjectType,

@@ -49,7 +49,7 @@ namespace Ripple
                 Console.WriteLine("\t" + error.ToString());
             Console.WriteLine("");
 
-            Console.WriteLine(ASTPrinter.PrintTree(result.Result.AST, "     "));
+            Console.WriteLine(ASTPrinter.PrintTree(result.Result.AST, "   "));
         }
     }
 }

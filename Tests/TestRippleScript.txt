@@ -1,5 +1,13 @@
 ﻿
 
+static class Test3
+{
+	public static void SayHello()
+	{
+		print("Hello!");
+	}
+}
+
 class Test : Test2
 {
 	public int Value = 0;

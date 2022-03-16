@@ -125,6 +125,8 @@ namespace Ripple
             sClass += classDecl.IsDerived ? "; Base: " + classDecl.Base.Value.Lexeme + "\n" : "\n";
 
             m_IndentCount++;
+            sClass += GetOffset() + "Is static: " + classDecl.IsStatic.ToString() + "\n";
+
             sClass += GetOffset() + "Members:\n";
 
             m_IndentCount++;
@@ -336,7 +338,7 @@ namespace Ripple
             string offset = "";
             for (int i = 0; i < m_IndentCount; i++)
             {
-                offset += "   ";
+                offset += m_IndentSeperator;
             }
 
             return offset;

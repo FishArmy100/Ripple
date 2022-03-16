@@ -11,12 +11,14 @@ namespace Ripple
         public readonly Token Name;
         public readonly Token? Base;
         public readonly List<MemberDeclarationStmt> MemberDeclarations;
+        public readonly bool IsStatic;
 
-        public ClassDecl(Token name, Token? baseName, List<MemberDeclarationStmt> memberDeclarations)
+        public ClassDecl(Token name, Token? baseName, List<MemberDeclarationStmt> memberDeclarations, bool isStatic)
         {
             Name = name;
             Base = baseName;
             MemberDeclarations = memberDeclarations;
+            IsStatic = isStatic;
         }
 
         public override void Accept(IStatementVisitor visitor)

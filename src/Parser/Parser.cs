@@ -7,7 +7,7 @@ namespace Ripple
 {
     static class Parser
     {
-        private static readonly TokenType[] MemberAttributes = { TokenType.Public, TokenType.Protected, TokenType.Private, TokenType.Virtual, TokenType.Override };
+        private static readonly TokenType[] MemberAttributes = { TokenType.Public, TokenType.Protected, TokenType.Private, TokenType.Virtual, TokenType.Override, TokenType.Static };
 
         public static OperationResult<AbstractSyntaxTree, ParserError> Parse(List<Token> tokens)
         {
@@ -78,7 +78,10 @@ namespace Ripple
 
         private static Statement ClassDeclaration(TokenReader reader)
         {
-            reader.AdvanceCurrent(); // gets rid of class
+            bool isStatic = reader.AdvanceCurrent().Type == TokenType.Static; // gets rid of class
+
+            if (isStatic)
+                reader.AdvanceCurrent(); // if is static, can advance again passed class
 
             Token name = Consume(reader, TokenType.Identifier, "Expected class name.");
             Token? baseName = null;
@@ -94,7 +97,7 @@ namespace Ripple
 
             Consume(reader, TokenType.CloseBrace, "Expected '}' at end of class declaration");
 
-            return new ClassDecl(name, baseName, classMembers);
+            return new ClassDecl(name, baseName, classMembers, isStatic);
         }
 
         private static MemberDeclarationStmt MemberDeclaration(TokenReader reader)
@@ -127,7 +130,13 @@ namespace Ripple
 
         private static bool IsCurrentClassDeclaration(TokenReader reader)
         {
-            return reader.PeekCurrent().Type == TokenType.Class;
+            TokenType classOrStatic = reader.PeekCurrent().Type;
+            TokenType classType = reader.PeekCurrent(1).Type;
+
+            if (classOrStatic == TokenType.Class)
+                return true;
+
+            return classOrStatic == TokenType.Static && classType == TokenType.Class;
         }
 
         private static bool IsCurrentDeclaration(TokenReader reader)

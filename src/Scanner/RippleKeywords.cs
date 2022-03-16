@@ -37,7 +37,8 @@ namespace Ripple
             { "override", TokenType.Override},
             { "abstract", TokenType.Abstract },
             { "final", TokenType.Final },
-            { "const", TokenType.Const }
+            { "const", TokenType.Const },
+            { "static", TokenType.Static }
         };
 
         public const string BOOL_TYPE_NAME = "bool";

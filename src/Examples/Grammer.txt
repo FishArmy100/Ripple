@@ -27,8 +27,6 @@ Utility Rules:
 	parameters		-> typeName IDENTIFIER ("," typeName IDENTIFIER)*;
 	arguments		-> expression ("," expression)*;
 	typeName		-> "int" | "float" | "string" | "char" | "object" | "uint" | IDENTIFIER;		
-	
-	accessLevel		-> "public" | "private" | "protected";
 
 Expression Rules:
 	primary			-> INT 
@@ -95,13 +93,13 @@ Declaration Rules:
 	funcDecl		-> typeName IDENTIFIER "(" parameters? ")" block
 
 	constructor		-> IDENTIFIER "(" parameters? ")" block;
-	memberAttrib	-> public | protected | private | virtual | override;
+	memberAttrib	-> public | protected | private | virtual | "override" | "static";
 
 	memberDecl		-> constructor | declaration;
 
 	classMember		-> memberAttrib* memberDecl;
 
-	classDecl		-> "class" IDENTIFIER (":" IDENTIFIER)?
+	classDecl		-> "static"? "class" IDENTIFIER (":" IDENTIFIER)?
 					 "{"
 						  classMember*
 					 "}";
