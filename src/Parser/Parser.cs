@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Ripple.Utils;
+using Ripple.AST;
 
 namespace Ripple
 {
@@ -39,21 +40,21 @@ namespace Ripple
         // ------------------------------------------------------------------------------------
         private static Statement CreateDeclaration(TokenReader reader)
         {
-            if (IsCurrentVariableDeclaration(reader))
-                return VariableDeclaration(reader);
+            if (IsCurrentClassDeclaration(reader))
+                return ClassDeclaration(reader);
 
             if (IsCurrentFunctionDeclaration(reader))
                 return FunctionDeclaration(reader);
 
-            if (IsCurrentClassDeclaration(reader))
-                return ClassDeclaration(reader);
+            if (IsCurrentVariableDeclaration(reader))
+                return VariableDeclaration(reader);
 
             throw new ParserException("Expected declaration", reader.PeekCurrent(), reader.Current);
         }
 
         private static Statement VariableDeclaration(TokenReader reader)
         {
-            Token type = reader.AdvanceCurrent();
+            RippleType type = ParseType(reader);
             Token name = reader.AdvanceCurrent();
             Expression initializer = null;
 
@@ -66,7 +67,7 @@ namespace Ripple
 
         private static Statement FunctionDeclaration(TokenReader reader)
         {
-            Token returnType = reader.AdvanceCurrent();
+            RippleType returnType = ParseType(reader);
             Token name = reader.AdvanceCurrent();
 
             List<FunctionParameter> parameters = ReadParameters(reader);
@@ -114,7 +115,7 @@ namespace Ripple
             if (IsCurrentConstructorDeclaration(reader))
                 return new MemberDeclarationStmt(attributes, ConstructorDeclaration(reader));
 
-            ThrowError(reader, "Expected declaration.");
+            throw CreateError(reader, "Expected declaration.");
             return null;
         }
 
@@ -158,19 +159,17 @@ namespace Ripple
 
         private static bool IsCurrentVariableDeclaration(TokenReader reader)
         {
-            Token type = reader.PeekCurrent();
-            Token name = reader.PeekCurrent(1);
-            Token equals = reader.PeekCurrent(2);
-            return TokenUtils.IsTokenAType(type) && name.Type == TokenType.Identifier && equals.Type == TokenType.Equal;
+            bool isCurrentAType = IsCurrentRippleType(reader, out int length);
+
+            Token name = reader.PeekCurrent(length);
+            return isCurrentAType && name.Type == TokenType.Identifier;
         }
 
         private static bool IsCurrentFunctionDeclaration(TokenReader reader)
         {
-            Token type = reader.PeekCurrent();
-            Token name = reader.PeekCurrent(1);
-            Token openParen = reader.PeekCurrent(2);
-
-            bool isReturnType = TokenUtils.IsTokenAType(type) || type.Type == TokenType.Void;
+            bool isReturnType = IsCurrentRippleType(reader, out int lenght);
+            Token name = reader.PeekCurrent(lenght);
+            Token openParen = reader.PeekCurrent(lenght + 1);
 
             return isReturnType && name.Type == TokenType.Identifier && openParen.Type == TokenType.OpenParen;
         }
@@ -374,10 +373,14 @@ namespace Ripple
             Expression expr = Primary(reader);
 
             while (true)
-            { // [while-true]
+            {
                 if (reader.MatchCurrent(TokenType.OpenParen))
                 {
                     expr = FinishFuncCallExpr(reader, expr);
+                }
+                else if(reader.MatchCurrent(TokenType.OpenBracket))
+                {
+                    expr = FinishIndexCallExpr(reader, expr);
                 }
                 else if (reader.MatchCurrent(TokenType.Dot))
                 {
@@ -393,6 +396,30 @@ namespace Ripple
             return expr;
         }
 
+        private static Expression FinishIndexCallExpr(TokenReader reader, Expression indexee)
+        {
+            List<Expression> arguments = new List<Expression>();
+            if (!reader.CheckCurrent(TokenType.CloseBracket))
+            {
+                do
+                {
+                    if (arguments.Count >= 255)
+                    {
+                        throw CreateError(reader, "Can't have more than 255 arguments.");
+                    }
+                    arguments.Add(CreateExpression(reader));
+                } while (reader.MatchCurrent(TokenType.Comma));
+            }
+            else
+            {
+                throw CreateError(reader, "Indexer needs more than one argument.");
+            }
+
+            Consume(reader, TokenType.CloseBracket, "Expect ')' after arguments.");
+
+            return new IndexExpr(indexee, arguments);
+        }
+
         private static Expression FinishFuncCallExpr(TokenReader reader, Expression callee)
         {
             List<Expression> arguments = new List<Expression>();
@@ -402,7 +429,7 @@ namespace Ripple
                 {
                     if (arguments.Count >= 255)
                     {
-                        ThrowError(reader, "Can't have more than 255 arguments.");
+                        throw CreateError(reader, "Can't have more than 255 arguments.");
                     }
                     arguments.Add(CreateExpression(reader));
                 } while (reader.MatchCurrent(TokenType.Comma));
@@ -438,6 +465,12 @@ namespace Ripple
                 return new IdentifierExpr(reader.Previous());
             }
 
+            if(reader.CurrentToken.Type.IsBuiltInType())
+            {
+                reader.AdvanceCurrent();
+                return new IdentifierExpr(reader.Previous());
+            }
+
             Token token = reader.PeekCurrent();
 
             if (reader.PeekCurrent().Type == TokenType.Invalid)
@@ -450,11 +483,8 @@ namespace Ripple
         {
             Token keyword = reader.Previous();
 
-            Token type = reader.PeekCurrent();
-            if (!type.Type.IsBuiltInType() && !type.Type.IsIdentifier())
-                ThrowError(reader, "Expected type name");
+            RippleType type = ParseType(reader);
 
-            reader.AdvanceCurrent();
             Consume(reader, TokenType.OpenParen, "Expected '('");
             List<Expression> arguments = new List<Expression>();
             if (!reader.CheckCurrent(TokenType.CloseParen))
@@ -463,7 +493,7 @@ namespace Ripple
                 {
                     if (arguments.Count >= 255)
                     {
-                        ThrowError(reader, "Can't have more than 255 arguments.");
+                        throw CreateError(reader, "Can't have more than 255 arguments.");
                     }
                     arguments.Add(CreateExpression(reader));
                 } while (reader.MatchCurrent(TokenType.Comma));
@@ -475,12 +505,190 @@ namespace Ripple
         }
 
         // ------------------------------------------------------------------------------------
+        // Types:
+        // ------------------------------------------------------------------------------------
+
+        private static RippleType ParseType(TokenReader reader)
+        {
+            if(IsCurrentRippleType(reader, out int length))
+            {
+                return ParseType(reader, reader.Current + length);
+            }
+
+            throw CreateError(reader, "Expected type name.");
+        }
+
+        private static RippleType ParseType(TokenReader reader, int endIndex)
+        {
+            RippleType type = ParseBasicType(reader);
+
+            while(true)
+            {
+                if (reader.Current >= endIndex)
+                    break;
+
+                if (reader.MatchCurrent(TokenType.OpenParen))
+                {
+                    List<RippleType> funcParams = ParseFuncRefParams(reader, out bool isNullable);
+                    type = new FuncRefType(type, funcParams, isNullable);
+                    continue;
+                }
+
+                if(reader.MatchCurrent(TokenType.OpenBracket))
+                {
+                    int dimentions = ParseArrayDimentions(reader, out bool isNullable);
+                    type = new ArrayType(type, dimentions, isNullable);
+                    continue;
+                }
+
+                break;
+            }
+
+            return type;
+        }
+
+        private static int ParseArrayDimentions(TokenReader reader, out bool isNullable)
+        {
+            int dimetions = 1;
+            while (reader.MatchCurrent(TokenType.Comma))
+                dimetions++;
+            Consume(reader, TokenType.CloseBracket, "Expected ']'");
+            Consume(reader, TokenType.Ampersand, "Expected ']&'");
+            isNullable = reader.MatchCurrent(TokenType.QuestionMark);
+            return dimetions;
+        }
+
+        private static List<RippleType> ParseFuncRefParams(TokenReader reader, out bool isNullable)
+        {
+            List<RippleType> funcParams = new List<RippleType>();
+            while (!reader.CheckCurrent(TokenType.CloseParen) && !reader.IsAtEnd())
+            {
+                funcParams.Add(ParseType(reader));
+                if (reader.CheckCurrent(TokenType.Comma))
+                    reader.AdvanceCurrent();
+            }
+
+            Consume(reader, TokenType.CloseParen, "Expected ')'.");
+            Consume(reader, TokenType.Ampersand, "Expected '&'.");
+            isNullable = reader.MatchCurrent(TokenType.QuestionMark);
+            return funcParams;
+        }
+
+        private static BasicType ParseBasicType(TokenReader reader)
+        {
+            if(reader.CurrentToken.IsTypeName())
+            {
+                Token name = reader.AdvanceCurrent();
+                bool isReference = reader.MatchCurrent(TokenType.Ampersand);
+                bool isNullable = reader.MatchCurrent(TokenType.QuestionMark);
+                return new BasicType(name, isReference, isNullable);
+            }
+
+            throw CreateError(reader, "Expected type name.");
+        }
+
+        private static bool IsCurrentRippleType(TokenReader reader, out int length, int offset = 0)
+        {
+            length = 0;
+            if(reader.PeekCurrent(offset).IsTypeName())
+            {
+                length += GetCurrentTypeLength(reader, offset);
+            }
+            else
+            {
+                return false;
+            }
+
+            while(true)
+            {
+                if(IsCurrentFuncRefParameters(reader, out int paramLength, offset + length))
+                {
+                    length += paramLength;
+                    continue;
+                }
+
+                if (IsCurrentArrayParams(reader, out int arrLength, offset + length))
+                {
+                    length += arrLength;
+                    continue;
+                }
+
+                break;
+            }
+
+            return true;
+        }
+
+        private static bool IsCurrentFuncRefParameters(TokenReader reader, out int length, int offset)
+        {
+            length = 0;
+
+            if (reader.PeekCurrent(offset + length).Type != TokenType.OpenParen)
+                return false;
+            length++;
+
+            while (IsCurrentRippleType(reader, out int typeLength, offset + length))
+            {
+                length += typeLength;
+                if (reader.PeekCurrent(offset + length).Type == TokenType.Comma)
+                    length++;
+            }
+
+            if (reader.PeekCurrent(offset + length).Type != TokenType.CloseParen)
+                return false;
+            length++;
+
+            if (reader.PeekCurrent(offset + length).Type != TokenType.Ampersand)
+                return false;
+            length++;
+
+            if (reader.PeekCurrent(offset + length).Type == TokenType.QuestionMark)
+                length++;
+
+            return true;
+        }
+
+        private static bool IsCurrentArrayParams(TokenReader reader, out int length, int offset)
+        {
+            length = 0;
+            if (reader.PeekCurrent(offset).Type != TokenType.OpenBracket)
+                return false;
+            length++;
+
+            while (reader.PeekCurrent(offset + length).Type == TokenType.Comma)
+                length++;
+
+            if (reader.PeekCurrent(offset + length).Type != TokenType.CloseBracket)
+                return false;
+            length++;
+
+            if (reader.PeekCurrent(offset + length).Type != TokenType.Ampersand)
+                return false;
+            length++;
+
+            if (reader.PeekCurrent(offset + length).Type == TokenType.QuestionMark)
+                length++;
+
+            return true;
+        }
+
+        private static int GetCurrentTypeLength(TokenReader reader, int offset)
+        {
+            int length = 1;
+            if (reader.PeekCurrent(offset + length).Type == TokenType.Ampersand)
+                length++;
+            if (reader.PeekCurrent(offset + length).Type == TokenType.QuestionMark)
+                length++;
+            return length;
+        }
+
+        // ------------------------------------------------------------------------------------
         // Utilities:
         // ------------------------------------------------------------------------------------
 
-        private static void ThrowError(TokenReader reader, string errorMessage)
+        private static ParserException CreateError(TokenReader reader, string errorMessage)
         {
-            throw new ParserException(errorMessage, reader.Previous(), reader.Current - 1);
+            return new ParserException(errorMessage, reader.Previous(), reader.Current - 1);
         }
 
         private static Token Consume(TokenReader reader, TokenType type, string errorMessage)
@@ -488,8 +696,7 @@ namespace Ripple
             if (reader.CheckCurrent(type))
                 return reader.AdvanceCurrent();
 
-            ThrowError(reader, errorMessage);
-            return Token.Invalid;
+            throw CreateError(reader, errorMessage);
         }
 
         private static void Synchronize(TokenReader reader)
@@ -501,8 +708,8 @@ namespace Ripple
                 if (IsCurrentDeclaration(reader))
                     return;
 
-                if (TokenUtils.IsTokenAType(current))
-                    return;
+                if (IsCurrentConstructorDeclaration(reader))
+                    break;
 
                 if (IsSynchronizeableKeyword(current.Type))
                     return;
@@ -523,12 +730,12 @@ namespace Ripple
                     if (parameters.Count >= 255)
                         throw new ParserException("Cant have more then 255 parameters.", reader.PeekCurrent(), reader.Current);
 
-                    if (!TokenUtils.IsTokenAType(reader.PeekCurrent()))
+                    if (!reader.PeekCurrent().IsTypeName())
                         throw new ParserException("Expected type name.", reader.PeekCurrent(), reader.Current);
-                    Token paramType = reader.AdvanceCurrent();
+                    RippleType paramType = ParseType(reader);
 
                     Token paramName = Consume(reader, TokenType.Identifier, "Expected parameter name.");
-                    parameters.Add(new FunctionParameter(paramType, paramName));
+                    parameters.Add(new FunctionParameter(paramName, paramType));
                 }
                 while (reader.MatchCurrent(TokenType.Comma));
             }
@@ -540,13 +747,13 @@ namespace Ripple
 
         private static bool IsSynchronizeableKeyword(TokenType type)
         {
-            return type == TokenType.Class ||
-                   type == TokenType.For ||
-                   type == TokenType.While ||
-                   type == TokenType.Return ||
-                   type == TokenType.Break ||
-                   type == TokenType.Continue ||
-                   type == TokenType.If ||
+            return type == TokenType.Class      ||
+                   type == TokenType.For        ||
+                   type == TokenType.While      ||
+                   type == TokenType.Return     ||
+                   type == TokenType.Break      ||
+                   type == TokenType.Continue   ||
+                   type == TokenType.If         ||
                    type == TokenType.Else;
         }
     }

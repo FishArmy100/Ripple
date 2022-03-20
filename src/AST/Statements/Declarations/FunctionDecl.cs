@@ -4,16 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple
+namespace Ripple.AST
 {
     class FunctionDecl : Statement
     {
-        public readonly Token ReturnType;
+        public readonly RippleType ReturnType;
         public readonly Token Name;
         public readonly List<FunctionParameter> Parameters;
         public readonly BlockStmt Body;
 
-        public FunctionDecl(Token returnType, Token name, List<FunctionParameter> parameters, BlockStmt body)
+        public FunctionDecl(RippleType returnType, Token name, List<FunctionParameter> parameters, BlockStmt body)
         {
             ReturnType = returnType;
             Name = name;

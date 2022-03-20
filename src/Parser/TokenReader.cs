@@ -9,6 +9,10 @@ namespace Ripple
         public readonly List<Token> Tokens;
         public int Current { get; private set; }
 
+        public Token PreviousToken => PeekCurrent(-1);
+        public Token CurrentToken => PeekCurrent(0);
+        public Token NextToken => PeekCurrent(1);
+
         public TokenReader(List<Token> tokens)
         {
             Tokens = tokens;
@@ -76,7 +80,7 @@ namespace Ripple
         /// <returns></returns>
         public Token PeekCurrent(int offset = 0)
         {
-            if (Current + offset >= Tokens.Count - 1)
+            if (Current + offset >= Tokens.Count - 1 || Current + offset < 0)
                 return Token.Invalid;
 
             return Tokens[Current + offset];

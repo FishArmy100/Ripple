@@ -4,20 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple
+namespace Ripple.AST.Info
 {
-    struct ASTType
+    struct ASTTypeInfo
     {
         public readonly string Name;
 
-        public ASTType(string name)
+        public ASTTypeInfo(string name)
         {
             Name = name;
         }
 
         public override bool Equals(object obj)
         {
-            return obj is ASTType type &&
+            return obj is ASTTypeInfo type &&
                    Name == type.Name;
         }
 

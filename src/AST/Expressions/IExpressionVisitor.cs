@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple
+namespace Ripple.AST
 {
     interface IExpressionVisitor<T>
     {
@@ -17,6 +17,7 @@ namespace Ripple
         public T VisitCall(CallExpr call);
         public T VisitGet(GetExpr get);
         public T VisitNew(NewExpr newExpr);
+        public T VisitIndex(IndexExpr indexExpr);
     }
 
     interface IExpressionVisitor
@@ -30,5 +31,6 @@ namespace Ripple
         public void VisitCall(CallExpr call);
         public void VisitGet(GetExpr get);
         public void VisitNew(NewExpr newExpr);
+        public void VisitIndex(IndexExpr indexExpr);
     }
 }

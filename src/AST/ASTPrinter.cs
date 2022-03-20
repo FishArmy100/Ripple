@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Ripple
+namespace Ripple.AST
 {
     class ASTPrinter : IASTVisitor<string>
     {
@@ -64,7 +64,7 @@ namespace Ripple
         {
             string sNew = GetOffset() + "New expression\n";
             m_IndentCount++;
-            sNew += GetOffset() + "Type: " + newExpr.Type.Lexeme + "\n";
+            sNew += GetOffset() + "Type: " + newExpr.Type.Accept(this) + "\n";
             sNew += GetOffset() + "Arguments: \n";
 
             m_IndentCount++;
@@ -93,10 +93,15 @@ namespace Ripple
 
         public string VisitVarDeclaration(VariableDecl variable)
         {
-            string sExpr = GetOffset() + "Variable declaration: " + variable.TypeName.Lexeme + " " + variable.Name.Lexeme;
-            m_IndentCount++;
-            sExpr += "\n" + variable.Initializer.Accept(this);
-            m_IndentCount--;
+            string sExpr = GetOffset() + "Variable declaration: " + variable.Type.Accept(this) + " " + variable.Name.Lexeme;
+            
+            if (variable.Initializer != null)
+            {
+                m_IndentCount++;
+                sExpr += "\n" + variable.Initializer.Accept(this);
+                m_IndentCount--;
+            }
+            
             return sExpr;
         }
 
@@ -104,11 +109,11 @@ namespace Ripple
         {
             string sFunc = GetOffset() + "Func declaration: " + funcDeclaration.Name.Lexeme + "\n";
             m_IndentCount++;
-            sFunc += GetOffset() + "Return type: " + funcDeclaration.ReturnType.Lexeme + "\n";
+            sFunc += GetOffset() + "Return type: " + funcDeclaration.ReturnType.Accept(this) + "\n";
 
             sFunc += GetOffset() + "Parameters: ";
             foreach (FunctionParameter parameter in funcDeclaration.Parameters)
-                sFunc += "type: " + parameter.Type.Lexeme + ", name: " + parameter.Name.Lexeme + "; ";
+                sFunc += "type: " + parameter.Type.Accept(this) + ", name: " + parameter.Name.Lexeme + "; ";
             sFunc = sFunc.Remove(sFunc.Length - 2);
 
             sFunc += "\n";
@@ -146,7 +151,7 @@ namespace Ripple
 
             sConstructor += GetOffset() + "Parameters: ";
             foreach (FunctionParameter parameter in constructorDecl.Parameters)
-                sConstructor += "type: " + parameter.Type.Lexeme + ", name: " + parameter.Name.Lexeme + "; ";
+                sConstructor += "type: " + parameter.Type.Accept(this) + ", name: " + parameter.Name.Lexeme + "; ";
             sConstructor = sConstructor.Remove(sConstructor.Length - 2);
 
             sConstructor += "\n";
@@ -333,6 +338,80 @@ namespace Ripple
             return sFor;
         }
 
+        public string VisitGet(GetExpr get)
+        {
+            string sGet = GetOffset() + "Get: Name:" + get.Name.Lexeme + "\n";
+            m_IndentCount++;
+            sGet += GetOffset() + "Object:\n";
+            m_IndentCount++;
+            sGet += get.Object.Accept(this);
+            m_IndentCount--;
+            m_IndentCount--;
+            return sGet;
+        }
+
+        public string VisitIndex(IndexExpr indexExpr)
+        {
+            string sIndex = GetOffset() + "Indexer: \n";
+            m_IndentCount++;
+
+            sIndex += GetOffset() + "Arguments:\n";
+            m_IndentCount++;
+            foreach (var arg in indexExpr.Arguments)
+                sIndex += arg.Accept(this);
+            m_IndentCount--;
+
+            sIndex += GetOffset() + "Indexee:\n";
+            m_IndentCount++;
+            sIndex += indexExpr.Indexee.Accept(this);
+            m_IndentCount--;
+
+            m_IndentCount--;
+            return sIndex;
+        }
+
+        public string VisitBasicType(BasicType basicType)
+        {
+            string sType = basicType.Name.Lexeme;
+            sType += basicType.IsReference ? "&" : "";
+            sType += basicType.IsNullable ? "?" : "";
+            return sType;
+        }
+
+        public string VisitArrayType(ArrayType arrayType)
+        {
+            string sArr = arrayType.Type.Accept(this);
+            sArr += "[";
+            for (int i = 0; i < arrayType.Dimentions - 1; i++)
+                sArr += ",";
+            sArr += "]&";
+            if (arrayType.IsNullable)
+                sArr += "?";
+            return sArr;
+        }
+
+        public string VisitFuncRefType(FuncRefType funcRef)
+        {
+            string sFuncRef = funcRef.ReturnType.Accept(this);
+            sFuncRef += "(";
+
+            for(int i = 0; i < funcRef.Parameters.Count; i++)
+            {
+                if(i == funcRef.Parameters.Count - 1)
+                {
+                    sFuncRef += funcRef.Parameters[i].Accept(this);
+                    break;
+                }
+
+                sFuncRef += funcRef.Parameters[i].Accept(this) + ", ";
+            }
+
+            sFuncRef += ")&";
+            if (funcRef.IsNullable)
+                sFuncRef += "?";
+            return sFuncRef;
+        }
+
         private string GetOffset()
         {
             string offset = "";
@@ -342,18 +421,6 @@ namespace Ripple
             }
 
             return offset;
-        }
-
-        public string VisitGet(GetExpr get)
-        {
-            string sGet = "Get: Name:" + get.Name.Lexeme +"\n";
-            m_IndentCount++;
-            sGet += GetOffset() + "Object:\n";
-            m_IndentCount++;
-            sGet += get.Object.Accept(this);
-            m_IndentCount--;
-            m_IndentCount--;
-            return sGet;
         }
     }
 }

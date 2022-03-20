@@ -238,6 +238,9 @@ namespace Ripple
                 case '~':
                     FoundToken(TokenType.Tilda);
                     break;
+                case '?':
+                    FoundToken(TokenType.QuestionMark);
+                    break;
 
                 // multiple charictor symbols
                 case '!':

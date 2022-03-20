@@ -4,34 +4,34 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple
+namespace Ripple.AST.Info
 {
     class ASTInfo
     {
-        public readonly List<ASTType> Types;
-        private readonly Dictionary<string, ASTType> m_TypeDictionary;
+        public readonly List<ASTTypeInfo> Types;
+        private readonly Dictionary<string, ASTTypeInfo> m_TypeDictionary;
 
         public readonly List<ASTBinaryOperator> BinaryOperators;
-        private readonly Dictionary<Tuple<ASTType, TokenType, ASTType>, ASTBinaryOperator> m_BinaryOperatorDictionary;
+        private readonly Dictionary<Tuple<ASTTypeInfo, TokenType, ASTTypeInfo>, ASTBinaryOperator> m_BinaryOperatorDictionary;
 
         public readonly List<ASTUnaryOperator> UnaryOperators;
-        private readonly Dictionary<Tuple<ASTType, TokenType>, ASTUnaryOperator> m_UnaryOperatorDictionary;
+        private readonly Dictionary<Tuple<ASTTypeInfo, TokenType>, ASTUnaryOperator> m_UnaryOperatorDictionary;
 
-        public ASTInfo(List<ASTType> types, List<ASTBinaryOperator> binaryOperators, List<ASTUnaryOperator> unaryOperators)
+        public ASTInfo(List<ASTTypeInfo> types, List<ASTBinaryOperator> binaryOperators, List<ASTUnaryOperator> unaryOperators)
         {
             Types = types;
             BinaryOperators = binaryOperators;
 
-            m_TypeDictionary = new Dictionary<string, ASTType>();
+            m_TypeDictionary = new Dictionary<string, ASTTypeInfo>();
             Types.ForEach(type => m_TypeDictionary.Add(type.Name, type));
 
-            m_BinaryOperatorDictionary = new Dictionary<Tuple<ASTType, TokenType, ASTType>, ASTBinaryOperator>();
+            m_BinaryOperatorDictionary = new Dictionary<Tuple<ASTTypeInfo, TokenType, ASTTypeInfo>, ASTBinaryOperator>();
             foreach(ASTBinaryOperator op in binaryOperators)
             {
                 m_BinaryOperatorDictionary.Add(Tuple.Create(op.Left, op.Operator, op.Right), op);
             }
 
-            m_UnaryOperatorDictionary = new Dictionary<Tuple<ASTType, TokenType>, ASTUnaryOperator>();
+            m_UnaryOperatorDictionary = new Dictionary<Tuple<ASTTypeInfo, TokenType>, ASTUnaryOperator>();
             foreach(ASTUnaryOperator op in unaryOperators)
             {
                 m_UnaryOperatorDictionary.Add(Tuple.Create(op.Type, op.Operator), op);
@@ -43,7 +43,7 @@ namespace Ripple
             return m_TypeDictionary.ContainsKey(name);
         }
 
-        public bool TryGetType(string name, out ASTType type)
+        public bool TryGetType(string name, out ASTTypeInfo type)
         {
             if(m_TypeDictionary.TryGetValue(name, out type))
             {
@@ -53,7 +53,7 @@ namespace Ripple
             return false;
         }
 
-        public ASTType GetType(string name)
+        public ASTTypeInfo GetType(string name)
         {
             return m_TypeDictionary[name];
         }

@@ -4,15 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple
+namespace Ripple.AST.Info
 {
     struct ASTUnaryOperator
     {
-        public readonly ASTType Type;
+        public readonly ASTTypeInfo Type;
         public readonly TokenType Operator;
-        public readonly ASTType ReturnType;
+        public readonly ASTTypeInfo ReturnType;
 
-        public ASTUnaryOperator(ASTType type, TokenType op, ASTType returnType)
+        public ASTUnaryOperator(ASTTypeInfo type, TokenType op, ASTTypeInfo returnType)
         {
             Type = type;
             Operator = op;
@@ -22,9 +22,9 @@ namespace Ripple
         public override bool Equals(object obj)
         {
             return obj is ASTUnaryOperator op &&
-                   EqualityComparer<ASTType>.Default.Equals(Type, op.Type) &&
+                   EqualityComparer<ASTTypeInfo>.Default.Equals(Type, op.Type) &&
                    Operator == op.Operator &&
-                   EqualityComparer<ASTType>.Default.Equals(ReturnType, op.ReturnType);
+                   EqualityComparer<ASTTypeInfo>.Default.Equals(ReturnType, op.ReturnType);
         }
 
         public override int GetHashCode()

@@ -24,9 +24,17 @@ Basic Rules: created in lexer
 
 
 Utility Rules:
-	parameters		-> typeName IDENTIFIER ("," typeName IDENTIFIER)*;
+	parameters		-> type IDENTIFIER ("," type IDENTIFIER)*;
 	arguments		-> expression ("," expression)*;
-	typeName		-> "int" | "float" | "string" | "char" | "object" | "uint" | IDENTIFIER;		
+	
+Type Rules:
+	typeName		-> "int" | "float" | "string" | "char" | "object" | "uint" | "void" | IDENTIFIER;
+
+	basicType		-> typeName "&"? "?"?;
+	funRefType		-> type "(" (type ("," type)*)? ")&" "?"?;
+	arrayType		-> type "[" ","* "]&" "?"?;
+
+	type			-> basicType | arrayType | funcRefType;
 
 Expression Rules:
 	primary			-> INT 
@@ -38,10 +46,11 @@ Expression Rules:
 					 | "(" expression ")" 
 					 | "this" 
 					 | "base"
-					 | "new" typeName "(" parameters ")";
+					 | "new" type "(" arguments ")"
+					 | "new" type "[" arguments "]";
 
 
-	call			-> primary ("(" arguments? ")" | "." IDIENTIFIER)*;
+	call			-> primary ("(" arguments? ")" | "." IDIENTIFIER)* | "[" arguments "]";
 
 	unary			-> ("-" | "!" | "~") unary | primary;
 
@@ -88,9 +97,9 @@ Statement Rules:
 
 Declaration Rules:
 
-	varDecl			-> typeName IDENTIFIER ( "=" expression)? ";";
+	varDecl			-> type IDENTIFIER ( "=" expression)? ";";
 	
-	funcDecl		-> typeName IDENTIFIER "(" parameters? ")" block
+	funcDecl		-> type IDENTIFIER "(" parameters? ")" block
 
 	constructor		-> IDENTIFIER "(" parameters? ")" block;
 	memberAttrib	-> public | protected | private | virtual | "override" | "static";

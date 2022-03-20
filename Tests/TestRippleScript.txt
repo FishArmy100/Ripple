@@ -1,24 +1,21 @@
 ﻿
-
-static class Test3
+int Func1()
 {
-	public static void SayHello()
-	{
-		print("Hello!");
-	}
+
 }
 
-class Test : Test2
+int Func2(int a, int b)
 {
-	public int Value = 0;
-	public void SetValue(int newVal)
-	{
-		Value = newVal;
-	}
+	return a + b;
 }
 
 int Main()
 {
-	Test t = new Test(5);
+	int value = int(5);
+	value = int();
+	int& valuer = new int(5);
+	value = values[0];
+	
+	int()& func = Func1;
+	int(int, int)& func2var = Func2;
 }
-

@@ -4,17 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple
+namespace Ripple.AST.Info
 {
     class ASTInfoBuilder
     {
-        private readonly Dictionary<string, ASTType> m_Types;
+        private readonly Dictionary<string, ASTTypeInfo> m_Types;
         private Dictionary<Tuple<string, TokenType, string>, ASTBinaryOperator> m_BinaryOperators;
         private Dictionary<Tuple<string, TokenType>, ASTUnaryOperator> m_UnaryOperators;
 
         public ASTInfoBuilder()
         {
-            m_Types = new Dictionary<string, ASTType>();
+            m_Types = new Dictionary<string, ASTTypeInfo>();
             m_BinaryOperators = new Dictionary<Tuple<string, TokenType, string>, ASTBinaryOperator>();
             m_UnaryOperators = new Dictionary<Tuple<string, TokenType>, ASTUnaryOperator>();
         }
@@ -85,7 +85,7 @@ namespace Ripple
         {
             if(!m_Types.ContainsKey(name))
             {
-                m_Types.Add(name, new ASTType(name));
+                m_Types.Add(name, new ASTTypeInfo(name));
             }
 
             return false;
@@ -107,9 +107,9 @@ namespace Ripple
             return true;
         }
 
-        public ASTType? GetType(string typeName)
+        public ASTTypeInfo? GetType(string typeName)
         {
-            if(m_Types.TryGetValue(typeName, out ASTType type))
+            if(m_Types.TryGetValue(typeName, out ASTTypeInfo type))
             {
                 return type;
             }

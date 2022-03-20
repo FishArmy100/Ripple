@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Ripple.AST.Info;
 
 namespace Ripple.Utils
 {
-    class TokenUtils
+    static class TokenUtils
     {
         /// <summary>
         /// Converts a token type into a AST type based on the information in a AST info
@@ -15,9 +16,9 @@ namespace Ripple.Utils
         /// <param name="info"></param>
         /// <param name="astType"></param>
         /// <returns></returns>
-        public static bool TryGetTypeFromTokenType(TokenType tokenType, ASTInfo info, out ASTType astType)
+        public static bool TryGetTypeFromTokenType(TokenType tokenType, ASTInfo info, out ASTTypeInfo astType)
         {
-            astType = new ASTType();
+            astType = new ASTTypeInfo();
 
             switch(tokenType)
             {
@@ -47,16 +48,6 @@ namespace Ripple.Utils
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Checks if a token could be a type name ei: int, string, or a user defined type. Does not include void
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public static bool IsTokenAType(Token token)
-        {
-            return token.Type == TokenType.Identifier || token.Type.IsBuiltInType();
         }
     }
 }

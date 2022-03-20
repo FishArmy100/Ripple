@@ -33,6 +33,8 @@ namespace Ripple
             Column = column;
         }
 
+        public bool IsTypeName() => Type.IsTypeName(); 
+
         public override string ToString()
         {
             if (IsLiteral)

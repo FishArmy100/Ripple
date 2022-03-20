@@ -6,27 +6,25 @@ using System.Threading.Tasks;
 
 namespace Ripple.AST
 {
-    class NewExpr : Expression
+    class IndexExpr : Expression
     {
-        public readonly Token Keyword;
-        public readonly RippleType Type;
+        public readonly Expression Indexee;
         public readonly List<Expression> Arguments;
 
-        public NewExpr(Token keyword, RippleType type, List<Expression> parameters)
+        public IndexExpr(Expression indexee, List<Expression> arguments)
         {
-            Keyword = keyword;
-            Type = type;
-            this.Arguments = parameters;
+            Indexee = indexee;
+            Arguments = arguments;
         }
 
         public override T Accept<T>(IExpressionVisitor<T> visitor)
         {
-            return visitor.VisitNew(this);
+            return visitor.VisitIndex(this);
         }
 
         public override void Accept(IExpressionVisitor visitor)
         {
-            visitor.VisitNew(this);
+            visitor.VisitIndex(this);
         }
     }
 }

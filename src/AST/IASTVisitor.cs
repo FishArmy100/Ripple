@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple
+namespace Ripple.AST
 {
-    interface IASTVisitor<T> : IExpressionVisitor<T>, IStatementVisitor<T>
+    interface IASTVisitor<T> : IExpressionVisitor<T>, IStatementVisitor<T>, IRippleTypeVisitor<T>
     {
     }
 
-    interface IASTVisitor : IExpressionVisitor, IStatementVisitor
+    interface IASTVisitor : IExpressionVisitor, IStatementVisitor, IRippleTypeVisitor
     {
     }
 }

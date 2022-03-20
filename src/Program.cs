@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Windows.Input;
 using System.IO;
+using Ripple.AST;
 
 namespace Ripple
 {
@@ -44,10 +45,18 @@ namespace Ripple
         {
             Utils.OperationResult<CompilerResult, CompilerError> result = Compiler.CompileSource(src);
 
-            Console.WriteLine("Compiler Errors:");
-            foreach (CompilerError error in result.Errors)
-                Console.WriteLine("\t" + error.ToString());
-            Console.WriteLine("");
+
+            if(result.HasError)
+            {
+                Console.WriteLine("Compiler Errors:");
+                foreach (CompilerError error in result.Errors)
+                    Console.WriteLine("\t" + error.ToString());
+                Console.WriteLine("");
+            }
+            else
+            {
+                Console.WriteLine("Compiler Errors: None");
+            }
 
             Console.WriteLine(ASTPrinter.PrintTree(result.Result.AST, "   "));
         }

@@ -4,17 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple
+namespace Ripple.AST
 {
     class VariableDecl : Statement
     {
-        public readonly Token TypeName;
+        public readonly RippleType Type;
         public readonly Token Name;
         public readonly Expression Initializer;
 
-        public VariableDecl(Token typeName, Token name, Expression initializer)
+        public VariableDecl(RippleType typeName, Token name, Expression initializer)
         {
-            TypeName = typeName;
+            Type = typeName;
             Name = name;
             Initializer = initializer;
         }

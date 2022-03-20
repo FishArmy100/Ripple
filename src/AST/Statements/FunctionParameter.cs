@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple
+namespace Ripple.AST
 {
     class FunctionParameter
     {
         public readonly Token Name;
-        public readonly Token Type;
+        public readonly RippleType Type;
 
-        public FunctionParameter(Token name, Token type)
+        public FunctionParameter(Token name, RippleType type)
         {
             Name = name;
             Type = type;

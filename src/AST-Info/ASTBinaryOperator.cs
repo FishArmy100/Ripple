@@ -4,16 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple
+namespace Ripple.AST.Info
 {
     struct ASTBinaryOperator
     {
-        public readonly ASTType Left;
-        public readonly ASTType Right;
+        public readonly ASTTypeInfo Left;
+        public readonly ASTTypeInfo Right;
         public readonly TokenType Operator;
-        public readonly ASTType ReturnType;
+        public readonly ASTTypeInfo ReturnType;
 
-        public ASTBinaryOperator(ASTType left, TokenType op, ASTType right, ASTType returnType)
+        public ASTBinaryOperator(ASTTypeInfo left, TokenType op, ASTTypeInfo right, ASTTypeInfo returnType)
         {
             Left = left;
             Right = right;
@@ -24,10 +24,10 @@ namespace Ripple
         public override bool Equals(object obj)
         {
             return obj is ASTBinaryOperator op &&
-                   EqualityComparer<ASTType>.Default.Equals(Left, op.Left) &&
-                   EqualityComparer<ASTType>.Default.Equals(Right, op.Right) &&
+                   EqualityComparer<ASTTypeInfo>.Default.Equals(Left, op.Left) &&
+                   EqualityComparer<ASTTypeInfo>.Default.Equals(Right, op.Right) &&
                    Operator == op.Operator &&
-                   EqualityComparer<ASTType>.Default.Equals(ReturnType, op.ReturnType);
+                   EqualityComparer<ASTTypeInfo>.Default.Equals(ReturnType, op.ReturnType);
         }
 
         public override int GetHashCode()

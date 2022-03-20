@@ -9,6 +9,7 @@ namespace Ripple
         Dot, Comma, Minus, Plus, Slash,
         Star, Semicolon, Colon, Caret, 
         Ampersand, Pipe, Percent, Tilda,
+        QuestionMark,
 
         OpenParen, CloseParen, OpenBracket, CloseBracket,
         OpenBrace, CloseBrace,
@@ -49,10 +50,11 @@ namespace Ripple
 
         public static bool IsBuiltInType(this TokenType type)
         {
-            return type == TokenType.IntType ||
-                   type == TokenType.UintType ||
-                   type == TokenType.FloatType ||
-                   type == TokenType.CharType ||
+            return type == TokenType.IntType    ||
+                   type == TokenType.UintType   ||
+                   type == TokenType.BoolType   ||
+                   type == TokenType.FloatType  ||
+                   type == TokenType.CharType   ||
                    type == TokenType.StringType ||
                    type == TokenType.ObjectType;
 
@@ -61,6 +63,16 @@ namespace Ripple
         public static bool IsIdentifier(this TokenType type)
         {
             return type == TokenType.Identifier;
+        }
+
+        /// <summary>
+        /// Checks if this token type is a built in type, identifier, or void
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static bool IsTypeName(this TokenType type)
+        {
+            return type.IsBuiltInType() || type.IsIdentifier() || type == TokenType.Void;
         }
     }
 }
