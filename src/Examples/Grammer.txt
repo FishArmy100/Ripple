@@ -28,11 +28,11 @@ Utility Rules:
 	arguments		-> expression ("," expression)*;
 	
 Type Rules:
-	typeName		-> "int" | "float" | "string" | "char" | "object" | "uint" | "void" | IDENTIFIER;
+	typeName		-> "int" | "float" | "char" | "bool" | "void" | IDENTIFIER;
 
-	basicType		-> typeName "&"? "?"?;
-	funRefType		-> type "(" (type ("," type)*)? ")&" "?"?;
-	arrayType		-> type "[" ","* "]&" "?"?;
+	basicType		-> typeName ("^" | "^?" | "&")?
+	funRefType		-> type "(" (type ("," type)*)? ")^" "?"?;
+	arrayType		-> type "[" "]" ("^" | "^?" | "&");
 
 	type			-> basicType | arrayType | funcRefType;
 
@@ -47,12 +47,14 @@ Expression Rules:
 					 | "this" 
 					 | "base"
 					 | "new" type "(" arguments ")"
-					 | "new" type "[" arguments "]";
+					 | "new" type "[" expression "]" ("(" expression? ")")? ("{" arguments? "}")?
+					 | "size_of" ("(" expression ")" | "<" type ">" "()")
+					 | "reinterpret_cast" "<" type ">" "(" expression ("," expression)? ")";
 
 
 	call			-> primary ("(" arguments? ")" | "." IDIENTIFIER)* | "[" arguments "]";
 
-	unary			-> ("-" | "!" | "~") unary | primary;
+	unary			-> ("-" | "!" | "~" | "(" type ")" ) unary | primary;
 
 	factor			-> unary (("*" | "/" | "%") unary)*; // Example: 5 * -3 / 2;
 	term			-> factor (("+" | "-") factor)* // Example: 5 + (3 * 2);
@@ -108,10 +110,10 @@ Declaration Rules:
 
 	classMember		-> memberAttrib* memberDecl;
 
-	classDecl		-> "static"? "class" IDENTIFIER (":" IDENTIFIER)?
-					 "{"
-						  classMember*
-					 "}";
+	classDecl		-> "class" IDENTIFIER (":" IDENTIFIER)?
+					   "{"
+							classMember*
+					   "}";
 
 	declaration		-> varDecl | funcDecl | classDecl
 

@@ -13,6 +13,7 @@ namespace Ripple
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
             RunRippleCode();
+
         }
 
         private static void RunRippleCode()

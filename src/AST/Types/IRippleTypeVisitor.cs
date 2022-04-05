@@ -10,13 +10,13 @@ namespace Ripple.AST
     {
         public void VisitBasicType(BasicType basicType);
         public void VisitArrayType(ArrayType arrayType);
-        public void VisitFuncRefType(FuncRefType funcRef);
+        public void VisitFuncRefType(FuncPointerType funcRef);
     }
 
     interface IRippleTypeVisitor<T>
     {
         public T VisitBasicType(BasicType basicType);
         public T VisitArrayType(ArrayType arrayType);
-        public T VisitFuncRefType(FuncRefType funcRef);
+        public T VisitFuncRefType(FuncPointerType funcRef);
     }
 }

@@ -14,8 +14,11 @@ int Main()
 	int value = int(5);
 	value = int();
 	int& valuer = new int(5);
+	int[]& values = new int[10];
 	value = values[0];
 	
 	int()& func = Func1;
 	int(int, int)& func2var = Func2;
+
+	string& message = (string&)value;
 }

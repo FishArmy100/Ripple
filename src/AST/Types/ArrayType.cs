@@ -9,14 +9,12 @@ namespace Ripple.AST
     class ArrayType : RippleType
     {
         public readonly RippleType Type;
-        public readonly int Dimentions;
-        public readonly bool IsNullable;
+        public readonly RippleArrayTypePostfix Postifix;
 
-        public ArrayType(RippleType type, int dimentions, bool isNullable)
+        public ArrayType(RippleType type, RippleArrayTypePostfix postfix)
         {
             Type = type;
-            Dimentions = dimentions;
-            IsNullable = isNullable;
+            Postifix = postfix;
         }
 
         public override void Accept(IRippleTypeVisitor visitor)

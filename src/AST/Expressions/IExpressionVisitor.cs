@@ -18,6 +18,10 @@ namespace Ripple.AST
         public T VisitGet(GetExpr get);
         public T VisitNew(NewExpr newExpr);
         public T VisitIndex(IndexExpr indexExpr);
+        public T VisitNewArray(NewArrayExpr newArrayExpr);
+        public T VisitCast(CastExpr castExpr);
+        public T VisitSizeOf(SizeOfExpr sizeOfExpr);
+        public T VisitReinterpretCast(ReinterpretCastExpr reinterpretCastExpr);
     }
 
     interface IExpressionVisitor
@@ -32,5 +36,9 @@ namespace Ripple.AST
         public void VisitGet(GetExpr get);
         public void VisitNew(NewExpr newExpr);
         public void VisitIndex(IndexExpr indexExpr);
+        public void VisitNewArray(NewArrayExpr newArrayExpr);
+        public void VisitCast(CastExpr castExpr);
+        public void VisitSizeOf(SizeOfExpr sizeOfExpr);
+        public void VisitReinterpretCast(ReinterpretCastExpr reinterpretCastExpr);
     }
 }

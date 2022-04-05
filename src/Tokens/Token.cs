@@ -13,7 +13,6 @@ namespace Ripple
         public readonly int Column;
 
         public bool IsLiteral => Literal != null;
-        public static Token Invalid => new Token(TokenType.Invalid, null, 0, 0);
 
         public Token(TokenType type, string lexeme, object literal, int line, int column)
         {

@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace Ripple.AST
 {
-    class FuncRefType : RippleType
+    class FuncPointerType : RippleType
     {
         public readonly RippleType ReturnType;
         public readonly List<RippleType> Parameters;
         public readonly bool IsNullable;
 
-        public FuncRefType(RippleType returnType, List<RippleType> parameters, bool isNullable)
+        public FuncPointerType(RippleType returnType, List<RippleType> parameters, bool isNullable)
         {
             ReturnType = returnType;
             Parameters = parameters;

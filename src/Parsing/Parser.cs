@@ -4,7 +4,7 @@ using System.Text;
 using Ripple.Utils;
 using Ripple.AST;
 
-namespace Ripple
+namespace Ripple.Parsing
 {
     static class Parser
     {
@@ -36,7 +36,7 @@ namespace Ripple
         }
 
         // ------------------------------------------------------------------------------------
-        // Declaration:
+        // Declarations:
         // ------------------------------------------------------------------------------------
         private static Statement CreateDeclaration(TokenReader reader)
         {
@@ -116,7 +116,6 @@ namespace Ripple
                 return new MemberDeclarationStmt(attributes, ConstructorDeclaration(reader));
 
             throw CreateError(reader, "Expected declaration.");
-            return null;
         }
 
         private static Statement ConstructorDeclaration(TokenReader reader)
@@ -365,6 +364,19 @@ namespace Ripple
                 return new UnaryExpr(right, op);
             }
 
+            if(reader.CheckCurrent(TokenType.OpenParen))
+            {
+                if(IsCurrentRippleType(reader, out int length, 1) 
+                   && reader.PeekCurrent(length + 1).Type == TokenType.CloseParen)
+                {
+                    reader.AdvanceCurrent();
+                    RippleType type = ParseType(reader);
+                    reader.AdvanceCurrent();
+                    Expression right = Unary(reader);
+                    return new CastExpr(right, type);
+                }
+            }
+
             return Call(reader);
         }
 
@@ -443,7 +455,7 @@ namespace Ripple
         private static Expression Primary(TokenReader reader)
         {
             if(reader.MatchCurrent(TokenType.IntLiteral, TokenType.FloatLiteral, 
-                                   TokenType.CharLiteral, TokenType.StringLiteral, 
+                                   TokenType.CharLiteral, TokenType.CharArrayLiteral, 
                                    TokenType.True, TokenType.False, TokenType.Null,
                                    TokenType.This, TokenType.Base))
             {
@@ -473,9 +485,6 @@ namespace Ripple
 
             Token token = reader.PeekCurrent();
 
-            if (reader.PeekCurrent().Type == TokenType.Invalid)
-                throw new ParserException("Invalid token at line: " + token.Line, token, reader.Current);
-
             throw new ParserException("Invalid primary token: \"" + token.Lexeme + "\" at line " + token.Line, token, reader.Current);
         }
 
@@ -485,7 +494,40 @@ namespace Ripple
 
             RippleType type = ParseType(reader);
 
-            Consume(reader, TokenType.OpenParen, "Expected '('");
+            if(reader.MatchCurrent(TokenType.OpenParen))
+            {
+                return ParseNewTypeExpr(reader, keyword, type);
+            }
+            if(reader.MatchCurrent(TokenType.OpenBracket))
+            {
+                return ParseNewArrayExpr(reader, keyword, type);
+            }
+
+            throw CreateError(reader, "Expected either '(' or '['");
+        }
+
+        private static Expression ParseNewArrayExpr(TokenReader reader, Token keyword, RippleType type)
+        {
+            List<Expression> arguments = new List<Expression>();
+            if (!reader.CheckCurrent(TokenType.CloseBracket))
+            {
+                do
+                {
+                    if (arguments.Count >= 255)
+                    {
+                        throw CreateError(reader, "Can't have more than 255 arguments.");
+                    }
+                    arguments.Add(CreateExpression(reader));
+                } while (reader.MatchCurrent(TokenType.Comma));
+            }
+
+            Consume(reader, TokenType.CloseBracket, "Expect ')' after arguments.");
+
+            return new NewExpr(keyword, type, arguments);
+        }
+
+        private static Expression ParseNewTypeExpr(TokenReader reader, Token keyword, RippleType type)
+        {
             List<Expression> arguments = new List<Expression>();
             if (!reader.CheckCurrent(TokenType.CloseParen))
             {
@@ -530,7 +572,7 @@ namespace Ripple
                 if (reader.MatchCurrent(TokenType.OpenParen))
                 {
                     List<RippleType> funcParams = ParseFuncRefParams(reader, out bool isNullable);
-                    type = new FuncRefType(type, funcParams, isNullable);
+                    type = new FuncPointerType(type, funcParams, isNullable);
                     continue;
                 }
 

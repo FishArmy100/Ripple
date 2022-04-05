@@ -62,7 +62,7 @@ namespace Ripple.AST
 
         public string VisitNew(NewExpr newExpr)
         {
-            string sNew = GetOffset() + "New expression\n";
+            string sNew = GetOffset() + "New expression:\n";
             m_IndentCount++;
             sNew += GetOffset() + "Type: " + newExpr.Type.Accept(this) + "\n";
             sNew += GetOffset() + "Arguments: \n";
@@ -76,9 +76,55 @@ namespace Ripple.AST
             return sNew;
         }
 
+        public string VisitNewArray(NewArrayExpr newArrayExpr)
+        {
+            string sNewArray = GetOffset() + "New array expression:\n";
+            m_IndentCount++;
+            sNewArray += GetOffset() + "Type: " + newArrayExpr.ArrayType.Accept(this) + "\n";
+
+            if(newArrayExpr.DefultValueExpr != null)
+            {
+                sNewArray += GetOffset() + "Defalut array value:\n";
+                m_IndentCount++;
+                sNewArray += newArrayExpr.DefultValueExpr.Accept(this);
+                m_IndentCount--;
+            }
+
+            if (newArrayExpr.SizeExpr != null)
+            {
+                sNewArray += GetOffset() + "Array size:\n";
+                m_IndentCount++;
+                sNewArray += newArrayExpr.DefultValueExpr.Accept(this);
+                m_IndentCount--;
+            }
+
+            if (newArrayExpr.InitializerArrayArgs.Count > 0)
+            {
+                sNewArray += GetOffset() + "Initializer arguments: \n";
+
+                m_IndentCount++;
+                foreach (Expression expr in newArrayExpr.InitializerArrayArgs)
+                    sNewArray += expr.Accept(this);
+                m_IndentCount--;
+            }
+            
+
+            m_IndentCount--;
+            return sNewArray;
+        }
+
+        public string VisitCast(CastExpr castExpr)
+        {
+            string sExpr = GetOffset() + "Casting expression: casting type: " + castExpr.Type.Accept(this);
+            m_IndentCount++;
+            sExpr += "\n" + castExpr.Right.Accept(this);
+            m_IndentCount--;
+            return sExpr;
+        }
+
         public string VisitUnary(UnaryExpr unary)
         {
-            string sExpr = GetOffset() + "Binary Expression: operator " + unary.Operator.Lexeme;
+            string sExpr = GetOffset() + "Unary Expression: operator " + unary.Operator.Lexeme;
             m_IndentCount++;
             sExpr += "\n" + unary.Right.Accept(this);
             m_IndentCount--;
@@ -390,7 +436,7 @@ namespace Ripple.AST
             return sArr;
         }
 
-        public string VisitFuncRefType(FuncRefType funcRef)
+        public string VisitFuncRefType(FuncPointerType funcRef)
         {
             string sFuncRef = funcRef.ReturnType.Accept(this);
             sFuncRef += "(";
@@ -421,6 +467,16 @@ namespace Ripple.AST
             }
 
             return offset;
+        }
+
+        public string VisitSizeOf(SizeOfExpr sizeOfExpr)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string VisitReinterpretCast(ReinterpretCastExpr reinterpretCastExpr)
+        {
+            throw new NotImplementedException();
         }
     }
 }

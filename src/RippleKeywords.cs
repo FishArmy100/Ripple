@@ -22,7 +22,6 @@ namespace Ripple
             { "public", TokenType.Public },
             { "private", TokenType.Private },
             { "protected", TokenType.Protected },
-            { "friend", TokenType.Friend },
             { "new", TokenType.New },
             { "break", TokenType.Break },
             { "continue", TokenType.Continue },
@@ -31,20 +30,17 @@ namespace Ripple
             { "bool", TokenType.BoolType },
             { "char", TokenType.CharType },
             { "int", TokenType.IntType },
-            { "uint", TokenType.UintType },
             { "float", TokenType.FloatType },
-            { "string", TokenType.StringType },
-            { "override", TokenType.Override},
-            { "abstract", TokenType.Abstract },
-            { "final", TokenType.Final },
-            { "const", TokenType.Const },
-            { "static", TokenType.Static }
+            { "static", TokenType.Static },
+            { "size_of", TokenType.SizeOfOperator },
+            { "default", TokenType.DefaultOperator },
+            { "length_of", TokenType.LengthOfOperator },
+            {"reinterpret_cast", TokenType.ReinterpretCastOperator }
         };
 
         public const string BOOL_TYPE_NAME = "bool";
         public const string CHAR_TYPE_NAME = "char";
         public const string INT_TYPE_NAME = "int";
         public const string FLOAT_TYPE_NAME = "float";
-        public const string STRING_TYPE_NAME = "string";
     }
 }

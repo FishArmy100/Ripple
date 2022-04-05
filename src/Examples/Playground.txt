@@ -1,12 +1,25 @@
 ﻿
 
-
-if(a and b)
+class Example
 {
-	
+	private int m_Value;
+
+	public int GetValue() const
+	{
+		return m_Value;
+	}
+
+	public nonmut int GetValue()
+	{
+		return m_Value;
+	}
+
+	public void SetValue(int value)
+	{
+		m_Value = value;
+	}
 }
 
-if(a && b)
-{
-	
-}
+Example e1 = Example();
+
+const Example e2 = Example();

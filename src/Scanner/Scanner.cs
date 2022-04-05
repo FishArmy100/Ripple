@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Ripple.Utils;
 
-namespace Ripple
+namespace Ripple.Scanning
 {
     static class Scanner
     {
@@ -100,7 +100,7 @@ namespace Ripple
                 if (Reader.IsAtEnd() && Reader.PeekCurrent(-1) != '\"')
                     AddError("Untermenated string");
 
-                AddToken(TokenType.StringLiteral, Reader.Source[(Reader.Start + 1)..(Reader.Current - 1)]);
+                AddToken(TokenType.CharArrayLiteral, Reader.Source[(Reader.Start + 1)..(Reader.Current - 1)]);
                 return true;
             }
 

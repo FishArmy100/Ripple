@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Ripple
+namespace Ripple.Scanning
 {
     class SourceReader
     {

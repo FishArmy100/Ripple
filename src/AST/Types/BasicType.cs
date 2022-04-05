@@ -10,13 +10,13 @@ namespace Ripple.AST
     {
         public readonly Token Name;
         public readonly bool IsReference;
-        public readonly bool IsNullable;
+        public readonly RippleBasicTypePostfix Posfix;
 
-        public BasicType(Token name, bool isReference, bool isNullable)
+        public BasicType(Token name, bool isReference, RippleBasicTypePostfix postfix)
         {
             Name = name;
             IsReference = isReference;
-            IsNullable = isNullable;
+            Posfix = postfix;
         }
 
         public override void Accept(IRippleTypeVisitor visitor)

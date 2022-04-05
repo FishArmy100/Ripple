@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple.AST.Info
+namespace Ripple.AST
 {
-    class ASTTypeInfo
+    enum RippleArrayTypePostfix
     {
-
+        Pointer,
+        NullablePointer,
+        Reference
     }
 }

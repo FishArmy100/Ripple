@@ -3,8 +3,6 @@ namespace Ripple
 {
     enum TokenType
     {
-        Invalid,
-
         // single charictor tokens
         Dot, Comma, Minus, Plus, Slash,
         Star, Semicolon, Colon, Caret, 
@@ -20,16 +18,19 @@ namespace Ripple
         GreaterThanGreaterThan,
 
         // Literals
-        FloatLiteral, IntLiteral, UintLiteral, CharLiteral, StringLiteral,
+        FloatLiteral, IntLiteral, UintLiteral, CharLiteral, CharArrayLiteral,
 
         // Keywords
         True, False, Return, Null, If, Else, Class,
         Base, This, While, For, Public, Private, 
-        Protected, Friend, New, Break, Continue, Void, Virtual,
-        Override, Abstract, Final, Const, Static,
+        Protected, New, Break, Continue, Void, Virtual,
+        Override, Static, 
+        
+        // Word operators
+        DefaultOperator, SizeOfOperator, LengthOfOperator, ReinterpretCastOperator,
 
         // types
-        BoolType, CharType, IntType, UintType, FloatType, StringType, ObjectType,
+        BoolType, CharType, IntType, FloatType,
 
         Identifier,
 
@@ -44,19 +45,16 @@ namespace Ripple
                    type == TokenType.UintLiteral ||
                    type == TokenType.FloatLiteral ||
                    type == TokenType.CharLiteral ||
-                   type == TokenType.StringLiteral;
+                   type == TokenType.CharArrayLiteral;
 
         }
 
         public static bool IsBuiltInType(this TokenType type)
         {
-            return type == TokenType.IntType    ||
-                   type == TokenType.UintType   ||
-                   type == TokenType.BoolType   ||
-                   type == TokenType.FloatType  ||
-                   type == TokenType.CharType   ||
-                   type == TokenType.StringType ||
-                   type == TokenType.ObjectType;
+            return type == TokenType.IntType   ||
+                   type == TokenType.BoolType  ||
+                   type == TokenType.FloatType ||
+                   type == TokenType.CharType;
 
         }
 

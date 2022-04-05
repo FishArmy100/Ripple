@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.AST.Info
 {
-    class ASTTypeInfo
+    class ASTFunctionInfo
     {
-
     }
 }
