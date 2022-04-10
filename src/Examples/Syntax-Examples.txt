@@ -15,25 +15,43 @@ char^ string = "Hello World!";
 
 // bit operators: |, &, ^, ~, <<, >>
 
-//------------- Normal Values -------------
+//------------- Mannaged Pointers -------------
 // value type, is copyed implicitly
 int value = 5;
 
 // mannaged pointer, is garbage collected
 int^ ptrValue = new int(5);
 
-// reference, can only exist in functions, and cant be returned from a function if created there
+// can access members using the -> operator
+ClassName^ c = new ClassName();
+c->MemberName();
+
+// can store any pointer inside a void pointer
+void^ anonPtr = ptrValue;
+
+
+//------------- References -------------
+// references can only exist in functions, and cant be returned from a function if created there
+// also, must be initialized, and cant change where it references too
 int& refValue = value;
+
+int& Func() // does not compile
+{
+	int value = 5;
+	return value;
+}
 
 // pointer dereferencing, same as c++
 int& ref = ^ptrValue;
 
-// Control flow
+// can store any value in a void reference:
+void& anonomusRef = ref;
+
+//------------- Control Flow -------------
 // Loops and if statements are in the same vein as c++ and c#
 // List of supported types: while, for, if, else
 
 //------------- Arrays -------------
-
 // heap allocated array
 // same data as stack allocated array
 int^ array = new int[10](-1) {3, 4, 5};
@@ -47,6 +65,16 @@ int^ slice = hArr[2..3];
 
 // can get the number of items in the array
 int length1 = array.Length();
+
+//------------- Functions -------------
+// Functions can either be in local space, or global space
+ReturnType FuncName(ParamaterType param1, ParamerterType param2)
+{
+	// do stuff here
+	return returnTypeInstance;
+
+	// can simply call return if the return type is null
+}
 
 //------------- Function Pointers -------------
 // function pointers
@@ -87,6 +115,9 @@ int^?
 // Can have pointers to nullable types
 int?^ example = new int?(null);
 
+//can check if a nullable type equles null
+bool isNull = nullable == null; // would be true in this case
+
 //------------- Classes -------------
 
 class BaseClassName
@@ -114,6 +145,12 @@ class ClassName : BaseTypeName
 		Message = message;
 	}
 
+	// Copy constructor
+	public ClassName(const ClassName& className)
+	{
+		this = className;
+	}
+
 	public void SetData(int data) // function
 	{
 		DataValue = data;
@@ -134,7 +171,6 @@ class ClassName : BaseTypeName
 }
 
 //------------- Traits -------------
-
 // Traits contain funtions that can be implemented for different classes
 // public by default
 trait Callable
@@ -187,6 +223,11 @@ Animal^ animal = new Bear();
 // explisit
 // will throw an error if animal is not a bear
 Bear^ bear = (Bear^)animal;
+
+Can do same with references:
+Bear b = Bear();
+Animal& a = b;
+Bear& bear = (Bear&)a;
 
 // ------------- Trait Casting -------------
 // works the same as heirarchial casting, but with traits

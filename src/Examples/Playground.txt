@@ -1,25 +1,106 @@
 ﻿
 
-class Example
+//------------- Basic Data Types -------------
+// operators: +, -, *, /, %
+int intager = 5;
+
+// operators: +, -, *, /
+float decimal = 1.5;
+
+// operators: &&, ||, !
+bool isTrue = false;
+
+char charactor = 'c';
+
+char^ string = "Hello World!";
+
+// bit operators: |, &, ^, ~, <<, >>
+
+//------------- Mannaged Pointers -------------
+// value type, is copyed implicitly
+int value = 5;
+
+// mannaged pointer, is garbage collected
+int^ ptrValue = new int(5);
+
+// can access members using the -> operator
+ClassName^ c = new ClassName();
+c->MemberName();
+
+// can store any pointer inside a void pointer
+void^ anonPtr = ptrValue;
+
+//------------- References -------------
+// references can only exist in functions, and cant be returned from a function if created there
+// also, must be initialized, and cant change where it references too
+int& refValue = value;
+
+int& Func() // does not compile
 {
-	private int m_Value;
-
-	public int GetValue() const
-	{
-		return m_Value;
-	}
-
-	public nonmut int GetValue()
-	{
-		return m_Value;
-	}
-
-	public void SetValue(int value)
-	{
-		m_Value = value;
-	}
+	int value = 5;
+	return value;
 }
 
-Example e1 = Example();
+// pointer dereferencing, same as c++
+int& ref = ^ptrValue;
 
-const Example e2 = Example();
+// can store any value in a void reference:
+void& anonomusRef = ref;
+
+//------------- Arrays -------------
+// Allocated on the heap, and garbage collected
+int[] array = new int[10](-1) { 5, 4, 3, 2, 1 };
+
+// array indexing
+int& val = array[0];
+
+// array slices:
+// referencing same data in array
+int[] slice = hArr[2..3];
+
+// can get the number of items in the array
+int length1 = array.Length();
+
+
+
+//------------- References: Upadated -------------
+int value1 = 7;
+int value2 = 16;
+
+int& ref = &value1; // ref is now assigned to reference value1
+ref = &value2; // ref is now assigned to reference value1
+*ref = value1; // value2 new equels 7
+
+int const& constRef = &value2; // create a const reference
+constRef = &value1 // does not compile
+
+int out = *ref;
+
+SomeClass& data = &SomeClass(10);
+data->GetData();
+(*data).GetData();
+
+//------------- References: Invalid Examples -------------
+
+int& GetData()
+{
+	int value = 5;
+	return &value;
+}
+
+class Data
+{
+	public int& Number;
+}
+
+void Main()
+{
+	int value1 = 5;
+	int&^ ref = new int&(&value1);
+
+	if(true)
+	{
+		int value2 = 6;
+		^ref = &value2;
+	}
+}
