@@ -1,0 +1,52 @@
+﻿
+import STD.Utils.*;
+import STD.Iteratable;
+import STD.Debug.DebugAssert;
+
+namespace STD
+{
+	public class String : impl Iteratable
+	{
+		public usize_t Length { get; private set; }
+		private char* m_Str
+
+		public String(const char* str) : 
+			Length(Utils::StrLen(str)), 
+			m_Str(Utils::StrCpy(m_Str)) 
+		{}
+
+		public copy String(const String& other) :
+			this->Length(other.Length)
+			this-> m_Str(Utils::StrCpy(other.m_Str))
+		{}
+
+		public move String(String&) = default;
+
+		public char& operator[](usize_t index)
+		{
+			Debug::DebugAssert<char&>(index < Length - 1, "Index must be less than the length of the string")
+			return m_Str[index];
+		}
+
+		public const char& operator[](usize_t index) const
+		{
+			Debug::DebugAssert<char&>(index < Length - 1, "Index must be less than the length of the string")
+			return m_Str[index];
+		}
+
+		public operator const char*() { return m_Str; } const
+		public operator char*() { return m_Str; }
+	}
+
+	uint GetNumberOfSameChars(const String& str, char sc)
+	{
+		int charNumber = 0;
+		for(char c : str)
+		{
+			if(c == sc)
+				charNumber++;
+		}
+
+		return charNumber;
+	}
+}

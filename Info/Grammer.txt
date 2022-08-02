@@ -28,13 +28,16 @@ Utility Rules:
 	arguments		-> expression ("," expression)*;
 	
 Type Rules:
-	typeName		-> "int" | "float" | "char" | "bool" | "void" | IDENTIFIER;
+	typeName		-> "int" | "float" | "char" | "bool" | "void" | IDENTIFIER ("." IDENTIFIER);
 
-	basicType		-> typeName ("^" | "^?" | "&")?
-	funRefType		-> type "(" (type ("," type)*)? ")^" "?"?;
-	arrayType		-> type "[" "]" ("^" | "^?" | "&");
+	basicType		-> (typeName | basicType) ("^" | "&" | "[]")?
 
-	type			-> basicType | arrayType | funcRefType;
+	pointerType		-> type "^"
+	referenceType	-> type "&"
+	arrayType		-> type "[" "]";
+	funRefType		-> type "(" (type ("," type)*)? ")^";
+
+	type			-> typeName | pointerType | referenceType | arrayType | funcRefType;
 
 Expression Rules:
 	primary			-> INT 
@@ -92,7 +95,7 @@ Statement Rules:
 					 | whileStmt
 					 | forStmt
 					 | continueStmt 
-					 | breakStmt;
+					 | breakStmt
 					 | returnStmt;
 
 	block			->  "{" instructionStmt* "}";
@@ -101,21 +104,31 @@ Declaration Rules:
 
 	varDecl			-> type IDENTIFIER ( "=" expression)? ";";
 	
-	funcDecl		-> type IDENTIFIER "(" parameters? ")" block
+	funcDecl		-> type IDENTIFIER "(" parameters? ")" "const"? block;
 
 	constructor		-> IDENTIFIER "(" parameters? ")" block;
-	memberAttrib	-> public | protected | private | virtual | "override" | "static";
+	memberAttrib	-> "public" | "protected" | "private" | "virtual" | "override" | "static";
 
 	memberDecl		-> constructor | declaration;
 
 	classMember		-> memberAttrib* memberDecl;
 
-	classDecl		-> "class" IDENTIFIER (":" IDENTIFIER)?
+	classDecl		-> "class" IDENTIFIER (":" IDENTIFIER? ("impl" IDENTIFIER ("," IDENTIFIER)*)? )?
 					   "{"
 							classMember*
 					   "}";
 
-	declaration		-> varDecl | funcDecl | classDecl
+	traitDecl		-> "trait" IDENTIFIER (":" IDENTIFIER ("," IDENTIFIER)*))?
+					   "{"
+							(type IDENTIFIER "(" parameters? ")" "const"? (body | ";"))*
+					   "}";
+
+	traitImplDecl	-> "impl" IDENTIFIER "for" IDENTIFIER
+					   "{"
+							funcDecl*
+					   "}";
+
+	declaration		-> varDecl | funcDecl | classDecl | traitImplDecl | traitDecl
 
 	program			-> declaration*  EOF; // final ast for a file
 

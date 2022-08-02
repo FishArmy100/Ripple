@@ -15,6 +15,7 @@ namespace Ripple
             { "if", TokenType.If },
             { "else", TokenType.Else },
             { "class", TokenType.Class },
+            { "trait", TokenType.Trait },
             { "base", TokenType.Base },
             { "this", TokenType.This },
             { "while", TokenType.While },
@@ -34,7 +35,6 @@ namespace Ripple
             { "static", TokenType.Static },
             { "size_of", TokenType.SizeOfOperator },
             { "default", TokenType.DefaultOperator },
-            { "length_of", TokenType.LengthOfOperator },
             {"reinterpret_cast", TokenType.ReinterpretCastOperator }
         };
 

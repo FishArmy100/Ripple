@@ -1,106 +1,29 @@
 ﻿
 
-//------------- Basic Data Types -------------
-// operators: +, -, *, /, %
-int intager = 5;
+concept Intager where STD::IsIntagral<This>() {}
 
-// operators: +, -, *, /
-float decimal = 1.5;
+class IntagerSequence<T, int... indexes> where T is Intager {}
 
-// operators: &&, ||, !
-bool isTrue = false;
-
-char charactor = 'c';
-
-char^ string = "Hello World!";
-
-// bit operators: |, &, ^, ~, <<, >>
-
-//------------- Mannaged Pointers -------------
-// value type, is copyed implicitly
-int value = 5;
-
-// mannaged pointer, is garbage collected
-int^ ptrValue = new int(5);
-
-// can access members using the -> operator
-ClassName^ c = new ClassName();
-c->MemberName();
-
-// can store any pointer inside a void pointer
-void^ anonPtr = ptrValue;
-
-//------------- References -------------
-// references can only exist in functions, and cant be returned from a function if created there
-// also, must be initialized, and cant change where it references too
-int& refValue = value;
-
-int& Func() // does not compile
+$eval var GenIntagerSequence<T, T first, T... rest>() where T is Intager
 {
-	int value = 5;
-	return value;
+	$if (first == 0)
+		return IntagerSequence<T, first, rest...>();
+	else
+		return GenIntagerSequence<T, first - 1, first - 1, rest...>();
 }
 
-// pointer dereferencing, same as c++
-int& ref = ^ptrValue;
-
-// can store any value in a void reference:
-void& anonomusRef = ref;
-
-//------------- Arrays -------------
-// Allocated on the heap, and garbage collected
-int[] array = new int[10](-1) { 5, 4, 3, 2, 1 };
-
-// array indexing
-int& val = array[0];
-
-// array slices:
-// referencing same data in array
-int[] slice = hArr[2..3];
-
-// can get the number of items in the array
-int length1 = array.Length();
-
-
-
-//------------- References: Upadated -------------
-int value1 = 7;
-int value2 = 16;
-
-int& ref = &value1; // ref is now assigned to reference value1
-ref = &value2; // ref is now assigned to reference value1
-*ref = value1; // value2 new equels 7
-
-int const& constRef = &value2; // create a const reference
-constRef = &value1 // does not compile
-
-int out = *ref;
-
-SomeClass& data = &SomeClass(10);
-data->GetData();
-(*data).GetData();
-
-//------------- References: Invalid Examples -------------
-
-int& GetData()
+void PrintSequence<T, T... sequence>() where T is Intager
 {
-	int value = 5;
-	return &value;
+	STD::Println(sequence);... // work in progress
 }
 
-class Data
+int Main()
 {
-	public int& Number;
-}
-
-void Main()
-{
-	int value1 = 5;
-	int&^ ref = new int&(&value1);
-
-	if(true)
-	{
-		int value2 = 6;
-		^ref = &value2;
-	}
+	PrintSequence(GenIntagerSequence<size_t, 4>());
+	/* prints out:
+	0
+	1
+	2
+	3
+	*/
 }

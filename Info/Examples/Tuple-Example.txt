@@ -1,0 +1,120 @@
+﻿package Std;
+import Std;
+
+namespace STD
+{
+	// public classes and functions are exported from packages
+	public class Tuple<T...> where AreAllCopyable<T...>()
+	{
+		private using TStorage = byte[Sum(sizeof(T)...)];
+		private TStorage m_Storage;
+
+		public uint Length { get { return sizeof...(T); } } // get only property
+
+		public Tuple(const T&... args)
+		{
+			usize_t offset = 0;
+			$for(var i = 0; i < sizeof...(T); i++) // compile time for loop, WIP
+			{
+				using TIndexed = T[i];
+				TIndexed* ptr = GetPtr<i>();
+				new (ptr) TIndexed(args[i]); // in place construction
+				offset += sizeof(TIndexed);
+			}
+		}
+
+		public copy Tuple(const Tuple& other) // copy constructor
+		{
+			usize_t offset = 0;
+			$for(var i = 0; i < sizeof...(T); i++)
+			{
+				using TIndexed = T[i];
+				TIndexed& src = other.Index<i>();
+				TIndexed* dest = GetPtr<i>();
+				new (dest) TIndexed(src);
+			}
+		}
+
+		public move Tuple(Tuple& other) = default; // move constructor
+
+		public T[index]& Index<int index>()
+		{
+			return (T[index]&)GetPtr<index>();
+		}
+
+		public const T[index]& Index<uint index>() const
+		{
+			return (T[index]&)GetPtr<index>();
+		}
+
+		private T[index]* GetPtr<uint index>()
+		{
+			usize_t offset = 0;
+			$for(var i = 0; i < index; i++)
+				offset += sizeof(T[i]);
+
+			return reinterpret_cast<T[index]*>(&m_Storage[offset]);
+		}
+	}
+
+	// the $eval attribute forces the function to be called at compile time
+	// if it cant be, will have a compiler error
+	private $eval usize_t Sum(usize_t... vals) 
+	{
+		usize_t sum = 0;
+		for(var i = 0; i < sizeof...(vals); i++)
+			sum += vals[i];
+		return sum;
+	}
+
+	private $eval bool AreAllCopyable<T...>()
+	{
+		// copyable is a concept
+		return AreAllTrue((T is Copyable)...);
+	}
+
+	private $eval AreAllTrue(bool... vals)
+	{
+		for(var i = 0; i < sizeof...(vals); i++)
+			if(!vals[i]) return false;
+
+		return true;
+	}
+}
+
+private void PrintTuple<T...>(const STD::Tuple<T...>& tuple)
+{
+	$for(var i = 0; i < sizeof...(T); i++)
+		STD::PrintLn(STD::ToString(tuple.Index<i>()));
+}
+
+/* PrintTuple<char, int, float>() would compile to:
+
+	private void PrintTuple<char, int, float>(STD::Tuple<char, int, float> tuple)
+	{
+		STD::PrintLn(STD::ToString(tuple.Index<0>()));
+		STD::PrintLn(STD::ToString(tuple.Index<1>()));
+		STD::PrintLn(STD::ToString(tuple.Index<2>()));
+	}
+
+*/
+
+// extention method for printing a tuple
+impl<T...> void Print() const for STD::Tuple<T...>h
+{
+	PrintTuple(*this);
+}
+
+// Examples of using a tuple:
+private int Main()
+{
+	var tuple = Tuple<String, int, float>(String("Hello World!"), 42, 3.1415f);
+	var otherTuple = copy tuple; // copies the tuple
+
+	PrintTuple(tuple); // dont need to copy, because contains reference
+	tuple.Print(); // calling an extention method
+
+	STD::PrintLn(tuple.Index<0>());
+
+	decltype(tuple.Index<1>()) value = tuple.Index<1>(); // ???
+}

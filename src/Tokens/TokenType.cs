@@ -7,27 +7,26 @@ namespace Ripple
         Dot, Comma, Minus, Plus, Slash,
         Star, Semicolon, Colon, Caret, 
         Ampersand, Pipe, Percent, Tilda,
-        QuestionMark,
 
         OpenParen, CloseParen, OpenBracket, CloseBracket,
         OpenBrace, CloseBrace,
 
-        // One or tow character tokens
+        // One or two character tokens
         Bang, BangEqual, Equal, EqualEqual, GreaterThen, GreaterThenEqual,
         LessThen, LessThenEqual, AmpersandAmpersand, PipePipe, LessThanLessThan, 
-        GreaterThanGreaterThan,
+        GreaterThanGreaterThan, MinusGreaterThanArrow, PlusPlus, MinusMinus,
 
         // Literals
-        FloatLiteral, IntLiteral, UintLiteral, CharLiteral, CharArrayLiteral,
+        FloatLiteral, IntLiteral, CharLiteral, CharArrayLiteral,
 
         // Keywords
-        True, False, Return, Null, If, Else, Class,
+        True, False, Return, Null, If, Else, Class, Trait,
         Base, This, While, For, Public, Private, 
         Protected, New, Break, Continue, Void, Virtual,
         Override, Static, 
         
         // Word operators
-        DefaultOperator, SizeOfOperator, LengthOfOperator, ReinterpretCastOperator,
+        DefaultOperator, SizeOfOperator, ReinterpretCastOperator,
 
         // types
         BoolType, CharType, IntType, FloatType,
@@ -41,10 +40,9 @@ namespace Ripple
     {
         public static bool IsLiteral(this TokenType type)
         {
-            return type == TokenType.IntLiteral ||
-                   type == TokenType.UintLiteral ||
+            return type == TokenType.IntLiteral   ||
                    type == TokenType.FloatLiteral ||
-                   type == TokenType.CharLiteral ||
+                   type == TokenType.CharLiteral  ||
                    type == TokenType.CharArrayLiteral;
 
         }

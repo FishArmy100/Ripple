@@ -1,0 +1,11 @@
+﻿
+// ------------------ Data Types ------------------
+
+// Primitive types
+int32 i = -42; // intager
+long l = 893726098; // long
+float f = 3.1415f; // float
+double d = 473.9387; // double
+char c = 'c' // charactor
+bool b = true; // boolean
+byte by = 4; // byte
