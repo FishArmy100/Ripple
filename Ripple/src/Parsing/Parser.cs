@@ -579,7 +579,7 @@ namespace Ripple.Parsing
                 if(reader.MatchCurrent(TokenType.OpenBracket))
                 {
                     int dimentions = ParseArrayDimentions(reader, out bool isNullable);
-                    type = new ArrayType(type, dimentions, isNullable);
+                    type = new ArrayType(type, RippleArrayTypePostfix.NullablePointer);
                     continue;
                 }
 
@@ -596,7 +596,7 @@ namespace Ripple.Parsing
                 dimetions++;
             Consume(reader, TokenType.CloseBracket, "Expected ']'");
             Consume(reader, TokenType.Ampersand, "Expected ']&'");
-            isNullable = reader.MatchCurrent(TokenType.QuestionMark);
+            isNullable = false;
             return dimetions;
         }
 
@@ -612,7 +612,7 @@ namespace Ripple.Parsing
 
             Consume(reader, TokenType.CloseParen, "Expected ')'.");
             Consume(reader, TokenType.Ampersand, "Expected '&'.");
-            isNullable = reader.MatchCurrent(TokenType.QuestionMark);
+            isNullable = false;
             return funcParams;
         }
 
@@ -622,8 +622,8 @@ namespace Ripple.Parsing
             {
                 Token name = reader.AdvanceCurrent();
                 bool isReference = reader.MatchCurrent(TokenType.Ampersand);
-                bool isNullable = reader.MatchCurrent(TokenType.QuestionMark);
-                return new BasicType(name, isReference, isNullable);
+                bool isNullable = false;
+                return new BasicType(name, isReference, RippleBasicTypePostfix.Nullable);
             }
 
             throw CreateError(reader, "Expected type name.");
@@ -684,9 +684,6 @@ namespace Ripple.Parsing
                 return false;
             length++;
 
-            if (reader.PeekCurrent(offset + length).Type == TokenType.QuestionMark)
-                length++;
-
             return true;
         }
 
@@ -708,9 +705,6 @@ namespace Ripple.Parsing
                 return false;
             length++;
 
-            if (reader.PeekCurrent(offset + length).Type == TokenType.QuestionMark)
-                length++;
-
             return true;
         }
 
@@ -718,8 +712,6 @@ namespace Ripple.Parsing
         {
             int length = 1;
             if (reader.PeekCurrent(offset + length).Type == TokenType.Ampersand)
-                length++;
-            if (reader.PeekCurrent(offset + length).Type == TokenType.QuestionMark)
                 length++;
             return length;
         }

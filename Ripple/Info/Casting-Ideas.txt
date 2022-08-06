@@ -1,0 +1,8 @@
+﻿
+int val = 6;
+
+uint uval1 = (uint)val;
+uint uval2 = val as uint;
+uint uval3 = val.(uint);
+
+uint uval4 = val.AsUint();

@@ -1,7 +1,4 @@
-﻿package Std;
-import Std;
-
-namespace STD
+﻿module Std
 {
 	// public classes and functions are exported from packages
 	public class Tuple<T...> where AreAllCopyable<T...>()
@@ -82,28 +79,32 @@ namespace STD
 	}
 }
 
-private void PrintTuple<T...>(const STD::Tuple<T...>& tuple)
+
+
+private void PrintTuple<T...>(const Std.Tuple<T...>& tuple)
 {
 	$for(var i = 0; i < sizeof...(T); i++)
-		STD::PrintLn(STD::ToString(tuple.Index<i>()));
+		Std.PrintLn(Std.ToString(tuple.Index<i>()));
 }
 
 /* PrintTuple<char, int, float>() would compile to:
 
-	private void PrintTuple<char, int, float>(STD::Tuple<char, int, float> tuple)
+	private void PrintTuple<char, int, float>(Std.Tuple<char, int, float> tuple)
 	{
-		STD::PrintLn(STD::ToString(tuple.Index<0>()));
-		STD::PrintLn(STD::ToString(tuple.Index<1>()));
-		STD::PrintLn(STD::ToString(tuple.Index<2>()));
+		Std.PrintLn(Std.ToString(tuple.Index<0>()));
+		Std.PrintLn(Std.ToString(tuple.Index<1>()));
+		Std.PrintLn(Std.ToString(tuple.Index<2>()));
 	}
 
 */
 
 // extention method for printing a tuple
-impl<T...> void Print() const for STD::Tuple<T...>h
+impl<T...> void Print() const for Std.Tuple<T...>h
 {
 	PrintTuple(*this);
 }
+
+using module Std;
 
 // Examples of using a tuple:
 private int Main()
@@ -114,7 +115,7 @@ private int Main()
 	PrintTuple(tuple); // dont need to copy, because contains reference
 	tuple.Print(); // calling an extention method
 
-	STD::PrintLn(tuple.Index<0>());
+	Std.PrintLn(tuple.Index<0>());
 
 	decltype(tuple.Index<1>()) value = tuple.Index<1>(); // ???
 }

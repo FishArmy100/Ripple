@@ -62,7 +62,7 @@ namespace Ripple.Parsing
         public Token AdvanceCurrent()
         {
             if (IsAtEnd())
-                return Token.Invalid;
+                return new Token();
 
             Current++;
             return Previous();
@@ -81,7 +81,7 @@ namespace Ripple.Parsing
         public Token PeekCurrent(int offset = 0)
         {
             if (Current + offset >= Tokens.Count - 1 || Current + offset < 0)
-                return Token.Invalid;
+                return new Token();
 
             return Tokens[Current + offset];
         }

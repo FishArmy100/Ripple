@@ -1,0 +1,33 @@
+﻿
+
+class Player
+{
+	public float Health = 10;
+	public void Damage(float Damage) { Health -= Damage; }
+}
+
+int Add(int a, int b) { return a + b; }
+
+void Main()
+{
+	Player p = Player();
+
+	// pointer
+	Player& playerRef = &p;
+
+	// reference
+	Player* playerPtr = &p; // ?
+
+	Player* heapPlayer = new Player(); // allocated on the heap
+	delete heapPlayer; // deallocated from the heap
+
+	int(int, int)* funcPointer = &Add;
+	int val = funcPointer(5, 5); // adds to 10
+	
+
+	float Player::* health = &Player::Health; // member object pointer
+	p.*health = 20f; // sets the health of the player to 20
+
+	void(float) Player::* damagePlayer = &Player::Damage; // member function pointer
+	p.*damagePlayer(5f); // p player health now is 15
+}

@@ -420,7 +420,6 @@ namespace Ripple.AST
         {
             string sType = basicType.Name.Lexeme;
             sType += basicType.IsReference ? "&" : "";
-            sType += basicType.IsNullable ? "?" : "";
             return sType;
         }
 
@@ -428,11 +427,7 @@ namespace Ripple.AST
         {
             string sArr = arrayType.Type.Accept(this);
             sArr += "[";
-            for (int i = 0; i < arrayType.Dimentions - 1; i++)
-                sArr += ",";
             sArr += "]&";
-            if (arrayType.IsNullable)
-                sArr += "?";
             return sArr;
         }
 
