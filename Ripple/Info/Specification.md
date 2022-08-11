@@ -146,7 +146,7 @@ module Core
 
  ### Variables:
  Veriable declaration is the same as c++:
- [Type] [Name] = [Value];
+ `Type Name = Value;`. Veriables must be initialized with a value.
  ```cpp
 int number = 5;
 var letter = 'f'; // automatic type inference with the var keyword
@@ -154,7 +154,13 @@ var letter = 'f'; // automatic type inference with the var keyword
  ```
 
  ### Const:
-*Not implemented yet*
+Const veriables cannot be edited, or changed in any way shape, or form. Unlike c++ const, you cannot cast out of const. You may implicitly cast into const, but not out of it.
+
+```cpp
+const int value = 5;
+
+value = 6; // compiler error, canot modify a const value
+```
 
  ### Arrays: **Volatile**
  Arrays are contigus blobs of memory with a set size. The size of stack allocated arrays must be known at runtime.
@@ -377,6 +383,30 @@ void Init()
 Init();
 Init();
 ```
+### Declaration Ordering
+All declarations, exept for `using module ...`, do not have to be in the order in witch they appear, unlike c++.
+
+```cpp
+void SomeFunc()
+{
+    SomeOtherFunc();
+}
+
+void SomeOtherFunc()
+{
+    // ...
+}
+```
+
+### The Internal Keyword
+You can append the `internal` keyword onto any declaration, as long as it is outside of a class. This is in addition to any other visability modifiers. The `internal` attribute, will only allow code inside of the current source file, to access the declaration.
+
+```cs
+internal void Test()
+{
+
+}
+```
 
 ---
 ## Classes:
@@ -450,6 +480,9 @@ Person p = Person(); // creat the person
 String name = copy p.GetName(); // call the method
 ```
 
+### Const Member Functions
+*Not implemented yet*
+
 ### Constructors
 Constructors are you you construct objects, and assign data to them. If no constructor is stated, a default constructor will be implicitly created. You can delete the defult constructor implicitly though. 
 constructors are declared as `visibility ClassName(/*arguments*/)`.
@@ -460,13 +493,13 @@ using module Core;
 
 class Car
 {
-    public float Speed;
-    public u8 EngineSize;
+    public const float Speed;
+    public const u8 EngineSize;
 
     public Car(float speed, u8 engineSize)
     {
         Speed = speed;
-        EngineSize = engineSize;
+        EngineSize = engineSize; // const member veriables can be modified by constructor
     }
 }
 
@@ -526,6 +559,28 @@ class Destructable()
 } // destructor called here
 ```
 
+### Accessing members from pointers to classes
+If you have a pointer to a class, instead of dereferencing it, then accessing the member, you can instead, use the `->` operator. You can do this with referenes as well, but they are implicitly dereferenced, so it is not nessesary.
+
+```cpp
+class Number
+{
+    public int Value = 5;
+}
+
+Number* number = new Number();
+number->Value; // using the -> operator
+(*number).Value; // does the same thing
+
+Number& num = &*number;
+num.Value; // is fine
+num->Value; // is still fine
+(*num).Value; // is also fine
+```
+
+### Operator Overloading:
+*Not implemented yet*
+
 ### Inheritance:
 A class can inherit from one or more other classes, getting all of there variables. This is the same as c++ inheritance, exept that all base classes are public.
 
@@ -562,18 +617,122 @@ class Cat : Animal
 Cat c = Cat("Shenobi", 0.0f);
 ```
 
+### Dynamic casting
+You may cast up and down the inheritance hierarchy using pointers, or references to objects. Pointers or references to derrived objects can be implicitly converted to there base class conuterparts. Casting back down the hierarchy however, requires the `as` operator. The `as` operator will return `nullptr`, if it cannot cast down from a base class to a derived one.
+
+```cpp
+class Base {}
+class Derived1 : Base {}
+class Derived2 : Base {}
+
+Base* b1 = new Derived1(); // implicit casting
+Base* b2 = new Derived2();
+
+
+Derived1 d1 = b1 as Derived1; // casting using 'as'
+Derived1 d2 = b1 as Derived2; // will be nullptr
+```
+
+### Virtual Methods:
+Methods declared with the `virtual` attribute, will allow derived classes to override functionality with the `override` keyword. The `override` keyword, unlike c++, is neccessary, otherwise, there will be a compiler error.
+
+```cpp
+class GuiWindow
+{
+    public virtual void OnRender() {}
+}
+
+class InventoryWindow : GuiWindow
+{
+    public override void OnRender()
+    {
+        // ...
+    }
+}
+
+GuiWindow* window = new InventoryWindow();
+window->OnRender();
+```
+
+### Extention Methods
+*Not implemented yet*
+
 ### Member Object Pointers:
 *Not implemented yet*
 
 ### Member Function Pointers:
 *Not implemented yet*
 
-### Polymorphism:
+---
+## Lambdas:
 *Not implemented yet*
 
 ---
 ## Modules:
+Modules allow you to organize code, and to avoid naming colitions.
+
+### Declaring Modules:
+You can declare a module by using this syntax: `module ModuleName { /* Members */}`. You can declare a child module via this sintax: `module Parent.Child {/* Members */}`.
+
+```cpp
+module Core
+{
+
+}
+
+module Core.Math // can continue to chain
+{
+
+}
+```
+
+### Module Members:
+You can module members the same way as class members. the `public` attribute allows anything outside the module to access it, the `protected` attribute allows any of the modules children to access it, and finally, the `private` attribute only allows the holding module to access the values.
+
+```cpp
+module Core.Math
+{
+    public u32 Square(u32 num)
+    {
+        return num << 1;
+    }
+}
+
+var val = Core.Math.Square(5); // val == 25
+```
+
+### Using Modules:
+Instead of having to keep typeing out `Core.Math.SomeOtherModule.Etc`, you can have using statements simmilar to c#'s using statments. They must be declared at the beginning of a file (although, most of these examples omit that rule). They can also bring extention methods and operators into visability.
+
+```cpp
+using module Core;
+
+int Main()
+{
+    Console.PrintLine("Hello World!");
+}
+```
+
+### Module Aliasis
+You may declare an alius for a spisific module, using the syntax: `module CoreMath = Math.Core;`. This can be useful if you want to avoid nameing collisions, but not have to type out the whole module name list.
+
+```cpp
+internal module Math = Core.Math;
+
+Math.Add(2, 3);
+```
+
+However, with this example, you could also do:
+```cpp
+using module Core;
+
+Math.Add(2, 3);
+```
+
+---
+## Enums:
 *Not implemented yet*
+
 
 ---
 ## Templates:
@@ -586,3 +745,17 @@ Cat c = Cat("Shenobi", 0.0f);
 ---
 ## Preprocessor:
 *Not implemented yet*
+
+---
+## Ideas to add:
+### Out methods
+Like in c#
+```cs
+bool Func(int a, int b, out int c)
+{
+    c = a + b;
+    return true;
+}
+```
+
+### Macros

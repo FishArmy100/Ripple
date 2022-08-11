@@ -1,0 +1,101 @@
+﻿using Core.Concepts.Copyable;
+using Core.Option;
+
+module Core
+{
+	public class List<T> where T is Copyable
+	{
+		private T* m_Values;
+		private usize m_Length;
+
+		public usize Length() { return m_Length(); }
+
+		public List() = default;
+
+		public void Add(const T& val)
+		{
+			if(m_Length == 0)
+			{
+				m_Values = new T[1](val);
+				m_Length = 1;
+				return;
+			}
+
+			T* temp = AllocMem(m_Length + 1);
+			for(usize i = 0; i < m_Length; i++)
+				new (temp[i]) copy T(GetRaw(i));
+
+			new (temp[m_Length]) copy T(val);
+
+			ReallocMem(temp, m_Length + 1);
+		}
+
+		public void Remove(usize index)
+		{
+			if(m_Length < index)
+				return;
+
+			if(m_Length == 1)
+			{
+				ReallocMem(nullptr, 0);
+				return;
+			}
+
+			T* temp = AllocMem(m_Length - 1);
+			for(usize i, ti = 0; i < m_Length; i++)
+			{
+				if(i != index)
+				{
+					ti++;
+					new (temp[ti]) copy T(GetRaw(i));
+				}
+			}
+
+			ReallocMem(temp, m_Length - 1);
+		}
+
+		public Option<T&> operator[](usize index)
+		{
+			if(index >= m_Length)
+				return Optional<T&>(GetRaw(index));
+
+			return Option<T&>();
+		}
+
+		private void DestructValues()
+		{
+			for(usize i = 0; i < m_Length; i++)
+				m_Values[i]->~T();
+		}
+
+		private T& GetRaw(usize index)
+		{
+			return (m_Values + index) as T&;
+		}
+
+		private void ReallocMem(T* newMem, usize length)
+		{
+			DestructValues();
+			DeleteMem(m_Values);
+			m_Values = newMem;
+			m_Length = length;
+		}
+
+		private T* AllocMem(usize size)
+		{
+			return reinterpret_cast<T*>(new byte[sizeof(T) * size]);
+		}
+
+		private void DeleteMem(T* mem)
+		{
+			delete[] reinterpret_cast<byte*>(mem);
+		}
+
+		private ~List() 
+		{
+			DestructValues();
+			DeleteMem(m_Values);
+		}
+	}
+
+}

@@ -1,0 +1,132 @@
+﻿
+using module Core.MemoryMangagement;
+using Core.Concepts.Moveable;
+using Core.Concepts.Copyable;
+
+module Core
+{
+	public class RawHeapArray<T> where T is Moveable || T is Copyable
+	{
+		private T* m_Data;
+		private usize m_Length;
+		private usize m_AllocatedLength;
+
+		public RawHeapArray(usize reservedSize) : 
+			m_Length(0), 
+			m_AllocatedLength(reservedSize), 
+			m_Data(alloc<T>(reservedSize))
+		{
+		}
+
+		public copy RawHeapArray(const RawHeapArray&) = delete;
+		public move RawHeapArray(RawHeapArray& other) :
+			m_Data(other.m_Data),
+			m_Length(other.m_Length),
+			m_AllocatedLength(other.m_AllocatedLength)
+		{
+			other.Clear();
+		}
+
+		public usize GetLength() { return m_Length; }
+		public usize GetAllocatedLength() { return m_AllocatedLength; }
+
+		public void Push(T value)
+		{
+			if(m_Length == m_AllocatedLength)
+				Realloc(m_Length + 1);
+
+			constexpr if(T is Moveable)
+				move new (m_Data[m_Length++]) T (&value);
+			else if (T is Copyable)
+				copy new (m_Data[m_Length++]) T (&value);
+
+			m_Length++;
+		}
+
+		public T* operator[](usize index)
+		{
+			return m_Data[index];
+		}
+
+		public void Clear()
+		{
+			m_Data = nullptr;
+			m_Length = 0;
+			m_AllocatedLength = 0;
+		}
+
+		private void Realloc(usize newSize)
+		{
+			T* temp = alloc<T>(newSize);
+			MemCopy(m_Data, temp);
+			dealloc(m_Data);
+			m_Data = temp;
+			m_AllocatedLength = newSize;
+		}
+
+		public ~RawHeapArray()
+		{
+			for(int i = 0; i < m_Length; i++)
+				m_Data[i]->~T();
+		}
+	}
+
+	public class List<T> where T is Moveable || T is Copyable
+	{
+		private RawHeapArray<T> m_Array;
+
+		public List() : m_Array(1) {}
+
+		public copy List(const List& other) where T is Copyable : 
+			m_Array(other.m_Array.GetAllocatedLength())
+		{
+			for(usize i = 0; i < other.GetLength(); i++)
+				m_Array.Push(copy *other.m_Array[i])
+		}
+
+		public void Add(T value)
+		{
+			constexpr if(T is Moveable)
+				m_Array.Push(move value);
+			else if (T is Copyable)
+				m_Array.Push(copy value);
+		}
+
+		public void Remove(usize index)
+		{
+			if(index >= Length())
+				panic("Index is out of range");
+
+			var arr = RawHeapArray<T>(m_Array.GetAllocatedSize());
+			for(usize i, i < m_Array.Length(); i++)
+			{
+				if(i == index)
+				{
+					m_Array->~T();
+				}
+				else
+				{
+					constexpr if(T is Moveable)
+						arr.Push(move value);
+					else if (T is Copyable)
+						arr.Push(copy value);
+				}
+			}
+
+			m_Array.Clear();
+			m_Array = move arr;
+		}
+
+		public T& operator[](usize index)
+		{
+			if(index >= Length())
+				panic("Index is out of range");
+
+			return m_Array[index] as T&;
+		}
+
+		public move List(List&) = default;
+
+		public usize Length() { return m_Array.GetLength(); }
+	}
+}
