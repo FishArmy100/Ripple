@@ -95,7 +95,43 @@ module Core
 ```
 ---
 ## Ripple Basics:
-### Comments
+### Keywords:
+- `alloc`
+- `dealloc`
+- `new`
+- `delete`
+- `class`
+- `using`
+- `module`
+- `public`
+- `private`
+- `protected`
+- `is`
+- `as`
+- `if`
+- `for`
+- `while`
+- `copy`
+- `move`
+- `default`
+- `operator`
+- `const`
+- `var`
+- `true`
+- `false`
+- `else`
+- `return`
+- `continue`
+- `break`
+- `nullptr`
+- `static`
+- `internal`
+- `virtual`
+- `overried`
+- `enum`
+- `reinterpret_cast`
+
+### Comments:
 ```cpp
 // Here is a single line comment
 
@@ -283,6 +319,22 @@ Placement new allows you to allocate memory onto a pointer that already exists. 
 int* ptr = new int(5);
 new (ptr) int(6); // *ptr == 6
 ```
+
+### Panic Statement:
+Calling a panic statement at runtime will stop exicution of the program imediatly, and will display the given error message
+
+```cpp
+panic("Here is an example panic message");
+
+bool isError = true;
+panic(isError, "Here is another example panic message");
+
+// above is same as writting
+if(isError)
+    panic("Here is another example panic message");
+
+```
+
 ---
 ## Functions:
 Although many of these examples show expressions outside of funcitons, expressions can only exist inside of functions. Only declarations can exist inside of either a modules or global scope.
