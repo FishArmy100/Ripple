@@ -16,7 +16,7 @@ Your first introduction to any programming language, the classic Hello World exa
 ```cpp
 using module Core;
 
-int Main(const char** vargs)
+func Main(const char** vargs) -> void
 {
     // same as c++'s std::cout << "Hello World!" << "\n";
     Console.PrintLine("Hello World!");
@@ -28,7 +28,7 @@ The bane of all perspective programming employees, the FizzBuzz example.
 ```cpp
 using module Core;
 
-void FizzBuzz(int count)
+func FizzBuzz(int count) -> void
 {
     for(int i = 0; i < count; i++)
     {
@@ -61,7 +61,7 @@ module Core
         public Scoped(T* ptr) : m_Ptr(ptr) {}
         public Scoped<TArgs...>(TArgs... args) : (new T(move args...)) {} // variadic templates
         
-        public T& operator->() // overloadable operators
+        public func operator->() -> T& // overloadable operators
         {
             return &*m_Ptr;
         }
@@ -71,12 +71,12 @@ module Core
             return m_Ptr;
         }
 
-        public const T& operator->() const
+        public const func operator->() -> const T&
         {
             return &*m_Ptr;
         }
 
-        public Scoped<T> Clone() where T is Copyable
+        public func Clone() -> Scoped<T> where T is Copyable
         {
             return move Scoped<T>(new T(*m_Ptr));
         }
@@ -98,8 +98,6 @@ module Core
 ### Keywords:
 - `alloc`
 - `dealloc`
-- `new`
-- `delete`
 - `class`
 - `using`
 - `module`
@@ -250,7 +248,19 @@ while(expr)
 ```
 
 ### Casting:
-*Not Implemented*
+Casting is done mostly through the `as` operator. There are a bunch of built in conversions, but the operator can be overloaded.
+
+```cpp
+u32 val = 789;
+int i = val as int;
+```
+
+**Volitle:**
+To convert the value of a type byte by byte, you can use the `reinterpret_cast` built in function, witch cannot be overloaded.
+```cpp
+int value = 5;
+float f = reinterpret_cast<float>(value);
+```
 
 ### Copying Data **Volatile**
 More complex types, like arrays and classes must be explicitly copied. This is to show when things like lists and heap allocated strings are copied, so to make optomization easier.
@@ -300,24 +310,17 @@ moved = 7; // this is fine
  All of the previous examples show how to allocate memory on the stack, the syntax for allocating on the heap is almost exactly the same for c++.
 
  ```cpp
- int* ptr = new int(5); // value allocated on the heap, and a pointer to it is returned
-
- delete ptr; // deletes the memory
-
- float* array = new float[] { 4.5f, 3.7f, 4.6f, 1.55f } // allocates an array on the heap
-
- delete[] array;
-
- char* string = new byte[10](0); // allocats a block of 8 bytes on the heap
+ int* ptr = alloc<int>(1) // value allocated on the heap, and a pointer to it is returned
+ dealloc(ptr); // deletes the memory
  ```
 It should be noted, that the size of a heap allocated string does not need to be known at compile time, much like c++ arrays.
 
-### Placement New:
-Placement new allows you to allocate memory onto a pointer that already exists. **NOTE:** it does not call the destructor of the object when used
+### In Place Construction:
+In place construction allows you to construct an object into an allocated block of memory. **NOTE:** it does not call the destructor of the object when used
 
 ```cpp
-int* ptr = new int(5);
-new (ptr) int(6); // *ptr == 6
+int* ptr = alloc<int>(1);
+ptr := int(5);
 ```
 
 ### Panic Statement:
@@ -341,7 +344,7 @@ Although many of these examples show expressions outside of funcitons, expressio
 ### Function Basics:
 Functions are declared almost exactly as in c++, with the syntax `returnType FunctionName(Arg1Type arg1, Arg2Type arg2, ...) { body }`. 
 ```cpp
-int Add(int a, int b)
+func Add(int a, int b) -> void
 {
     return a + b; // return statement
 }
@@ -353,7 +356,7 @@ One slight change in how they are used, is that all arguments to the functions, 
 
 **Volatile**
 ```cpp
-int[5] Index(int[5] array, usize index, int value)
+func Index(int[5] array, usize index, int value) -> int[5]
 {
     array[index] = value;
     return array;
@@ -366,16 +369,18 @@ array = Index(copy array, 2, 42); // must explicitly copy the array
 
 returning a value will automatically copy or move the object, but you can explicitly call it with the `return copy`, or `return move` statements respectavely.
 
-If you pass by reference however, the reference, like the `usize` and `int` are copied implicitly, and so dont require the `copy` keyword. Also, you dont need to return the array to see the results.
+If you pass by reference however, the reference, like the `usize` and `int` are copied implicitly, and so dont require the `copy` keyword. Also, you dont need to return the array to see the results. Also, you do not have to get the reference of an object when you pass it to a function, it will implicitly be referenced if that is the parameter of the function
 ```cpp
-Index(int[5]& array, usize index, int value)
+func Index(int[5]& array, usize index, int value) -> void
 {
     array[index] = value;
 }
 
 // call the function
 int[5] array = int[5](0);
+
 Index(&array, 2, 42); // do not need to copy the array, just need to get a reference
+Index(array, 2, 42); // implicitly referenced
 ```
 ### Function Overloading:
 function with the same name, can be overloaded with different arguments.
@@ -387,19 +392,18 @@ float Add(float a, float b) { return a + b; }
 ### Function Pointers:
 Function pointers allow you to bind a spisific function, with the same signature, to a pointer, then invoke that function throught the pointer.
 ```cpp
-int Add(int a, int b)
+func Add(int a, int b) -> int
 {
     return a + b;
 }
 
-int Sub(int a, int b)
+func Sub(int a, int b) -> int
 {
     return a - b;
 }
 
 // Function pointer declaration;
-int(int, int)* funcPtr = nullptr; // function pointer does not reference any function
-funcPtr = &Add; // assigning the function pointer
+(int, int)->int funcPtr = &Add; // function pointer does not reference any function, cant be null????
 
 int value = functPtr(4, 10); // value == 14
 ```
@@ -409,7 +413,7 @@ The function pointer syntax is simmilar to the c++ style, but it should be much 
 You may declare functions inside of other functions. The only difference between these and normal function definitions, is that the defenition must exist before any uses of the function.
 
 ```cpp
-int Add(int a, int b, int c)
+func Add(int a, int b, int c) -> int
 {
     int Sum(int a, int b) { return a + b; }
 
@@ -421,7 +425,7 @@ int Add(int a, int b, int c)
 Static variables in functions will remain the same value across all instances of the function:
 
 ```cpp
-void Init()
+func Init() -> void
 {
     static bool isInitialzied = false;
     if(!isInitialzied)
@@ -439,12 +443,12 @@ Init();
 All declarations, exept for `using module ...`, do not have to be in the order in witch they appear, unlike c++.
 
 ```cpp
-void SomeFunc()
+func SomeFunc() -> void
 {
     SomeOtherFunc();
 }
 
-void SomeOtherFunc()
+func SomeOtherFunc() -> void
 {
     // ...
 }
@@ -454,7 +458,7 @@ void SomeOtherFunc()
 You can append the `internal` keyword onto any declaration, as long as it is outside of a class. This is in addition to any other visability modifiers. The `internal` attribute, will only allow code inside of the current source file, to access the declaration.
 
 ```cs
-internal void Test()
+internal func Test() -> void
 {
 
 }
@@ -479,12 +483,12 @@ class Point
     public copy Point() = default; // Copy constructor
     public move Point() = default; // Move constructor
 
-    public Point operator+(const Point& other) // operator overloading
+    public operator+(const Point& other) -> Point // operator overloading
     {
         return Point(this.x + other.x, this.y + other.y, this.z + other.z);
     }
 
-    public GetMagnitude() { return Core.Math.Mag(X, Y, Z); } // member function aka method
+    public func GetMagnitude() -> float { return Core.Math.Mag(X, Y, Z); } // member function aka method
 }
 ```
 
@@ -525,7 +529,7 @@ using module Core;
 class Person
 {
     private String m_Name = "Person"
-    public const String& GetName() { return &m_Name; }
+    public const func GetName() -> const String& { return &m_Name; }
 }
 
 Person p = Person(); // creat the person
@@ -591,7 +595,7 @@ class ChessBoard
 }
 
 u8[8][8] data = u8[8](u8[8](0)) data;
-ChessBoard board = ChessBoard(&data);
+ChessBoard board = ChessBoard(data);
 ```
 
 ### Destructors
@@ -620,11 +624,11 @@ class Number
     public int Value = 5;
 }
 
-Number* number = new Number();
+Number* number = alloc<Number>(1) := Number();
 number->Value; // using the -> operator
 (*number).Value; // does the same thing
 
-Number& num = &*number;
+Number& num = number as Number&;
 num.Value; // is fine
 num->Value; // is still fine
 (*num).Value; // is also fine
@@ -691,12 +695,12 @@ Methods declared with the `virtual` attribute, will allow derived classes to ove
 ```cpp
 class GuiWindow
 {
-    public virtual void OnRender() {}
+    public virtual func OnRender() -> void {}
 }
 
 class InventoryWindow : GuiWindow
 {
-    public override void OnRender()
+    public override func OnRender() -> void
     {
         // ...
     }
@@ -744,7 +748,7 @@ You can module members the same way as class members. the `public` attribute all
 ```cpp
 module Core.Math
 {
-    public u32 Square(u32 num)
+    public func Square(u32 num) -> u32
     {
         return num << 1;
     }
@@ -759,7 +763,7 @@ Instead of having to keep typeing out `Core.Math.SomeOtherModule.Etc`, you can h
 ```cpp
 using module Core;
 
-int Main()
+func Main() -> int
 {
     Console.PrintLine("Hello World!");
 }
@@ -795,19 +799,5 @@ Math.Add(2, 3);
 *Not implemented yet*
 
 ---
-## Preprocessor:
-*Not implemented yet*
-
----
 ## Ideas to add:
-### Out methods
-Like in c#
-```cs
-bool Func(int a, int b, out int c)
-{
-    c = a + b;
-    return true;
-}
-```
-
 ### Macros
