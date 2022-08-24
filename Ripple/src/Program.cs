@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Windows.Input;
 using System.IO;
-using Ripple.AST;
+using Ripple.Lexing;
 
 namespace Ripple
 {
@@ -13,13 +13,12 @@ namespace Ripple
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
             RunRippleCode();
-
         }
 
         private static void RunRippleCode()
         {
             Console.WriteLine("Run Ripple Code:");
-            while(true)
+            while (true)
             {
                 Console.Write(">>>: ");
                 string input = Console.ReadLine();
@@ -27,7 +26,7 @@ namespace Ripple
                 if (input == "close")
                     break;
 
-                if(input == "runf")
+                if (input == "runf")
                 {
                     Console.WriteLine("-------------------------------");
                     string[] lines = File.ReadAllLines("C:\\dev\\Ripple\\Ripple\\Tests\\TestRippleScript.txt");
@@ -44,22 +43,20 @@ namespace Ripple
 
         private static void DebugSourceCode(string src)
         {
-            Utils.OperationResult<CompilerResult, CompilerError> result = Compiler.CompileSource(src);
+            (var toks, var errors) = Lexer.Scan(src);
 
-
-            if(result.HasError)
+            if(errors.Count > 0)
             {
-                Console.WriteLine("Compiler Errors:");
-                foreach (CompilerError error in result.Errors)
-                    Console.WriteLine("\t" + error.ToString());
-                Console.WriteLine("");
+                Console.WriteLine("Errors:");
+                foreach (var error in errors)
+                    Console.WriteLine(error.Message + ": [" + error.Line + ", " + error.Column + "]");
             }
             else
             {
-                Console.WriteLine("Compiler Errors: None");
+                Console.WriteLine("Tokens:");
+                foreach (var tok in toks)
+                    Console.WriteLine(tok.ToPrettyString());
             }
-
-            Console.WriteLine(ASTPrinter.PrintTree(result.Result.AST, "   "));
         }
     }
 }

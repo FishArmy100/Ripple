@@ -59,11 +59,11 @@ module Core
         private T* m_Ptr; // raw memory mannagement
 
         public Scoped(T* ptr) : m_Ptr(ptr) {}
-        public Scoped<TArgs...>(TArgs... args) : (new T(move args...)) {} // variadic templates
+        public Scoped<TArgs...>(TArgs... args) : (alloc<T>(1) := T(move args...)) {} // variadic templates
         
         public func operator->() -> T& // overloadable operators
         {
-            return &*m_Ptr;
+            return m_Ptr as T&;
         }
 
         public T* Get()
@@ -73,22 +73,25 @@ module Core
 
         public const func operator->() -> const T&
         {
-            return &*m_Ptr;
+            return m_Ptr as const T&;
         }
 
         public func Clone() -> Scoped<T> where T is Copyable
         {
-            return move Scoped<T>(new T(*m_Ptr));
+            return move Scoped<T>(alloc<T>(1) := T(*m_Ptr));
         }
 
         // explicit move and copy
-        public move Scoped(const Scoped&) = default; 
+        public move Scoped(const Scoped&) = default;
         public copy Scoped(const Scoped&) = delete;
 
         // Destructor
         public ~Scoped()
         {
-            delete m_Ptr;
+            constexpr if(T is Destructable)
+                m_Ptr->~T();
+
+            dealloc(m_Ptr);
         }
     }
 }
@@ -177,6 +180,13 @@ module Core
  - true/false = bool
  - 'c' = char
  - "Hello World!" = char[12], one extra for the \0 char
+
+ ### Operators
+ - Arithmatic
+ - Logical
+ - Assination
+ - Miscalanius
+
 
  ### Variables:
  Veriable declaration is the same as c++:
@@ -801,3 +811,12 @@ Math.Add(2, 3);
 ---
 ## Ideas to add:
 ### Macros
+*Not implemented yet*
+
+### Declaration If Statement
+If a type has an overload of the `as bool` operator, then you can do something like this:
+```cpp
+func GetValue() -> Option<int> { ... }
+
+if(var value = GetValue()) { ... } // the Option type overides the as operator for bools, called if the option has a value
+```
