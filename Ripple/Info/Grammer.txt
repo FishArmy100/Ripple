@@ -5,7 +5,7 @@ grammer Ripple
 {
 	// Utilities
 	TypeName = IDENTIFIER;
-	Parameters = "(" (TypeName Identifier ("," TypeName Identifier))? ")"
+	Parameters = "(" (TypeName Identifier ("," TypeName Identifier))* ")"
 	Arguments = "(" (Expression ("," Expression))? ")"
 
 	IntLiteral = DIGIT+;
@@ -29,17 +29,18 @@ grammer Ripple
 
 	Assignment = IDENTIFIER "=" Assignment | LogicalOr;
 
-	Expression = LogicalOr;
+	Expression = Assignment;
 
 	ExprStmt = Expression ";";
 	Block = "{" Statement* "}";
 	IfStmt = "if" "(" Expression ")" Statement;
 	ForStmt = "for" "(" VarDecl? ";" Expression? ";" Expression? ";" ")" Statement;
+	ReturnStmt = "return" Expression? ";";
 
 	VarDecl = TypeName IDENTIFIER ("," IDENTIFIER)* "=" Expression ";";
 	FuncDecl = "func" IDENTIFIER Parameters "->" TypeName Block;
 
-	Statement = ExprStmt | Block | IfStmt | ForStmt | VarDecl;
+	Statement = ExprStmt | Block | IfStmt | ForStmt | VarDecl | ReturnStmt;
 	Declaration = VarDecl | FuncDecl;
 
 	main File = Declaration* EOF;

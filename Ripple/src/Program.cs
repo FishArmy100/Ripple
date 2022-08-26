@@ -4,6 +4,8 @@ using System.Collections;
 using System.Windows.Input;
 using System.IO;
 using Ripple.Lexing;
+using Ripple.AST;
+using Ripple.Parsing;
 
 namespace Ripple
 {
@@ -44,18 +46,32 @@ namespace Ripple
         private static void DebugSourceCode(string src)
         {
             (var toks, var errors) = Lexer.Scan(src);
+            bool hasError = false;
 
             if(errors.Count > 0)
             {
-                Console.WriteLine("Errors:");
+                Console.WriteLine("Lexing Errors:");
                 foreach (var error in errors)
                     Console.WriteLine(error.Message + ": [" + error.Line + ", " + error.Column + "]");
+
+                hasError = true;
             }
-            else
+
+            (var expr, var parsingErrors) = Parser.Parse(toks);
+
+            if(parsingErrors.Count > 0)
             {
-                Console.WriteLine("Tokens:");
-                foreach (var tok in toks)
-                    Console.WriteLine(tok.ToPrettyString());
+                Console.WriteLine("Parsing Errors:");
+                foreach (var error in parsingErrors)
+                    Console.WriteLine(error.Message + ": [" + error.Tok.Line + ", " + error.Tok.Column + "]");
+
+                hasError = true;
+            }
+
+            if(!hasError)
+            {
+                AstPrinter printer = new AstPrinter("  ");
+                printer.PrintAst(expr);
             }
         }
     }

@@ -9,10 +9,34 @@ namespace ASTGeneration
     {
         static void Main(string[] args)
         {
-            AstGenerator.Generate("C:\\dev\\Ripple\\ASTGeneration\\src\\Tests", "AST", "Expression", new List<string>()
+            List<string> additionalUsings = new List<string>() { "System.Collections.Generic", "Ripple.Lexing" };
+
+            //Expressions
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Expressions", "Ripple.AST", "Expression", new List<string>()
             {
-                "Term : Token Left, Token Op, Token Right"
-            });
+                "Literal : Token Val",
+                "Grouping : Token LeftParen; Expression Expr; Token RightParen",
+                "Call : Expression Expr; Token OpenParen; List<Expression> Args; Token CloseParen",
+                "Unary : Token Op; Expression Expr",
+                "Binary : Expression Left; Token Op; Expression Right",
+                "Identifier : Token Name"
+            }, additionalUsings);
+
+            //Statements
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Statements", "Ripple.AST", "Statement", new List<string>()
+            {
+                "ExprStmt : Expression Expr; Token SemiColin",
+                "BlockStmt : Token OpenBrace; List<Statement> Statements; Token CloseBrace",
+                "IfStmt : Token IfTok; Token OpenParen; Expression Expr; Token CloseParen; Statement Stmt",
+                "ForStmt : Token ForTok; Token OpenParen; Statement Init; Expression Condition; Expression Iter",
+                "VarDecl : Token TypeName; List<Token> VarNames; Token Equels; Expression Expr; Token SemiColin",
+                "ReturnStmt : Token ReturnTok; Expression Expr; Token SemiColin",
+
+                "Parameters : Token OpenParen; List<(Token,Token)> ParamList; Token CloseParen",
+                "FuncDecl : Token FuncTok; Token Name; Parameters Param; Token Arrow; Token ReturnType",
+
+                "FileStmt : List<Statement> Statements; Token EOFTok"
+            }, additionalUsings);
         }
     }
 }

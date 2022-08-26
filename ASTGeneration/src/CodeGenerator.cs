@@ -7,11 +7,11 @@ namespace ASTGeneration
 {
     static class CodeGenerator
     {
-        public static void GenerateCode(string dir, string namespaceName, string visitorName, string baseName, List<NodeData> nodes)
+        public static void GenerateCode(string dir, string namespaceName, string visitorName, string baseName, List<NodeData> nodes, List<string> additionalUsings)
         {
             foreach (NodeData node in nodes)
             {
-                string src = GenerateCodeForNode(node);
+                string src = GenerateCodeForNode(node, additionalUsings);
                 WriteToFile(dir, node.Name, src);
             }
 
@@ -23,10 +23,10 @@ namespace ASTGeneration
             WriteToFile(dir, visitorName, visitorSrc);
         }
 
-        public static string GenerateCodeForNode(NodeData nodeData)
+        public static string GenerateCodeForNode(NodeData nodeData, List<string> additionalUsings)
         {
             StringBuilder builder = new StringBuilder();
-            BeginCodeFile(nodeData.NamespaceName, builder);
+            BeginCodeFile(nodeData.NamespaceName, builder, additionalUsings);
 
             builder.AppendLine("\tclass " + nodeData.Name + " : " + nodeData.BaseName);
             builder.AppendLine("\t{");
@@ -49,7 +49,7 @@ namespace ASTGeneration
         public static string GenerateBaseClassForNodes(string name, string namespaceName, string visitorName)
         {
             StringBuilder builder = new StringBuilder();
-            BeginCodeFile(namespaceName, builder);
+            BeginCodeFile(namespaceName, builder, new List<string>());
 
             builder.AppendLine("\tabstract class " + name);
             builder.AppendLine("\t{");
@@ -64,7 +64,7 @@ namespace ASTGeneration
         public static string GenerateVisitorForNodes(string name, string namespaceName, string[] nodeNames)
         {
             StringBuilder builder = new StringBuilder();
-            BeginCodeFile(namespaceName, builder);
+            BeginCodeFile(namespaceName, builder, new List<string>());
 
             builder.AppendLine("\tinterface " + name);
             builder.AppendLine("\t{");
@@ -83,9 +83,13 @@ namespace ASTGeneration
             builder.AppendLine("}");
         }
 
-        private static void BeginCodeFile(string namespaceName, StringBuilder builder)
+        private static void BeginCodeFile(string namespaceName, StringBuilder builder, List<string> additionalUsings)
         {
             builder.AppendLine("using System;");
+
+            foreach (string s in additionalUsings)
+                builder.AppendLine("using " + s + ";");
+
             builder.AppendLine();
             builder.AppendLine();
             builder.AppendLine("namespace " + namespaceName);

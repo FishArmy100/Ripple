@@ -9,8 +9,4 @@
     <WarningLevel>0</WarningLevel>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="src\AST\" />
-  </ItemGroup>
-
 </Project>

@@ -59,7 +59,7 @@ namespace Ripple.Lexing
 
                 // lexing int
                 string src = reader.Advance().ToString();
-                while (reader.Current().IsNumeric() && !reader.IsAtEnd())
+                while (!reader.IsAtEnd() && reader.Current().IsNumeric())
                     src += reader.Advance();
 
                 // lexing float
@@ -71,7 +71,7 @@ namespace Ripple.Lexing
                         src += reader.Advance().ToString(); 
                         src += reader.Advance().ToString();
 
-                        while (reader.Current().IsNumeric() && !reader.IsAtEnd())
+                        while (!reader.IsAtEnd() && reader.Current().IsNumeric())
                             src += reader.Advance();
 
                         tok = new Token(src, TokenType.FloatLiteral, line, col);
@@ -102,7 +102,7 @@ namespace Ripple.Lexing
                 int col = reader.Column;
 
                 string id = reader.Advance().ToString();
-                while(reader.Current().IsAlphaNumeric() && !reader.IsAtEnd())
+                while(!reader.IsAtEnd() && reader.Current().IsAlphaNumeric())
                 {
                     id += reader.Advance();
                 }

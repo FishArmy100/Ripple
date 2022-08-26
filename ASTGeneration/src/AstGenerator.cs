@@ -8,11 +8,11 @@ namespace ASTGeneration
 {
     static class AstGenerator
     {
-        public static void Generate(string directoryName, string namespaceName, string baseName, List<string> nodes)
+        public static void Generate(string directoryName, string namespaceName, string baseName, List<string> nodes, List<string> additionalUsings)
         {
             var data = GenerateNodeData(namespaceName, baseName, nodes);
             string visitorName = GetVisitorName(baseName);
-            CodeGenerator.GenerateCode(directoryName, namespaceName, visitorName, baseName, data);
+            CodeGenerator.GenerateCode(directoryName, namespaceName, visitorName, baseName, data, additionalUsings);
         }
 
         private static List<NodeData> GenerateNodeData(string namespaceName, string baseName, List<string> nodes)
@@ -25,7 +25,7 @@ namespace ASTGeneration
                 string name = nameFeildsPair[0].RemoveWhitespace();
                 List<KeyValuePair<string, string>> feilds = new List<KeyValuePair<string, string>>();
 
-                foreach (string feild in nameFeildsPair[1].Split(','))
+                foreach (string feild in nameFeildsPair[1].Split(';'))
                 {
                     string[] typeNamePair = feild.Split(' ').Where(x => !string.IsNullOrEmpty(x)).ToArray();
                     feilds.Add(new KeyValuePair<string, string>(typeNamePair[0].RemoveWhitespace(), typeNamePair[1].RemoveWhitespace()));
