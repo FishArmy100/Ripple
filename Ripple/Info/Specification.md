@@ -206,25 +206,12 @@ const int value = 5;
 value = 6; // compiler error, canot modify a const value
 ```
 
- ### Arrays: **Volatile**
- Arrays are contigus blobs of memory with a set size. The size of stack allocated arrays must be known at runtime.
+---
 
- ```cpp
- int[5] array1 = int[5](); // array of 5 intagers
-
- var = array2 = int[4](42); // array of 4 intagers initialized with the number 42
-
- char[7] string = { 'H', 'e', 'l', 'l', 'o', '!', '\0' }; // initializer list
-
- var numbers = { 5u, 6u, 7u }; // type can be infered?
-
- char c = string[0]; // c == 'H'
- ```
- 
-### Control Flow:
+## Control Flow:
 There are three primary types of control flow in Ripple, the `if`/`else` statement, the `for` loop, and the `while` loop. All are implemented in the same way as in c++.
 
-If/Else Statments:
+### If/Else Statments:
 ```cpp
 if(true)
 {
@@ -240,7 +227,7 @@ else
 }
 ```
 
-For Statment:
+### For Statment:
 ```cpp
 for(int i = 0; i < 5; i++)
 {
@@ -248,7 +235,7 @@ for(int i = 0; i < 5; i++)
 }
 ```
 
-While Statement:
+### While Statement:
 ```cpp
 bool expr = true;
 while(expr)
@@ -257,13 +244,26 @@ while(expr)
 }
 ```
 
-### Casting:
+---
+
+## Casting
+
+### Basic Casting:
 Casting is done mostly through the `as` operator. There are a bunch of built in conversions, but the operator can be overloaded.
 
 ```cpp
 u32 val = 789;
 int i = val as int;
 ```
+
+### Implicit casting
+Some casting operations can be done implicitly. Take, `u8` and `u16` for example. They are the same type, with all the same data, but one is bigger than the other. With this in mind, it is perfectly fine to write something like this:
+```cpp
+u8 num = 15;
+u16 num16 = num; // this is perfectly fine
+```
+Any type can be implicitly converted, or coerced into the same catagory of type that is larger. So, ints to ints, floats to floats, and unsigned ints to unsigned ints.
+
 
 **Volitle:**
 To convert the value of a type byte by byte, you can use the `reinterpret_cast` built in function, witch cannot be overloaded.
@@ -272,58 +272,163 @@ int value = 5;
 float f = reinterpret_cast<float>(value);
 ```
 
-### Copying Data **Volatile**
-More complex types, like arrays and classes must be explicitly copied. This is to show when things like lists and heap allocated strings are copied, so to make optomization easier.
+## Memory Management:
 
-```cpp
-var string = "Hello World!"; // stack allocated string, copying could be quite expencive depending on the size
-
-var newString = copy string; // must be explicitly copied
-
-```
-
- ### Pointers and References:
+### Pointers and References:
  Pointers can point to any block of memory, or a single object. They can be assigned to `nullptr`, witch lets them point to nothing. References point to a single object in memory, and cannot point to `nullptr`. Note, you can take a reference from a r-value.
 
  ```cpp
-var array = {5, 6, 7};
+ int[3] array = {5, 6, 7};
 
-int* ptr = &array[0];
-int& ref = &array[2];
+ int* ptr = array[0] as int*; // returns a reference, so must be converted to a pointer
+ int& ref = array[2];
 
 
-int value = *ref; // value == 7
-int value2 = *ptr; // value2 == 5
+ int value = *ref; // value == 7
+ int value2 = *ptr; // value2 == 5
 
-int* ptr2 = ptr + 1; // pointer arithmatic
-int value2 = *ptr2; // value3 == 6
+ int* ptr2 = ptr + 1; // pointer arithmatic
+ int value2 = *ptr2; // value3 == 6
 
-float* floatPtr = nullptr;
-*floatPtr; // UB, or error
+ int& ptr3 = ptr[1]; // pointer indexing, returns a reference
+
+ float* floatPtr = nullptr;
+ *floatPtr; // UB, or error
  ```
-One note, is that references are dereferenced implicitly. So, if you had a `String& str`, you could call a method on it like `str.Length()`, without acctually dereferencing the reference. Although, it is entirly possible to do this: `*(str).Length()`. 
+ One note, is that references are dereferenced implicitly. So, if you had a `String& str`, you could call a method on it like `str.Length()`, without acctually dereferencing the reference. Although, it is entirly possible to do this: `*(str).Length()`.
 
-### Moving Data: **Volatile**
-Sometimes, you may not want to copy complex data, and you can instead move it. This can be done instead of explicitly copying, but you cannot use the old veriable, otherwise a compiler error will be thrown
+ If you pass value by reference to a function, the value will automatically be referenced:
+ ```cpp
+ func SomeFunc(int& i) -> void {...}
 
-```cpp
-int value = 5;
-int moved = move value; // bad example, but with classes this makes much more sense
+ int i = 4;
 
-// value = 6; -> compiler error, cannot use value after moving
+ // both of these compile
+ SomeFunc(&i);
+ SomeFunc(i);
+ ```
 
-moved = 7; // this is fine
+### Arrays:
+ Arrays are contigus blobs of memory with a set size. The size of stack allocated arrays must be known at runtime.
 
-```
+ ```cpp
+ int[5] array1 = int[5](); // array of 5 intagers
 
- ### Heap Allocation:
+ var = array2 = int[4](42); // array of 4 intagers initialized with the number 42
+
+ char[7] string = { 'H', 'e', 'l', 'l', 'o', '!', '\0' }; // initializer list
+
+ var numbers = { 5u, 6u, 7u }; // type can be infered???
+
+ char& c = string[0] // indexing an array returns a reference
+ char c = *string[0]; // c == 'H'
+ ```
+
+### Copying and Moveing Data:
+ Complex constructs like classes and arrays must be either copied, or moved explicitly. In these examples, we will use the class below:
+ ```cpp
+ using Core.Memory.C_String;
+
+ class String
+ {
+    private const char* m_CharArray;
+    private const usize m_Length;
+
+    public String(const char* str)
+    {
+        m_Length = StrLen(str);
+        m_CharArray = StrCpy(str, m_Length);
+    }
+
+    public copy String(const String& other) // copy constructor
+    {
+        m_Length = other.m_Length;
+        m_CharArray = StrCpy(other.m_CharArray, m_Length);
+    }
+
+    public move String(String& other) // move constructor
+    {
+        m_CharArray = other.m_CharArray;
+        other.m_CharArray = nullptr;
+
+        m_Length = other.m_Length;
+        other.m_Length = 0;
+    }
+
+    public ~String() // destructor
+    {
+        dealloc(m_CharArray);
+    }
+
+    public const char* Get() { return m_CharArray; }
+    public const char* Length() { return m_Length; }
+ }
+ ```
+
+ How this would be used:
+ ```cpp
+ String s = { "Hello World!" };
+
+ String sCopy = copy s; // copy constructor is called
+ String sMove = move sCopy; // move constructor called
+ ```
+
+ if you where to pass an object to a function, you must either copy it, or move it into the function:
+ ```cpp
+ func PrintString(String s) -> void
+ {
+    ...
+ }
+
+ String s = { "Goodbye!" };
+ PrintString(copy s); // string copied into the function
+ PrintString(move s); // string moved into the function
+ ```
+
+ Copy assign, and move assign, are also defined by the constructors
+ ```cpp
+ String s1 = { "FishArmy100" };
+ String s2 = { "Some other string" };
+
+ s2 = copy s1; // copies the first string into the second one. Destructor is called before copy constructor is
+
+ ```
+
+ For initializer lists on constructores, you use the same methodology as copy asign, exept that the destructor is not called.
+ ```cpp
+ class Person
+ {
+    public String Name;
+    public Person(const string& name) : Name(copy *name) {}
+ }
+ ```
+ When you return a value from a function, you must either copy or move it, if it is not an r-value.
+ ```cpp
+ func GetString1() -> String
+ {
+    return String("Hello"); // does not need copied, or moved
+ }
+
+ func GetString2() -> String
+ {
+    String s = { "Hello" };
+    return move s; // requires you to move
+ }
+ ```
+
+ When you assign, or initalize a value gotten from a function, you do not need to copy or move it:
+ ```cpp
+ String s = GetString(); // no copy or move required
+ ```
+
+### Heap Allocation:
  All of the previous examples show how to allocate memory on the stack, the syntax for allocating on the heap is almost exactly the same for c++.
 
  ```cpp
  int* ptr = alloc<int>(1) // value allocated on the heap, and a pointer to it is returned
  dealloc(ptr); // deletes the memory
  ```
-It should be noted, that the size of a heap allocated string does not need to be known at compile time, much like c++ arrays.
+ It should be noted, that the size of a heap allocated string does not need to be known at compile time, much like c++ arrays.
 
 ### In Place Construction:
 In place construction allows you to construct an object into an allocated block of memory. **NOTE:** it does not call the destructor of the object when used

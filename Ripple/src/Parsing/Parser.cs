@@ -6,30 +6,95 @@ using System.Threading.Tasks;
 using Ripple.AST;
 using Ripple.Lexing;
 using Ripple.Utils.Extensions;
+using Ripple.Utils;
 
 namespace Ripple.Parsing
 {
     static class Parser
     {
-        public static (Expression, List<ParserError>) Parse(List<Token> tokens)
+        public static Result<List<FileStmt>, List<ParserError>> Parse(List<Token> tokens)
         {
             TokenReader reader = new TokenReader(tokens);
-            List<ParserError> errors = new List<ParserError>();
-            try
-            {
-                Expression expr = ParseExpression(ref reader);
-                return (expr, errors);
-            }
-            catch(ParserExeption e)
-            {
-                errors.Add(new ParserError(e.Message, e.Tok));
-                return (null, errors);
-            }
+            
         }
 
-        private static Expression ParseExpression(ref TokenReader reader)
+        public static Result<FileStmt, List<ParserError>> ParseFile(ref TokenReader reader)
         {
-            return ParseAssignment(ref reader);
+
+        }
+
+        private static bool TryParseDeclaration(ref TokenReader reader, out Result<Statement, List<ParserError>> result)
+        {
+            result = null;
+
+            if (TryParseVarDecl(ref reader, out result))
+                return true;
+            else if (TryParseFuncDecl(ref reader, out result))
+                return true;
+
+            return false;
+        }
+
+        private static bool TryParseStatement(ref TokenReader reader, out Result<Statement, List<ParserError>> result)
+        {
+
+        }
+
+        private static bool TryParseVarDecl(ref TokenReader reader, out Result<Statement, List<ParserError>> result)
+        {
+
+        }
+
+        private static bool TryParseFuncDecl(ref TokenReader reader, out Result<Statement, List<ParserError>> result)
+        {
+
+        }
+
+        private static bool TryParseBlock(ref TokenReader reader, out Result<Statement, List<ParserError>> result)
+        {
+
+        }
+
+        private static bool TryParseIfStmt(ref TokenReader reader, out Result<Statement, List<ParserError>> result)
+        {
+
+        }
+
+        private static bool TryParseForStmt(ref TokenReader reader, out Result<Statement, List<ParserError>> result)
+        {
+
+        }
+
+        private static Result<Statement, ParserError> ParseExprStmt(ref TokenReader reader)
+        {
+            var result = ParseExpression(ref reader);
+            if (result is Result<Expression, ParserError>.Fail fail)
+            {
+                return Result<Statement, ParserError>.Bad(fail.Error);
+            }
+            else if(reader.Current().Type != TokenType.SemiColin)
+            {
+                var error = new ParserError("Expected ';' after expression", reader.Current());
+                return Result<Statement, ParserError>.Bad(error);
+            }
+
+            Token semiColon = reader.Advance();
+            Expression expr = (result as Result<Expression, ParserError>.Ok).Data;
+            return Result<Statement, ParserError>.Good(new ExprStmt(expr, semiColon));
+        }
+
+        private static Result<Expression, ParserError> ParseExpression(ref TokenReader reader)
+        {
+            try
+            {
+                Expression expr = ParseAssignment(ref reader);
+                return Result<Expression, ParserError>.Good(expr);
+            }
+            catch (ParserExeption e)
+            {
+                ParserError error = new ParserError(e.Message, e.Tok);
+                return Result<Expression, ParserError>.Bad(error);
+            }
         }
 
         private static Expression ParseAssignment(ref TokenReader reader)
@@ -90,7 +155,7 @@ namespace Ripple.Parsing
 
                 while(!reader.Match(TokenType.CloseParen))
                 {
-                    args.Add(ParseExpression(ref reader));
+                    args.Add(ParseExpressionThrow(ref reader));
                     if (reader.Current().Type != TokenType.CloseParen)
                         reader.Consume(TokenType.Comma, "Expected ',' to seperate arguments.");
                 }
@@ -120,7 +185,8 @@ namespace Ripple.Parsing
             if(reader.Match(TokenType.OpenParen))
             {
                 Token openParen = reader.Previous();
-                Expression groupedExpr = ParseExpression(ref reader);
+                Expression groupedExpr = ParseExpressionThrow(ref reader);
+
                 Token closeParen = reader.Consume(TokenType.CloseParen, "Expected ')' after grouped expression");
                 expr = new Grouping(openParen, groupedExpr, closeParen);
                 return true;
@@ -128,6 +194,16 @@ namespace Ripple.Parsing
 
             expr = null;
             return false;
+        }
+
+        private static Expression ParseExpressionThrow(ref TokenReader reader)
+        {
+            return ParseExpression(ref reader) switch
+            {
+                Result<Expression, ParserError>.Ok ok => ok.Data,
+                Result<Expression, ParserError>.Fail fail => throw new ParserExeption(fail.Error),
+                _ => throw new InvalidCastException("Result can only be Ok, or Fail")
+            };
         }
 
         // Extensions
@@ -139,6 +215,12 @@ namespace Ripple.Parsing
             }
 
             throw new ParserExeption(reader.Current(), message);
+        }
+
+        private static void Syncronize(this TokenReader reader, params TokenType[] types)
+        {
+            while (!reader.IsAtEnd() && !reader.Match(types))
+                continue;
         }
     }
 }

@@ -16,5 +16,10 @@ namespace Ripple.Parsing
         {
             Tok = tok;
         }
+
+        public ParserExeption(ParserError error) : base(error.Message)
+        {
+            Tok = error.Tok;
+        }
     }
 }
