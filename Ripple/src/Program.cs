@@ -57,21 +57,22 @@ namespace Ripple
                 hasError = true;
             }
 
-            (var expr, var parsingErrors) = Parser.Parse(toks);
+            var result = Parser.Parse(toks);
 
-            if(parsingErrors.Count > 0)
+            if(result is Utils.Result<List<Statement>, List<ParserError>>.Fail f)
             {
                 Console.WriteLine("Parsing Errors:");
-                foreach (var error in parsingErrors)
+                foreach (var error in f.Error)
                     Console.WriteLine(error.Message + ": [" + error.Tok.Line + ", " + error.Tok.Column + "]");
 
                 hasError = true;
             }
 
-            if(!hasError)
+            if(!hasError && result is Utils.Result<List<Statement>, List<ParserError>>.Ok ok)
             {
                 AstPrinter printer = new AstPrinter("  ");
-                printer.PrintAst(expr);
+                foreach(Statement statement in ok.Data)
+                    printer.PrintAst(statement);
             }
         }
     }

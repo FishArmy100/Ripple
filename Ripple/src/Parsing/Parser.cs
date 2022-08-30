@@ -12,89 +12,168 @@ namespace Ripple.Parsing
 {
     static class Parser
     {
-        public static Result<List<FileStmt>, List<ParserError>> Parse(List<Token> tokens)
+        public static Result<List<Statement>, List<ParserError>> Parse(List<Token> tokens)
         {
             TokenReader reader = new TokenReader(tokens);
-            
+            List<ParserError> errors = new List<ParserError>();
+            List<Statement> statements = new List<Statement>();
+
+            while(!reader.IsAtEnd() && reader.Current().Type != TokenType.EOF)
+            {
+                try
+                {
+                    Statement statement = ParseStatement(ref reader, ref errors);
+                    statements.Add(statement);
+                }
+                catch(ParserExeption e)
+                {
+                    errors.Add(new ParserError(e.Message, e.Tok));
+                    reader.SyncronizeTo(TokenType.If, TokenType.For, TokenType.Return, TokenType.OpenBrace);
+                }
+            }
+
+            if (errors.Count > 0)
+                return new Result<List<Statement>, List<ParserError>>.Fail(errors);
+
+            return new Result<List<Statement>, List<ParserError>>.Ok(statements);
         }
 
-        public static Result<FileStmt, List<ParserError>> ParseFile(ref TokenReader reader)
+        private static Statement ParseStatement(ref TokenReader reader, ref List<ParserError> errors)
         {
-
+            if (TryParseIf(ref reader, ref errors, out Statement statement))
+                return statement;
+            else if (TryParseBlock(ref reader, ref errors, out statement))
+                return statement;
+            else if (TryParseFor(ref reader, ref errors, out statement))
+                return statement;
+            else if (TryParseReturn(ref reader, out statement))
+                return statement;
+            else if (TryParseVarDecl(ref reader, out statement))
+                return statement;
+            else
+                return ParseExpressionStatement(ref reader);
         }
 
-        private static bool TryParseDeclaration(ref TokenReader reader, out Result<Statement, List<ParserError>> result)
+        private static bool TryParseIf(ref TokenReader reader, ref List<ParserError> errors, out Statement statement)
         {
-            result = null;
+            statement = null;
+            if (!reader.Match(TokenType.If))
+                return false;
 
-            if (TryParseVarDecl(ref reader, out result))
-                return true;
-            else if (TryParseFuncDecl(ref reader, out result))
-                return true;
+            Token ifToken = reader.Previous();
+            Token openParen = reader.Consume(TokenType.OpenParen, "Expected '('.");
+            Expression expr = ParseExpression(ref reader);
+            Token closeParen = reader.Consume(TokenType.CloseParen, "Expected ')'.");
+            Statement body = ParseStatement(ref reader, ref errors);
 
+            statement = new IfStmt(ifToken, openParen, expr, closeParen, body);
+            return true;
+        }
+
+        private static bool TryParseFor(ref TokenReader reader, ref List<ParserError> errors, out Statement statement)
+        {
+            statement = null;
+            if (!reader.Match(TokenType.For))
+                return false;
+
+            Token forToken = reader.Previous();
+
+            Token openParen = reader.Consume(TokenType.OpenParen, "Expected '('.");
+
+            TryParseVarDecl(ref reader, out Statement init);
+
+            Expression condition = null;
+            if (reader.Current().Type != TokenType.SemiColon)
+                condition = ParseExpression(ref reader);
+            reader.Consume(TokenType.SemiColon, "Expected ';'.");
+
+            Expression itr = null;
+            if (reader.Current().Type != TokenType.CloseParen)
+                itr = ParseExpression(ref reader);
+            Token closeParen = reader.Consume(TokenType.CloseParen, "Expected ')'.");
+
+            Statement body = ParseStatement(ref reader, ref errors);
+
+            statement = new ForStmt(forToken, openParen, init, condition, itr, closeParen, body);
+            return true;
+        }
+
+        public static bool TryParseReturn(ref TokenReader reader, out Statement statement)
+        {
+            statement = null;
+            if (!reader.Match(TokenType.Return))
+                return false;
+
+            Token returnToken = reader.Previous();
+            Expression expr = ParseExpression(ref reader);
+            Token semiColon = reader.Consume(TokenType.SemiColon, "Expected ';' after return statement");
+
+            statement = new ReturnStmt(returnToken, expr, semiColon);
+            return true;
+        }
+
+        public static bool TryParseVarDecl(ref TokenReader reader, out Statement statement)
+        {
+            statement = null;
+            if (!reader.Current().Type.IsIdentifier() || !(reader.Peek() is Token t && t.Type.IsIdentifier()))
+                return false;
+
+            Token varType = reader.Advance();
+            List<Token> varNames = new List<Token>();
+            varNames.Add(reader.Advance());
+
+            while(reader.Match(TokenType.Comma))
+            {
+                varNames.Add(reader.Consume(TokenType.Identifier, "Expected variable name."));
+            }
+
+            Token equel = reader.Consume(TokenType.Equal, "Expected '='.");
+
+            Expression expr = ParseExpression(ref reader);
+            Token semiColon = reader.Consume(TokenType.SemiColon, "Expected ';' after variable declaration.");
+
+            statement = new VarDecl(varType, varNames, equel, expr, semiColon);
+            return true;
+        }
+
+        private static bool TryParseBlock(ref TokenReader reader, ref List<ParserError> errors, out Statement statement)
+        {
+            if(reader.Match(TokenType.OpenBrace))
+            {
+                Token openBrace = reader.Previous();
+
+                List<Statement> statements = new List<Statement>();
+
+                while (!reader.IsAtEnd() && !reader.Match(TokenType.CloseBrace))
+                {
+                    try { statements.Add(ParseStatement(ref reader, ref errors)); }
+                    catch(ParserExeption e) 
+                    { 
+                        errors.Add(new ParserError(e.Message, e.Tok));
+                        reader.SyncronizeTo(TokenType.For, TokenType.If, TokenType.CloseBrace, TokenType.OpenBrace);
+                    }
+                }
+
+                Token closeBrace = reader.Previous();
+
+                statement = new BlockStmt(openBrace, statements, closeBrace);
+                return true;
+            }
+
+            statement = null;
             return false;
         }
 
-        private static bool TryParseStatement(ref TokenReader reader, out Result<Statement, List<ParserError>> result)
+        private static Statement ParseExpressionStatement(ref TokenReader reader)
         {
-
+            Expression expr = ParseExpression(ref reader);
+            Token semiColon = reader.Consume(TokenType.SemiColon, "Expected ';' after expression.");
+            return new ExprStmt(expr, semiColon);
         }
 
-        private static bool TryParseVarDecl(ref TokenReader reader, out Result<Statement, List<ParserError>> result)
+        private static Expression ParseExpression(ref TokenReader reader)
         {
-
-        }
-
-        private static bool TryParseFuncDecl(ref TokenReader reader, out Result<Statement, List<ParserError>> result)
-        {
-
-        }
-
-        private static bool TryParseBlock(ref TokenReader reader, out Result<Statement, List<ParserError>> result)
-        {
-
-        }
-
-        private static bool TryParseIfStmt(ref TokenReader reader, out Result<Statement, List<ParserError>> result)
-        {
-
-        }
-
-        private static bool TryParseForStmt(ref TokenReader reader, out Result<Statement, List<ParserError>> result)
-        {
-
-        }
-
-        private static Result<Statement, ParserError> ParseExprStmt(ref TokenReader reader)
-        {
-            var result = ParseExpression(ref reader);
-            if (result is Result<Expression, ParserError>.Fail fail)
-            {
-                return Result<Statement, ParserError>.Bad(fail.Error);
-            }
-            else if(reader.Current().Type != TokenType.SemiColin)
-            {
-                var error = new ParserError("Expected ';' after expression", reader.Current());
-                return Result<Statement, ParserError>.Bad(error);
-            }
-
-            Token semiColon = reader.Advance();
-            Expression expr = (result as Result<Expression, ParserError>.Ok).Data;
-            return Result<Statement, ParserError>.Good(new ExprStmt(expr, semiColon));
-        }
-
-        private static Result<Expression, ParserError> ParseExpression(ref TokenReader reader)
-        {
-            try
-            {
-                Expression expr = ParseAssignment(ref reader);
-                return Result<Expression, ParserError>.Good(expr);
-            }
-            catch (ParserExeption e)
-            {
-                ParserError error = new ParserError(e.Message, e.Tok);
-                return Result<Expression, ParserError>.Bad(error);
-            }
+            return ParseAssignment(ref reader);
         }
 
         private static Expression ParseAssignment(ref TokenReader reader)
@@ -118,7 +197,7 @@ namespace Ripple.Parsing
         private static Expression ParseEquality(TokenReader reader) => GetBinaryExpression(reader, ParseComparison, TokenType.EqualEqual, TokenType.BangEqual);
         private static Expression ParseComparison(TokenReader reader) => GetBinaryExpression(reader, ParseTerm, TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan, TokenType.LessThanEqual);
         private static Expression ParseTerm(TokenReader reader) => GetBinaryExpression(reader, ParseFactor, TokenType.Plus, TokenType.Minus);
-        private static Expression ParseFactor(TokenReader reader) => GetBinaryExpression(reader, ParseUnaryExpr, TokenType.Star, TokenType.Slash);
+        private static Expression ParseFactor(TokenReader reader) => GetBinaryExpression(reader, ParseUnaryExpr, TokenType.Star, TokenType.Slash, TokenType.Mod);
 
         private static Expression GetBinaryExpression(TokenReader reader, Func<TokenReader, Expression> previouseExpr, params TokenType[] operatorTypes)
         {
@@ -155,12 +234,15 @@ namespace Ripple.Parsing
 
                 while(!reader.Match(TokenType.CloseParen))
                 {
-                    args.Add(ParseExpressionThrow(ref reader));
+                    args.Add(ParseExpression(ref reader));
                     if (reader.Current().Type != TokenType.CloseParen)
-                        reader.Consume(TokenType.Comma, "Expected ',' to seperate arguments.");
+                    {
+                        reader.Consume(TokenType.Comma, "Expected ',' to seperate arguments");
+                        args.Add(ParseExpression(ref reader));
+                    }
                 }
 
-                Token closeParen = reader.Peek(-1).Value;
+                Token closeParen = reader.Previous();
 
                 return new Call(expr, openParen, args, closeParen);
             }
@@ -176,8 +258,10 @@ namespace Ripple.Parsing
                 return new Identifier(reader.Previous());
             else if (ParseGrouping(reader, out Expression expr))
                 return expr;
-            else 
-                throw new ParserExeption(reader.Current(), "Expected an expression.");
+            else
+            {
+                throw new ParserExeption(reader.Current(), "Expected expression");
+            }
         }
 
         private static bool ParseGrouping(TokenReader reader, out Expression expr)
@@ -185,7 +269,7 @@ namespace Ripple.Parsing
             if(reader.Match(TokenType.OpenParen))
             {
                 Token openParen = reader.Previous();
-                Expression groupedExpr = ParseExpressionThrow(ref reader);
+                Expression groupedExpr = ParseExpression(ref reader);
 
                 Token closeParen = reader.Consume(TokenType.CloseParen, "Expected ')' after grouped expression");
                 expr = new Grouping(openParen, groupedExpr, closeParen);
@@ -196,31 +280,23 @@ namespace Ripple.Parsing
             return false;
         }
 
-        private static Expression ParseExpressionThrow(ref TokenReader reader)
+        private static Token Consume(this TokenReader reader, TokenType tokenType, string errorMessage)
         {
-            return ParseExpression(ref reader) switch
-            {
-                Result<Expression, ParserError>.Ok ok => ok.Data,
-                Result<Expression, ParserError>.Fail fail => throw new ParserExeption(fail.Error),
-                _ => throw new InvalidCastException("Result can only be Ok, or Fail")
-            };
+            if (reader.Match(tokenType))
+                return reader.Previous();
+
+            throw new ParserExeption(reader.Current(), errorMessage);
         }
 
-        // Extensions
-        private static Token Consume(this TokenReader reader, TokenType type, string message)
+        private static void SyncronizeTo(this TokenReader reader, params TokenType[] types)
         {
-            if(reader.Match(type))
+            while(true)
             {
-                return reader.Peek(-1).Value;
+                if (reader.IsAtEnd() || types.Contains(reader.Current().Type))
+                    break;
+
+                reader.Advance();
             }
-
-            throw new ParserExeption(reader.Current(), message);
-        }
-
-        private static void Syncronize(this TokenReader reader, params TokenType[] types)
-        {
-            while (!reader.IsAtEnd() && !reader.Match(types))
-                continue;
         }
     }
 }

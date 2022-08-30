@@ -19,7 +19,7 @@ namespace Ripple.Lexing
         AmpersandAmpersand, PipePipe,
 
         // Misc
-        SemiColin, Equal, RightThinArrow, Identifier, Comma,
+        SemiColon, Equal, RightThinArrow, Identifier, Comma,
 
         // Literals
         IntagerLiteral, FloatLiteral,

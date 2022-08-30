@@ -151,7 +151,7 @@ namespace Ripple.Lexing
                     tok = GenToken(ref reader, TokenType.Mod, 1);
                     return true;
                 case ';':
-                    tok = GenToken(ref reader, TokenType.SemiColin, 1);
+                    tok = GenToken(ref reader, TokenType.SemiColon, 1);
                     return true;
                 case ',':
                     tok = GenToken(ref reader, TokenType.Comma, 1);
@@ -163,10 +163,10 @@ namespace Ripple.Lexing
                     tok = GenToken(ref reader, TokenType.CloseParen, 1);
                     return true;
                 case '{':
-                    tok = GenToken(ref reader, TokenType.CloseBrace, 1);
+                    tok = GenToken(ref reader, TokenType.OpenBrace, 1);
                     return true;
                 case '}':
-                    tok = GenToken(ref reader, TokenType.OpenBrace, 1);
+                    tok = GenToken(ref reader, TokenType.CloseBrace, 1);
                     return true;
 
                 // multiple

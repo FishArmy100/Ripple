@@ -9,7 +9,7 @@ namespace ASTGeneration
     {
         static void Main(string[] args)
         {
-            List<string> additionalUsings = new List<string>() { "System.Collections.Generic", "Ripple.Lexing" };
+            List<string> additionalUsings = new List<string>() { "System.Collections.Generic", "Ripple.Lexing", "Ripple.Parsing" };
 
             //Expressions
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Expressions", "Ripple.AST", "Expression", new List<string>()
@@ -19,7 +19,7 @@ namespace ASTGeneration
                 "Call : Expression Expr; Token OpenParen; List<Expression> Args; Token CloseParen",
                 "Unary : Token Op; Expression Expr",
                 "Binary : Expression Left; Token Op; Expression Right",
-                "Identifier : Token Name"
+                "Identifier : Token Name",
             }, additionalUsings);
 
             //Statements
@@ -27,15 +27,15 @@ namespace ASTGeneration
             {
                 "ExprStmt : Expression Expr; Token SemiColin",
                 "BlockStmt : Token OpenBrace; List<Statement> Statements; Token CloseBrace",
-                "IfStmt : Token IfTok; Token OpenParen; Expression Expr; Token CloseParen; Statement Stmt",
-                "ForStmt : Token ForTok; Token OpenParen; Statement Init; Expression Condition; Expression Iter",
+                "IfStmt : Token IfTok; Token OpenParen; Expression Expr; Token CloseParen; Statement Body",
+                "ForStmt : Token ForTok; Token OpenParen; Statement Init; Expression Condition; Expression Iter; Token CloseParen; Statement Body",
                 "VarDecl : Token TypeName; List<Token> VarNames; Token Equels; Expression Expr; Token SemiColin",
                 "ReturnStmt : Token ReturnTok; Expression Expr; Token SemiColin",
 
                 "Parameters : Token OpenParen; List<(Token,Token)> ParamList; Token CloseParen",
                 "FuncDecl : Token FuncTok; Token Name; Parameters Param; Token Arrow; Token ReturnType",
 
-                "FileStmt : List<Statement> Statements; Token EOFTok"
+                "FileStmt : List<Statement> Statements; Token EOFTok",
             }, additionalUsings);
         }
     }

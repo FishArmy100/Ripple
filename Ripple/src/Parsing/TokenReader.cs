@@ -22,6 +22,8 @@ namespace Ripple.Parsing
         public Token Previous() => Peek(-1).Value;
         public Token Advance() => m_Tokens[Index++];
 
+        public Token Last() => m_Tokens[m_Tokens.Count - 1];
+
         public bool Match(params TokenType[] types)
         {
             if(types.Contains(Current().Type))

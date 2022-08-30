@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Ripple.AST
 {
-    class AstPrinter : IExpressionVisitor
+    class AstPrinter : IExpressionVisitor, IStatementVisitor
     {
         private int m_Index = 0;
-        private string m_Seperator;
+        private readonly string m_Seperator;
 
         public AstPrinter(string seperator)
         {
@@ -20,6 +20,131 @@ namespace Ripple.AST
         {
             expr.Accept(this);
             m_Index = 0;
+        }
+
+        public void PrintAst(Statement statement)
+        {
+            statement.Accept(this);
+            m_Index = 0;
+        }
+
+        public void VisitExprStmt(ExprStmt exprStmt)
+        {
+            Print("Expression Statement: ");
+            TabRight();
+            exprStmt.Expr.Accept(this);
+            TabLeft();
+        }
+
+        public void VisitBlockStmt(BlockStmt blockStmt)
+        {
+            Print("Block Statement:");
+            TabRight();
+            foreach (Statement statement in blockStmt.Statements)
+                statement.Accept(this);
+            TabLeft();
+        }
+
+        public void VisitIfStmt(IfStmt ifStmt)
+        {
+            Print("If Statement");
+            TabRight();
+
+            Print("Condition:");
+            TabRight();
+            ifStmt.Expr.Accept(this);
+            TabLeft();
+
+            Print("Body:");
+            TabRight();
+            ifStmt.Body.Accept(this);
+            TabLeft();
+
+            TabLeft();
+        }
+
+        public void VisitForStmt(ForStmt forStmt)
+        {
+            Print("For Statement");
+            TabRight();
+
+            if(forStmt.Init != null)
+            {
+                Print("Initalization:");
+                TabRight();
+                forStmt.Init.Accept(this);
+                TabLeft();
+            }
+
+            if(forStmt.Condition != null)
+            {
+                Print("Condition:");
+                TabRight();
+                forStmt.Condition.Accept(this);
+                TabLeft();
+            }
+
+            if(forStmt.Iter != null)
+            {
+                Print("Iterator:");
+                TabRight();
+                forStmt.Iter.Accept(this);
+                TabLeft();
+            }
+
+            Print("Body:");
+            TabRight();
+            forStmt.Body.Accept(this);
+            TabLeft();
+
+            TabLeft();
+        }
+
+        public void VisitVarDecl(VarDecl varDecl)
+        {
+            Print("Variable Declaration:");
+            TabRight();
+            Print("Type: " + varDecl.TypeName.Text);
+
+            string names = "";
+            for(int i = 0; i < varDecl.VarNames.Count; i++)
+            {
+                if (i != 0)
+                    names += ", ";
+                names += varDecl.VarNames[i];
+            }
+
+            Print("Var Names: " + names);
+
+            Print("Initializer: ");
+            TabRight();
+            varDecl.Expr.Accept(this);
+            TabLeft();
+
+            TabLeft();
+        }
+
+        public void VisitReturnStmt(ReturnStmt returnStmt)
+        {
+            Print("Return Statement:");
+            TabLeft();
+            returnStmt.Expr.Accept(this);
+            TabRight();
+        }
+
+        public void VisitParameters(Parameters parameters)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitFuncDecl(FuncDecl funcDecl)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitFileStmt(FileStmt fileStmt)
+        {
+            throw new NotImplementedException();
         }
 
         public void VisitBinary(Binary binary)
