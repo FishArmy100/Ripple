@@ -134,12 +134,21 @@ namespace Ripple.AST
 
         public void VisitParameters(Parameters parameters)
         {
-            throw new NotImplementedException();
+            Print("Parameters: ");
+            TabRight();
+            foreach (var pair in parameters.ParamList)
+                Print(pair.Item1.Text + " " + pair.Item2.Text);
+            TabLeft();
         }
 
         public void VisitFuncDecl(FuncDecl funcDecl)
         {
-            throw new NotImplementedException();
+            Print("Function Declaration:");
+            TabRight();
+            funcDecl.Param.Accept(this);
+            Print("Return type: " + funcDecl.ReturnType.Text);
+            funcDecl.Body.Accept(this);
+            TabLeft();
         }
 
         public void VisitFileStmt(FileStmt fileStmt)

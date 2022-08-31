@@ -33,7 +33,7 @@ namespace ASTGeneration
                 "ReturnStmt : Token ReturnTok; Expression Expr; Token SemiColin",
 
                 "Parameters : Token OpenParen; List<(Token,Token)> ParamList; Token CloseParen",
-                "FuncDecl : Token FuncTok; Token Name; Parameters Param; Token Arrow; Token ReturnType",
+                "FuncDecl : Token FuncTok; Token Name; Parameters Param; Token Arrow; Token ReturnType; BlockStmt Body",
 
                 "FileStmt : List<Statement> Statements; Token EOFTok",
             }, additionalUsings);

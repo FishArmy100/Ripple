@@ -22,6 +22,11 @@ namespace Ripple.Lexing
             Column = column;
         }
 
+        public bool IsType(params TokenType[] tokenTypes)
+        {
+            return tokenTypes.Contains(Type);
+        }
+
         public override string ToString()
         {
             return Text;

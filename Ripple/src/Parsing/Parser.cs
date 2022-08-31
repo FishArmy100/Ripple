@@ -22,13 +22,16 @@ namespace Ripple.Parsing
             {
                 try
                 {
-                    Statement statement = ParseStatement(ref reader, ref errors);
+                    Statement statement = ParseDeclaration(ref reader, ref errors);
                     statements.Add(statement);
                 }
                 catch(ParserExeption e)
                 {
                     errors.Add(new ParserError(e.Message, e.Tok));
-                    reader.SyncronizeTo(TokenType.If, TokenType.For, TokenType.Return, TokenType.OpenBrace);
+                    reader.SyncronizeTo(reader =>
+                    {
+                        return reader.Current().IsType(TokenType.Func) || IsVarDecl(reader);
+                    });
                 }
             }
 
@@ -38,12 +41,57 @@ namespace Ripple.Parsing
             return new Result<List<Statement>, List<ParserError>>.Ok(statements);
         }
 
+        private static Statement ParseDeclaration(ref TokenReader reader, ref List<ParserError> errors)
+        {
+            if (TryParseFunctionDecl(ref reader, ref errors, out FuncDecl func))
+                return func;
+            else if (TryParseVarDecl(ref reader, out Statement statement))
+                return statement;
+
+            throw new ParserExeption(reader.Current(), "Expected a declaration.");
+        }
+
+        private static bool TryParseFunctionDecl(ref TokenReader reader, ref List<ParserError> errors, out FuncDecl funcDecl)
+        {
+            funcDecl = null;
+            if (!reader.Match(TokenType.Func))
+                return false;
+
+            Token func = reader.Previous();
+            Token name = reader.Consume(TokenType.Identifier, "Expected function name.");
+            Parameters parameters = ParseParameters(ref reader);
+            Token arrow = reader.Consume(TokenType.RightThinArrow, "Expected '->'.");
+            Token returnType = reader.Consume(TokenType.Identifier, "Expected return type.");
+            if (!TryParseBlock(ref reader, ref errors, out BlockStmt body))
+                throw new ParserExeption(reader.Current(), "Expected a function body.");
+
+            funcDecl = new FuncDecl(func, name, parameters, arrow, returnType, body);
+            return true;
+        }
+
+        private static Parameters ParseParameters(ref TokenReader reader)
+        {
+            Token openParen = reader.Consume(TokenType.OpenParen, "Expected '('.");
+            List<(Token, Token)> parameters = new List<(Token, Token)>();
+            while(!reader.IsAtEnd() && !reader.Current().IsType(TokenType.CloseParen))
+            {
+                reader.Match(TokenType.Comma);
+                Token typeName = reader.Consume(TokenType.Identifier, "Expected type name.");
+                Token paramName = reader.Consume(TokenType.Identifier, "Expected parameter name.");
+                parameters.Add((typeName, paramName));
+            }
+
+            Token closeParen = reader.Consume(TokenType.CloseParen, "Expected ')'");
+
+            return new Parameters(openParen, parameters, closeParen);
+        }
+
         private static Statement ParseStatement(ref TokenReader reader, ref List<ParserError> errors)
         {
             if (TryParseIf(ref reader, ref errors, out Statement statement))
                 return statement;
-            else if (TryParseBlock(ref reader, ref errors, out statement))
-                return statement;
+            else if (TryParseBlock(ref reader, ref errors, out BlockStmt block))
+                return block;
             else if (TryParseFor(ref reader, ref errors, out statement))
                 return statement;
             else if (TryParseReturn(ref reader, out statement))
@@ -115,7 +163,7 @@ namespace Ripple.Parsing
         public static bool TryParseVarDecl(ref TokenReader reader, out Statement statement)
         {
             statement = null;
-            if (!reader.Current().Type.IsIdentifier() || !(reader.Peek() is Token t && t.Type.IsIdentifier()))
+            if (!IsVarDecl(reader))
                 return false;
 
             Token varType = reader.Advance();
@@ -136,7 +184,12 @@ namespace Ripple.Parsing
             return true;
         }
 
-        private static bool TryParseBlock(ref TokenReader reader, ref List<ParserError> errors, out Statement statement)
+        private static bool IsVarDecl(TokenReader reader)
+        {
+            return reader.Current().IsType(TokenType.Identifier) && reader.Peek() is Token t && t.IsType(TokenType.Identifier);
+        }
+
+        private static bool TryParseBlock(ref TokenReader reader, ref List<ParserError> errors, out BlockStmt statement)
         {
             if(reader.Match(TokenType.OpenBrace))
             {
@@ -286,6 +339,17 @@ namespace Ripple.Parsing
                 return reader.Previous();
 
             throw new ParserExeption(reader.Current(), errorMessage);
+        }
+
+        private static void SyncronizeTo(this TokenReader reader, Func<TokenReader, bool> predicate)
+        {
+            while (true)
+            {
+                if (reader.IsAtEnd() || predicate(reader))
+                    break;
+
+                reader.Advance();
+            }
         }
 
         private static void SyncronizeTo(this TokenReader reader, params TokenType[] types)

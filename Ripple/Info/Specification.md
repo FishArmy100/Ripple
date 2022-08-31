@@ -907,7 +907,69 @@ Math.Add(2, 3);
 
 ---
 ## Templates:
-*Not implemented yet*
+### First Class Types:
+Before getting into templates, it is imporntant to note that types in Ripple are first class. ie, you can assign them to a veriable, just like any other value.
+```cpp
+type MyInt = u64; // MyInt is an alias for u64
+func Add(MyInt a, MyInt b) -> MyInt { return a + b; }
+```
+
+### Basic Type Arguments:
+Using template arguments, you may pass a type as an argument to either a function, or a class.
+
+```cpp
+class Ref<T>
+{
+    public Ref(T& val) : Value(val) {}
+    public T& Value;
+}
+
+func Add<T>(const T& a, const T& b) -> T
+{
+    return a + b;
+}
+
+int value = 5;
+Ref<int> ref = { value };
+ref.Value = 6;
+
+Add<float>(4.5, 5.6);
+Add(4.2, 8.0); // template arguments can be infered by the arguments to the function
+```
+
+### Value Template Arugments
+Any value or construct that can be evaluated at compile time, can be passed in as a template argument. This includes basically everything, exept for pointers.
+
+```cpp
+class Data
+{
+    public int Count;
+    public float Value;
+
+    public comptime Data(int count, float value) : Count(count), Data(data) {} // constructor evaluated at compile time
+}
+
+func PrintData<Data d>() -> void
+{
+    Console.PrintLine(d.Count);
+    Console.PrintLine(d.Value);
+}
+
+PrintData<Data(4, 5.6)>();
+
+// alternativly:
+comptime Data d = Data(5, 6.7);
+PrintData<d>();
+```
+### Static And Templates
+
+### Concepts:
+
+### Template Specialization:
+
+### Variadic Templates:
+
+### Templates as Template Arguments:
 
 ---
 ## Compile Time Evaluation:
