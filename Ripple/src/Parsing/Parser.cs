@@ -12,20 +12,31 @@ namespace Ripple.Parsing
 {
     static class Parser
     {
-        public static Result<List<Statement>, List<ParserError>> Parse(List<Token> tokens)
+        public static Result<FileStmt, List<ParserError>> Parse(List<Token> tokens)
         {
             TokenReader reader = new TokenReader(tokens);
             List<ParserError> errors = new List<ParserError>();
-            List<Statement> statements = new List<Statement>();
 
-            while(!reader.IsAtEnd() && reader.Current().Type != TokenType.EOF)
+            FileStmt file = ParseFile(ref reader, ref errors);
+
+            if (errors.Count > 0)
+                return new Result<FileStmt, List<ParserError>>.Fail(errors);
+
+            return new Result<FileStmt, List<ParserError>>.Ok(file);
+        }
+
+        private static FileStmt ParseFile(ref TokenReader reader, ref List<ParserError> errors)
+        {
+            List<Statement> declarations = new List<Statement>();
+
+            while (!reader.IsAtEnd() && reader.Current().Type != TokenType.EOF)
             {
                 try
                 {
                     Statement statement = ParseDeclaration(ref reader, ref errors);
-                    statements.Add(statement);
+                    declarations.Add(statement);
                 }
-                catch(ParserExeption e)
+                catch (ParserExeption e)
                 {
                     errors.Add(new ParserError(e.Message, e.Tok));
                     reader.SyncronizeTo(reader =>
@@ -35,10 +46,8 @@ namespace Ripple.Parsing
                 }
             }
 
-            if (errors.Count > 0)
-                return new Result<List<Statement>, List<ParserError>>.Fail(errors);
-
-            return new Result<List<Statement>, List<ParserError>>.Ok(statements);
+            Token eof = reader.Consume(TokenType.EOF, "Expected end of file.");
+            return new FileStmt(declarations, eof);
         }
 
         private static Statement ParseDeclaration(ref TokenReader reader, ref List<ParserError> errors)
@@ -335,6 +344,9 @@ namespace Ripple.Parsing
 
         private static Token Consume(this TokenReader reader, TokenType tokenType, string errorMessage)
         {
+            if(reader.IsAtEnd())
+                throw new ParserExeption(reader.Last(), errorMessage);
+
             if (reader.Match(tokenType))
                 return reader.Previous();
 

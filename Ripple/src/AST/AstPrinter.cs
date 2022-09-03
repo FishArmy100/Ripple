@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.AST
 {
-    class AstPrinter : IExpressionVisitor, IStatementVisitor
+    class AstPrinter : IAstVisitor
     {
         private int m_Index = 0;
         private readonly string m_Seperator;
@@ -153,7 +153,11 @@ namespace Ripple.AST
 
         public void VisitFileStmt(FileStmt fileStmt)
         {
-            throw new NotImplementedException();
+            Print("File:");
+            TabRight();
+            foreach (Statement statement in fileStmt.Statements)
+                statement.Accept(this);
+            TabLeft();
         }
 
         public void VisitBinary(Binary binary)

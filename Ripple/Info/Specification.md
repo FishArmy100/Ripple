@@ -16,7 +16,7 @@ Your first introduction to any programming language, the classic Hello World exa
 ```cpp
 using module Core;
 
-func Main(const char** vargs) -> void
+func Main(usize argc, const char** vargs) -> void
 {
     // same as c++'s std::cout << "Hello World!" << "\n";
     Console.PrintLine("Hello World!");
@@ -52,6 +52,11 @@ module Core
     public concept Copyable // concepts
     {
         public This(const This&);
+    }
+
+    public concept Destructable
+    {
+        public ~This();
     }
 
     public class Scoped<T> // templates
@@ -265,7 +270,7 @@ u16 num16 = num; // this is perfectly fine
 Any type can be implicitly converted, or coerced into the same catagory of type that is larger. So, ints to ints, floats to floats, and unsigned ints to unsigned ints.
 
 
-**Volitle:**
+**Volitle: WILL BE CHANGED**
 To convert the value of a type byte by byte, you can use the `reinterpret_cast` built in function, witch cannot be overloaded.
 ```cpp
 int value = 5;
@@ -902,7 +907,13 @@ Math.Add(2, 3);
 
 ---
 ## Enums:
-*Not implemented yet*
+Ripple enums are basically a hybrid between Rust enums, and C++ enums.
+
+### Basic Enums
+
+### Tagged Unions
+
+### Enum Classes
 
 
 ---
@@ -987,3 +998,7 @@ func GetValue() -> Option<int> { ... }
 
 if(var value = GetValue()) { ... } // the Option type overides the as operator for bools, called if the option has a value
 ```
+
+### External Libraries: (ie: c, c++, c#, etc)
+
+### Patturn Matching

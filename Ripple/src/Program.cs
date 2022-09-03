@@ -59,7 +59,7 @@ namespace Ripple
 
             var result = Parser.Parse(toks);
 
-            if(result is Utils.Result<List<Statement>, List<ParserError>>.Fail f)
+            if(result is Utils.Result<FileStmt, List<ParserError>>.Fail f)
             {
                 Console.WriteLine("Parsing Errors:");
                 foreach (var error in f.Error)
@@ -68,11 +68,10 @@ namespace Ripple
                 hasError = true;
             }
 
-            if(!hasError && result is Utils.Result<List<Statement>, List<ParserError>>.Ok ok)
+            if(!hasError && result is Utils.Result<FileStmt, List<ParserError>>.Ok ok)
             {
                 AstPrinter printer = new AstPrinter("  ");
-                foreach(Statement statement in ok.Data)
-                    printer.PrintAst(statement);
+                printer.PrintAst(ok.Data);
             }
         }
     }
