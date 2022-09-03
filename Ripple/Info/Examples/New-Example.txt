@@ -1,0 +1,40 @@
+﻿using Core.Concepts.Destructable;
+
+module Core
+{
+	public T* New<T, TArgs...>(TArgs... args)
+	{
+		T* ptr = alloc<T>(1);
+		ptr := T(args...);
+		return ptr;
+	}
+
+	public void Delete<T>(T* ptr)
+	{
+		constexpr if(T is Destructable)
+		{
+			if(ptr != nullptr)
+				ptr->~T();
+		}
+
+		dealloc(ptr);
+	}
+}
+
+// Usage
+
+class Vec2
+{
+	public Vec2(float x, float y) : X(x), Y(y) {}
+	public Vec2() = default;
+
+	public float X = 0;
+	public float Y = 0;
+}
+
+int Main()
+{
+	Vec2* ptr = Core.New<Vec2>(5.0f, 3.0f);
+	Core.Console.PrintLine(ptr->X);
+	Core.Delete(ptr);
+}

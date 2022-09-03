@@ -1,0 +1,40 @@
+﻿
+// C# code:
+private static Result<Statement, ParserError> ParseExprStmt(ref TokenReader reader)
+{
+    var result = ParseExpression(ref reader);
+    if (result is Result<Expression, ParserError>.Fail fail)
+    {
+        return Result<Statement, ParserError>.Bad(fail.Error);
+    }
+    else if(reader.Current().Type != TokenType.SemiColin)
+    {
+        var error = new ParserError("Expected ';' after expression", reader.Current());
+        return Result<Statement, ParserError>.Bad(error);
+    }
+
+    Token semiColon = reader.Advance();
+    Expression expr = (result as Result<Expression, ParserError>.Ok).Data;
+    return Result<Statement, ParserError>.Good(new ExprStmt(expr, semiColon));
+}
+
+// Ripple
+
+class ParserResult = Result<Statement, ParserError>;
+
+private static ParserResult(TokenReader& reader)
+{
+    var result = ParseExpression(reader);
+    if(result is ParserError error)
+    {
+        return { error };
+    }
+    else if(reader.Current().Type != TokenType.SemiColin)
+    {
+        ParserError error = { "Expected ';' after expression", reader.Current() };
+        return { error };
+    }
+
+    Token semiColon = reader.Advance();
+    return { ExprStmt(result as Expression, simiColon) };
+}

@@ -1,0 +1,252 @@
+﻿Requirements: version 0.1.0 language revised revised revised revised
+	Type System:
+		Basic types
+			Int: 2
+			Float: 5.67
+			Bool: true, false
+			Char: ‘a’, ‘#’, ‘@’
+	Managed pointers:
+		Are heap allocated and garbage collected
+		Defined as: TypeName + “^”
+		Allocated using the “new” keyword
+			TypeName^ var = new TypeName();
+		Can be dereferenced using the “^” operator
+			TypeName& ref = ^var;
+		Can get complete dereferenced value by using the * operator:
+			TypeName val = *var;
+		Can access a member using the “->” operator
+			var->SomeMemberName();
+		Store any pointer value in a void^
+		Has a Copy() method that will copy its value to another pointer
+	References:
+		Reference either a object on the stack, or an object on the heap
+		Adding a ‘&’ to the beginning of a variable with return a reference to it
+			int& ref = &someValue;
+		Can dereference a reference by using the “*” operator:
+			int value = *someValue;
+		Can have references of references:
+			int&& refRef = &ref;
+		Can access members by using the “->” operator
+			someReference->Member();
+		There are some restrictions:
+			Cannot return a reference to an object where a variable was declared
+			Cannot have a reference to an object as a class member
+			Cannot have a reference to an object that was created on a higher part of the stack: would be deallocated
+	Const types:
+		When a const variable is defined, cannot be mutated:
+			const int value = 5; 
+			value = 6; // error
+		Can copy the value of a const variable to a non const variable
+			int val = value;
+		must get a const reference to a const variable
+			const int& ref = &value;
+			int& ref = &value; // error
+		Can copy the value of a const reference into a value
+			Const int val = *ref
+		When dereferencing a const pointer, must return a const reference
+			Const int& cref = ^somePtr;
+		Can have a variable where the data is mutable, but the pointer/reference is not
+			Int const^ ptr = new int(data);
+			Int const& ref = ^ptr;
+			*ref = 5; // fine
+			ref = &someData // not fine
+	Arrays:
+		Are heap allocated and garbage collected
+		Very similar to managed pointers, but can point to multiple objects contiguously stored in memory
+		Declared as: TypeName + “[]”
+		Allocated using the “new” keyword
+			Int[] array = new int[10](0) {1, 2, 3, 4, 5};
+				Number in brackets can be removed if has initializer array
+				Number in parentheses is the default value of the array: can be removed if type has a default
+				Initializer array is optional
+		Has a .Length() method: returns the number of items in the array
+		Has a .Copy() method, returns a new array with a copy of all the values in it
+		Indexed: 
+			Is bounds checked
+			Returns a value
+			int val = array[2];
+			Can get reference:
+				int& val = &array[2];
+		Slicing:
+			Is bounds checked
+			Returns a pointer to the part of the array that is referenced
+			Int[] slice = array[2..3];
+		Getting a reference from a const array gives a const reference
+			Const int& ref = &constArr[0];
+	Variables:
+		Expressed as: 
+			TypeName variableName; -> defines variable
+			TypeName variableName = value; -> defines variable with initial value
+		If variable already defined:
+			variableName = value;
+			Can have const in definition:
+			const TypeName variableName = ConstantValue
+			Cannot be assigned to afterwards
+	Expression:
+		Produces value
+		Arithmetic:
+			Infix operators:
+				a + b: add
+				a - b: subtract
+				a * b: multiply
+				a / b: divide
+				a % b: mod
+				Can be used in assination
+			Prefix operators
+				-a: negate
+				++a: add 1 to a
+				–a:subtract 1 from a 
+			Postfix:
+				a++: add 1 to a
+				a–:subtract 1 from a 
+		Comparison/equality:
+			a < b: less than
+			a <= b: less than or equal to
+			a > b: greater than
+			a >= b: greater than or equal to
+			a == b: equals
+			a != b: does not equal
+		Logical operators:
+			!a: opposite
+			a && b: and
+			a || b:  or
+		Bitwise operators:
+			~a: opposite
+			a & b: and
+			a | b: or
+			a ^ b: xor
+			a << b: shift bits in a number equal to b to the left
+			a >> b: shift bits in a number equal to b to the right
+		Precedence and grouping:
+			All same as c/c++/c#
+		Binary operators slightly changed
+		Can use () to group
+	Statement:
+		Produces effect
+		Followed by semicolon, separates statements
+		Can pack series of statements in a block between {}
+			Effects scoping for variables
+	Declarations:
+		Can be out of order
+	Control flow:
+		if (boolean condition) { do stuff here }
+		if (boolean condition) {do stuff here} else { do other stuff here }
+		while (boolean condition) { do stuff here }
+		for (declaration statement; bool condition; increment statement) { do stuff here }
+		Keywords:
+			break: breaks out of a loop
+		continue: continues to another iteration of a loop
+	Functions:
+		Declarations:
+			ReturnType FuncName(ParamType1 param1, ParamType2 param2…)
+			When inside of a class or trait, can include a “const” attribute at end
+				Shows that the function will not modify any members
+				Referencing “this” in const functions returns a reference
+		Inside a class, can use the “this” keyword
+			Is a reference to the current object
+			Value can be assigned
+			Reference cannot be assigned
+		Function pointers:
+			Declaration: ReturnType(ParamType1…) FuncPtrName
+			Can call using: FuncPtrName(params…);
+	Classes:
+		Are containers for functions and variables
+		All members can be described as “public”, “protected”, or “private”
+			public members can be accessed by all classes
+			protected members can be accessed by inherited classes
+			private members can be accessed by only the class
+		Member variables can be given the static attribute
+			can be accessed by ClassName.MemberName
+		Declaration: class ClassName { /* members */ }
+		Constructors
+			Declaration: ClassName(ParamType1 param1, ParamType2 param2) {/* body */}
+			Called to initialize an instance of a class: ClassName(params);
+			Can set const member variables
+			Basic constructor automatically added if there is no other defined constructor that is not a copy constructor
+		Copy Constructors:
+			Declared same as normal constructor, but has ClassName& or const ClassName& as the only parameter type
+			called when you copy an instance of an object:
+				ClassName data = someVeriable;
+			Automatically added
+		Member Variables:
+			Are simply just variables, if not assigned in the constructor, will be given as default values.
+			cannot be set from const instances of the class
+			Cannot have a value type variable of self as member, or a recursive set of value types: A -> B -> C -> A
+		Member Functions:
+			if marked as “virtual”, can be overridden in derived classes
+			if marked as “const” on the end, cannot modify any member variables, but can be called from const instances
+		Inheritance:
+			Defined by: class ClassName : BaseClassName {/* body */}
+			Can inherit from only one other class
+			Cannot have recursive inheritance:
+				A inherits B inherits A
+			an inherited class can access any protected members of its base
+			base keyword in class is the inherited base instance
+				If base used when not inheriting, panics
+				Access the base constructor using “base(parameters)”
+				Access base members using base->MemberName
+			Override virtual methods using override as opposed to virtual
+		Member classes and traits:
+			can exist
+	Traits:
+		Declaration: trait TraitName { /* trait members */ }
+		Member Functions:
+			member functions of a trait follow similar rules as normal member functions
+			Are public by default, don't have any attributes
+			can be marked const
+				can be called from const instances
+			Have an optional body
+			If no body, ends with a semicolon
+			Can have default implementations of traits by defining a body for the function
+		Implementing Traits:
+			You can implement a trait outside a class
+				Implementation has access to public members:
+				Syntax:
+					Impl TraitName for ClassName {/* members */}
+			Can implement traits for pointer types, array types, and reference types
+			Default Trait Implementations:
+				Inside of classes, can have default traits that are implemented
+				Added to class definition: class ClassName : impl TraitName,...
+				Can have multiple default trait implementations
+				Trait implementations in class are similar to member functions
+					Always declared public
+					Can be virtual
+					Must be same declaration as in trait
+		Traits cannot be constructed, can only cast to a trait reference or pointer
+	Hierarchical Casting:
+		Can cast pointers and references of types up/down the hierarchy
+			if cast down the hierarchy, will have an error if not cast correctly
+		BaseClass^ bc = subClassPtrInstance; // implicit
+		SubClass^ sb = (SubClass^)baseClassPtrInstance // explicit
+	Trait Casting:
+		Same as Hierarchical casting, but with traits
+	Special operators/statements:
+		Panic:
+			Called: panic(“message here”);
+			Stops execution of a program, and displays the error message
+		Reinterpret_cast:
+			reinterprets the data from a pointer to a reference of another pointer
+			Versions: output must be same size as input in bytes
+				TypeName^ type = reinterpret_cast<TypeName>(data);
+				TypeName[] array = reinterpet_cast<TypeName>(data, arraySize);
+		Size_of:
+			If called on a type, returns the size of the type in bytes:
+				size_of<int>(); // returns 4
+			If called on a reference, returns the size of the referenced type
+				int data = 15;
+				size_of(data); // returns 4
+			If called on a managed pointer, returns the size of the allocated space
+				int^ intptr = new int(0);
+				size_of(intprt); // returns 4
+			If called on an array, returns the size of the allocated space
+				float[] floats = new float[5];
+				size_of(floats); // returns 20
+		Default:
+			returns the default value of a given type, cannot take a default of a reference
+				default<int>(); // returns 0
+				default<char&>(); // compiler error
+				default<ClassName>() // if has default constructor, will return that, if not, gives a compiler error
+	Standard library:
+		Print: 
+			prints a message to the console
+			print(“Hello World!”);

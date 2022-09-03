@@ -1,0 +1,29 @@
+﻿
+// move by default for all of these
+
+import Core.ArrayUtils;
+
+void HasValue<T>(const T?& some) { return some.HasValue; }
+
+struct List<T>
+{
+	T?[]? Values = null;
+}
+
+impl<T> void PushBack(T val) for List<T>
+{
+	Values = new T?[] { Values.Where(&HasValue), val };
+}
+
+impl<T> void Reserve(usize size) for List<T>
+{
+	if(Values.Length < size)
+		panic("Reserved size must be bigger than lists orrigonal size");
+
+	Values = new T?[size] { Values.Where(&HasValue) };
+}
+
+impl<T> void Remove(usize index) for List<T>
+{
+	if()
+}

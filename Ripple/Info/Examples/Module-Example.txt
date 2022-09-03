@@ -1,0 +1,45 @@
+﻿
+// Example Source File:
+module Math
+{
+	public class Vec3
+	{
+		public Vec3(float x, float y, float z) : X(x), Y(y), Z(z) {}
+
+		public float X = 0;
+		public float Y = 0;
+		public float Z = 0;
+	}
+
+	module Utils
+	{
+		public Vec3 operator+(this Vec3 self, const Vec3& other) const
+		{
+			return Vec3(this.x + other.x, this.y + other.y, this.z + other.z);
+		}
+	}
+}
+
+// Other Source File:
+module Math.Utils
+{
+	public Vec3 operator-(this Vec3 self, const Vec3& other) const for Vec3
+	{
+		return Vec3(this.x - other.x, this.y - other.y, this.z - other.z);
+	}
+}
+
+
+// Main Source file:
+using module Math;
+using module Math.Utils; // need this for + operator
+
+using PurpleSpaceMonkey = Math;
+
+module Project
+{
+	var v1 = Vec3(1, 2, 3) + Vec3(4, 5, 6);
+	PurpleSpaceMonkey.Vec3 v2 = Vec3(1, 2, 3) - Vec3(4, 5, 6);
+
+	
+}

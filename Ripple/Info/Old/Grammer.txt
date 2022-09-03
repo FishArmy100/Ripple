@@ -1,0 +1,134 @@
+﻿
+Grammer Key: Based on https://craftinginterpreters.com/representing-code.html
+	Rule: Terminal -> "Non Terminal" "In Series";
+	Series of Productions seperated by: |
+	Can be grouped using: ()
+	Thing reapeted 0 or more times prefix: *
+	Thing reapeated 1 or more times prefix: +
+	Thing reapeated 0 or 1 times prefix: ?
+	Between <> = complex rule
+	Comments: // example comments
+
+
+
+
+Basic Rules: created in lexer
+	DIGIT -> "0" ... "9";
+	charactor -> <any charactor exept ' and ">
+	CHAR -> "'" charactor "'";
+	STRING -> """ charactor* """;
+	INT -> DIGIT+;
+	FLOAT -> DIGIT+ "." DIGIT+;
+	ALPHA -> "a" ... "z" | "A" ... "Z" | "_";
+	IDENTIFIER -> ALPHA (ALPHA | DIGIT)*;
+
+
+Utility Rules:
+	parameters		-> type IDENTIFIER ("," type IDENTIFIER)*;
+	arguments		-> expression ("," expression)*;
+	
+Type Rules:
+	typeName		-> "int" | "float" | "char" | "bool" | "void" | IDENTIFIER ("." IDENTIFIER);
+
+	basicType		-> (typeName | basicType) ("^" | "&" | "[]")?
+
+	pointerType		-> type "^"
+	referenceType	-> type "&"
+	arrayType		-> type "[" "]";
+	funRefType		-> type "(" (type ("," type)*)? ")^";
+
+	type			-> typeName | pointerType | referenceType | arrayType | funcRefType;
+
+Expression Rules:
+	primary			-> INT 
+					 | FLOAT 
+					 | CHAR 
+					 | STRING 
+					 | call 
+					 | IDENTIFIER 
+					 | "(" expression ")" 
+					 | "this" 
+					 | "base"
+					 | "new" type "(" arguments ")"
+					 | "new" type "[" expression "]" ("(" expression? ")")? ("{" arguments? "}")?
+					 | "size_of" ("(" expression ")" | "<" type ">" "()")
+					 | "reinterpret_cast" "<" type ">" "(" expression ("," expression)? ")";
+
+
+	call			-> primary ("(" arguments? ")" | "." IDIENTIFIER)* | "[" arguments "]";
+
+	unary			-> ("-" | "!" | "~" | "(" type ")" ) unary | primary;
+
+	factor			-> unary (("*" | "/" | "%") unary)*; // Example: 5 * -3 / 2;
+	term			-> factor (("+" | "-") factor)* // Example: 5 + (3 * 2);
+	bitshift		-> term (("<<" | ">>") term)*
+	bit_and			-> bitshift ("&" bitshift)*;
+	bit_xor			-> bit_and ("^" bit_and)*;
+	bit_or			-> bit_xor ("|" bit_xor)*;
+	comparison		-> bit_or ((">" | ">=" | "<" | "<=") bit_or)*;
+	equality		-> comparison (("==" | "!=") comparison)*;
+	logic_and		-> equality ("&&" equality)*;
+	logic_or		-> logic_and ("||" logic_and)*;
+	assignment		-> IDENTIFIER "=" logic_or;
+
+	expression		-> assignment;
+
+Statement Rules:
+	exprStmt		-> expression ";";
+	ifStmt			-> "if" "(" expression ")" instructionStmt
+					( "else" instructionStmt )?;
+	whileStmt		-> "while (" expression ")" 
+							instructionStmt;
+
+	forStmt			-> "for (" (varDecl | exprStmt | ";") expression? ";" expression? ")"
+							instructionStmt;
+
+	continueStmt	-> "continue;";
+	breakStmt		-> "break;";
+	returnStmt		-> "return" expression? ";";
+
+
+	instructionStmt	-> declaration 
+					 | exprStmt 
+					 | ifStmt 
+					 | block 
+					 | whileStmt
+					 | forStmt
+					 | continueStmt 
+					 | breakStmt
+					 | returnStmt;
+
+	block			->  "{" instructionStmt* "}";
+
+Declaration Rules:
+
+	varDecl			-> type IDENTIFIER ( "=" expression)? ";";
+	
+	funcDecl		-> type IDENTIFIER "(" parameters? ")" "const"? block;
+
+	constructor		-> IDENTIFIER "(" parameters? ")" block;
+	memberAttrib	-> "public" | "protected" | "private" | "virtual" | "override" | "static";
+
+	memberDecl		-> constructor | declaration;
+
+	classMember		-> memberAttrib* memberDecl;
+
+	classDecl		-> "class" IDENTIFIER (":" IDENTIFIER? ("impl" IDENTIFIER ("," IDENTIFIER)*)? )?
+					   "{"
+							classMember*
+					   "}";
+
+	traitDecl		-> "trait" IDENTIFIER (":" IDENTIFIER ("," IDENTIFIER)*))?
+					   "{"
+							(type IDENTIFIER "(" parameters? ")" "const"? (body | ";"))*
+					   "}";
+
+	traitImplDecl	-> "impl" IDENTIFIER "for" IDENTIFIER
+					   "{"
+							funcDecl*
+					   "}";
+
+	declaration		-> varDecl | funcDecl | classDecl | traitImplDecl | traitDecl
+
+	program			-> declaration*  EOF; // final ast for a file
+

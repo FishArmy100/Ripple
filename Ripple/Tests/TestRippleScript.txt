@@ -1,0 +1,9 @@
+﻿
+func Test(int count) -> void
+{
+	for(int i, j, b = 0; i < count; i = i + 1)
+	{
+		if(i % 2 == 0)
+			print(i + 54);
+	}
+}

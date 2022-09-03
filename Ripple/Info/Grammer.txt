@@ -1,0 +1,47 @@
+﻿Using the Maple Syntax
+
+
+grammer Ripple
+{
+	// Utilities
+	TypeName = IDENTIFIER;
+	Parameters = "(" (TypeName Identifier ("," TypeName Identifier))* ")"
+	Arguments = "(" (Expression ("," Expression))? ")"
+
+	IntLiteral = DIGIT+;
+	FloatLiteral = DIGIT+ "." DIGIT+;
+
+	Grouping = "(" Expression ")";
+
+	Primary = IntLiteral | FloatLiteral | Grouping | "true" | "false" | IDENTIFIER
+
+	Call = Primary ("(" Expression* ")")?;
+
+	Unary = ("!" | "-") Unary | Call;
+
+	Factor = Unary (("*" | "/" | "%") Unary)*
+	Term = Factor (("+" | "-") Factor)*
+	Comparison = Factor ((">=" | ">" | "<" | "<=") Factor)*
+	Equality = Comparison (("!=" | "==") Comparison)*;
+
+	LogicalAnd = Equality ("&&" Equality)*;
+	LogicalOr = LogicalAnd ("||" LogicalOr)*;
+
+	Assignment = IDENTIFIER "=" Assignment | LogicalOr;
+
+	Expression = Assignment;
+
+	ExprStmt = Expression ";";
+	Block = "{" Statement* "}";
+	IfStmt = "if" "(" Expression ")" Statement;
+	ForStmt = "for" "(" VarDecl? ";" Expression? ";" Expression? ";" ")" Statement;
+	ReturnStmt = "return" Expression? ";";
+
+	VarDecl = TypeName IDENTIFIER ("," IDENTIFIER)* "=" Expression ";";
+	FuncDecl = "func" IDENTIFIER Parameters "->" TypeName Block;
+
+	Statement = ExprStmt | Block | IfStmt | ForStmt | VarDecl | ReturnStmt;
+	Declaration = VarDecl | FuncDecl;
+
+	main File = Declaration* EOF;
+}
