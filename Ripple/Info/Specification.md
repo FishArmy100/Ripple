@@ -907,18 +907,56 @@ Math.Add(2, 3);
 
 ---
 ## Enums:
-Ripple enums are basically a hybrid between Rust enums, and C++ enums.
+Ripple enums are basically a hybrid between Rust enums, and C++ enums. The most basic form of enums, is very simmilar to what you would find in c++
+```cpp
+enum DayOfWeek : u8
+{
+    Sunday,
+    Monday,
+    Tusday,
+    Wednesday,
+    Thursday,
+    Friday,
+    Saturday
+}
 
-### Basic Enums
+DayOfWeek day = DayOfWeek.Monday;
+if(day == DayOfWeek.Monday) {...}
+```
+Any type can be used as the value type, even values like strings that cannot normally be evaluated at compile time. If the value can be evaluated at compile time though, it will by default. To enforce it, you can use `comptime TypeName`, to enforce compile time optomization and evaluation.
 
-### Tagged Unions
+### Tagged Unions:
+Ripple enums can work as Tagged Unions, simmilar to `std::variant` in c++, and rust enums:
 
-### Enum Classes
+```cpp
+enum WindowEvent
+{
+    Opened,
+    Closed,
+    Resized : Vec2Int,
+    MouseClick : MouseButton,
+    KeyPress : Key
+}
+
+WindowEvent e = WindowEvent.Resized({100, 300});
+if(e is WindowEvent.Resized resizedEvent)
+{
+    print(resizedEvent.x);
+    print(resizedEvent.y);
+}
+```
+
+### Using Statement With Enums:
+If you dont want to type as much, you can use a `using` statement to not have to type the enum name for each of the values:
+```cpp
+using enum WindowEvent;
+DayOfWeek day = Monday;
+```
 
 
 ---
 ## Templates:
-### First Class Types:
+### First Class Types **Volatile***:
 Before getting into templates, it is imporntant to note that types in Ripple are first class. ie, you can assign them to a veriable, just like any other value.
 ```cpp
 type MyInt = u64; // MyInt is an alias for u64

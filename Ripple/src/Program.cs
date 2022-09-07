@@ -6,6 +6,7 @@ using System.IO;
 using Ripple.Lexing;
 using Ripple.AST;
 using Ripple.Parsing;
+using Ripple.Validation;
 
 namespace Ripple
 {
@@ -68,10 +69,23 @@ namespace Ripple
                 hasError = true;
             }
 
-            if(!hasError && result is Utils.Result<FileStmt, List<ParserError>>.Ok ok)
+            if(!hasError)
             {
-                AstPrinter printer = new AstPrinter("  ");
-                printer.PrintAst(ok.Data);
+                var ok = result as Utils.Result<FileStmt, List<ParserError>>.Ok;
+                var validationErrors = Validator.ValidateAst(ok.Data);
+
+                if (validationErrors.Count > 0)
+                {
+                    hasError = true;
+                    foreach (var error in validationErrors)
+                        Console.WriteLine(error.Message + ": [" + error.ErrorToken.Value.Line + ", " + error.ErrorToken.Value.Column + "]");
+                }
+
+                if (!hasError)
+                {
+                    AstPrinter printer = new AstPrinter("  ");
+                    printer.PrintAst(ok.Data);
+                }
             }
         }
     }
