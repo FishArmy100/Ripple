@@ -78,7 +78,7 @@ namespace Ripple
                 {
                     hasError = true;
                     foreach (var error in validationErrors)
-                        Console.WriteLine(error.Message + ": [" + error.ErrorToken.Value.Line + ", " + error.ErrorToken.Value.Column + "]");
+                        Console.WriteLine(error.Message + ": [" + error.ErrorToken.Line + ", " + error.ErrorToken.Column + "]");
                 }
 
                 if (!hasError)

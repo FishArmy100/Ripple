@@ -39,6 +39,10 @@ namespace ASTGeneration
 
             builder.AppendLine();
             GenAcceptVisitorMethod(nodeData, builder);
+            builder.AppendLine();
+
+            GenGenericAcceptVisitorMethod(nodeData, builder);
+            builder.AppendLine();
 
             builder.AppendLine("\t}");
             EndCodeFile(builder);
@@ -54,6 +58,7 @@ namespace ASTGeneration
             builder.AppendLine("\tabstract class " + name);
             builder.AppendLine("\t{");
             builder.AppendLine("\t\tpublic abstract void " + Keywords.AcceptVisitorName + "(" + visitorName + " " + visitorName.FirstCharToLowerCase() + ");");
+            builder.AppendLine("\t\tpublic abstract T " + Keywords.AcceptVisitorName + "<T>(" + visitorName + "<T> " + visitorName.FirstCharToLowerCase() + ");");
             builder.AppendLine("\t}");
 
             EndCodeFile(builder);
@@ -71,6 +76,16 @@ namespace ASTGeneration
 
             foreach (string s in nodeNames)
                 builder.AppendLine("\t\tpublic abstract void Visit" + s + "(" + s + " " + s.FirstCharToLowerCase() + ");");
+
+            builder.AppendLine("\t}");
+
+            builder.AppendLine();
+
+            builder.AppendLine("\tinterface " + name + "<T>");
+            builder.AppendLine("\t{");
+
+            foreach (string s in nodeNames)
+                builder.AppendLine("\t\tpublic abstract T Visit" + s + "(" + s + " " + s.FirstCharToLowerCase() + ");");
 
             builder.AppendLine("\t}");
 
@@ -101,6 +116,14 @@ namespace ASTGeneration
             builder.AppendLine("\t\tpublic override void " + Keywords.AcceptVisitorName + "(" + nodeData.VisitorName + " visitor)");
             builder.AppendLine("\t\t{");
             builder.AppendLine("\t\t\tvisitor." + nodeData.VisitorMethod + "(this);");
+            builder.AppendLine("\t\t}");
+        }
+
+        private static void GenGenericAcceptVisitorMethod(NodeData nodeData, StringBuilder builder)
+        {
+            builder.AppendLine("\t\tpublic override T " + Keywords.AcceptVisitorName + "<T>(" + nodeData.VisitorName + "<T> visitor)");
+            builder.AppendLine("\t\t{");
+            builder.AppendLine("\t\t\treturn visitor." + nodeData.VisitorMethod + "(this);");
             builder.AppendLine("\t\t}");
         }
 

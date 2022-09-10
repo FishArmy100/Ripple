@@ -24,5 +24,11 @@ namespace Ripple.AST
 		{
 			visitor.VisitBinary(this);
 		}
+
+		public override T Accept<T>(IExpressionVisitor<T> visitor)
+		{
+			return visitor.VisitBinary(this);
+		}
+
 	}
 }

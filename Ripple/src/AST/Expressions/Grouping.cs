@@ -24,5 +24,11 @@ namespace Ripple.AST
 		{
 			visitor.VisitGrouping(this);
 		}
+
+		public override T Accept<T>(IExpressionVisitor<T> visitor)
+		{
+			return visitor.VisitGrouping(this);
+		}
+
 	}
 }

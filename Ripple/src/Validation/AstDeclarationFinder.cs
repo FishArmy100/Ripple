@@ -10,7 +10,7 @@ namespace Ripple.Validation
 {
     static class AstDeclarationFinder
     {
-        public static void AppendData(FileStmt fileStmt, ref AstDeclarationData declarationData)
+        public static void AppendDeclarations(FileStmt fileStmt, ref AstDeclarationData declarationData)
         {
             DeclarationFinderWalker walker = new DeclarationFinderWalker();
             fileStmt.Accept(walker);

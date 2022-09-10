@@ -127,9 +127,12 @@ namespace Ripple.AST
         public void VisitReturnStmt(ReturnStmt returnStmt)
         {
             Print("Return Statement:");
-            TabLeft();
-            returnStmt.Expr.Accept(this);
-            TabRight();
+            if(returnStmt.Expr != null)
+            {
+                TabRight();
+                returnStmt.Expr.Accept(this);
+                TabLeft();
+            }
         }
 
         public void VisitParameters(Parameters parameters)
@@ -171,7 +174,7 @@ namespace Ripple.AST
 
         public void VisitCall(Call call)
         {
-            Print("Call");
+            Print("Call: " + call.Identifier.Text);
             TabRight();
 
             Print("Arguments:");
@@ -179,8 +182,6 @@ namespace Ripple.AST
             foreach (Expression expr in call.Args)
                 expr.Accept(this);
             TabLeft();
-
-            call.Expr.Accept(this);
             TabLeft();
         }
 

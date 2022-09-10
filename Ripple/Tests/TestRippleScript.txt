@@ -1,11 +1,22 @@
 ﻿
-func Test(int c) -> void {}
-
-func Test(int count) -> void
+func Test(int count) -> int // compiles fine
 {
 	for(int i, j, b = 0; i < count; i = i + 1)
 	{
 		if(i % 2 == 0)
 			print(i + 54);
 	}
+
+	return 5;
+}
+
+func Test(float x, floa y) -> int // filled with errors
+{
+	if(x == true)
+		return false;
+	if(x == 5)
+		return 16;
+	if(71) {}
+
+	return;
 }

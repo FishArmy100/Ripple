@@ -12,7 +12,8 @@ namespace Ripple.Validation
         public readonly TokenType OperatorType;
         public readonly string ReturnType;
 
-        public abstract bool IsSameOperator(OperatorData other);
+        public abstract bool IsOperator(OperatorData other);
+        public abstract bool IsOperator(TokenType type, List<string> args);
 
         protected OperatorData(TokenType operatorType, string returnType)
         {
@@ -22,24 +23,33 @@ namespace Ripple.Validation
 
         public class Binary : OperatorData
         {
-            public readonly string Left;
-            public readonly string Right;
+            public readonly string LeftOperand;
+            public readonly string RightOperand;
 
             public Binary(TokenType operatorType, string returnType, string left, string right) : 
                 base(operatorType, returnType)
             {
-                Left = left;
-                Right = right;
+                LeftOperand = left;
+                RightOperand = right;
             }
 
-            public override bool IsSameOperator(OperatorData other)
+            public override bool IsOperator(TokenType type, List<string> args)
             {
-                if(other is Binary binary)
+                if (args.Count != 2 || type != OperatorType)
+                    return false;
+
+                return args[0] == LeftOperand && args[1] == RightOperand;
+            }
+
+            public override bool IsOperator(OperatorData other)
+            {
+                if (other.OperatorType != OperatorType)
+                    return false;
+
+                if(other is Binary b)
                 {
-                    return this.OperatorType == binary.OperatorType &&
-                           this.ReturnType == binary.ReturnType &&
-                           this.Left == binary.Left &&
-                           this.Right == binary.Right;
+                    return RightOperand == b.RightOperand && 
+                           LeftOperand == b.LeftOperand;
                 }
 
                 return false;
@@ -56,13 +66,22 @@ namespace Ripple.Validation
                 OperandType = operandType;
             }
 
-            public override bool IsSameOperator(OperatorData other)
+            public override bool IsOperator(TokenType type, List<string> args)
             {
-                if (other is Unary unary)
+                if (args.Count != 1 || type != OperatorType)
+                    return false;
+
+                return args[0] == OperandType;
+            }
+
+            public override bool IsOperator(OperatorData other)
+            {
+                if (OperatorType != other.OperatorType)
+                    return false;
+
+                if(other is Unary u)
                 {
-                    return this.OperatorType == unary.OperatorType &&
-                           this.ReturnType == unary.ReturnType &&
-                           this.OperandType == unary.OperandType;
+                    return OperandType == u.OperandType;
                 }
 
                 return false;

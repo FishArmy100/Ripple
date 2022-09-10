@@ -7,20 +7,13 @@ using Ripple.Lexing;
 
 namespace Ripple.Validation
 {
-    struct ValidationError
+    class TypeCheckExeption : Exception
     {
-        public readonly string Message;
         public readonly Token ErrorToken;
 
-        public ValidationError(string message, Token errorToken)
+        public TypeCheckExeption(string message, Token errorToken) : base(message)
         {
-            Message = message;
             ErrorToken = errorToken;
-        }
-
-        public override string ToString()
-        {
-            return "Validation Error: " + Message;
         }
     }
 }

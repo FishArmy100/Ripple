@@ -17,5 +17,7 @@ namespace Ripple.Validation
             Name = name;
             Type = type;
         }
+
+        public string GetName() => Name.Text;
     }
 }

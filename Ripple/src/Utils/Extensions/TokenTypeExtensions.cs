@@ -18,5 +18,10 @@ namespace Ripple.Utils.Extensions
         {
             return type == TokenType.Identifier;
         }
+
+        public static bool IsType(this TokenType type, params TokenType[] types)
+        {
+            return types.Contains(type);
+        }
     }
 }

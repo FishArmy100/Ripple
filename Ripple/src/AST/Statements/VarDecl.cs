@@ -28,5 +28,11 @@ namespace Ripple.AST
 		{
 			visitor.VisitVarDecl(this);
 		}
+
+		public override T Accept<T>(IStatementVisitor<T> visitor)
+		{
+			return visitor.VisitVarDecl(this);
+		}
+
 	}
 }

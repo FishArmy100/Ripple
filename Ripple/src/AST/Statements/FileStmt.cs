@@ -22,5 +22,11 @@ namespace Ripple.AST
 		{
 			visitor.VisitFileStmt(this);
 		}
+
+		public override T Accept<T>(IStatementVisitor<T> visitor)
+		{
+			return visitor.VisitFileStmt(this);
+		}
+
 	}
 }

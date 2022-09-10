@@ -32,5 +32,11 @@ namespace Ripple.AST
 		{
 			visitor.VisitForStmt(this);
 		}
+
+		public override T Accept<T>(IStatementVisitor<T> visitor)
+		{
+			return visitor.VisitForStmt(this);
+		}
+
 	}
 }

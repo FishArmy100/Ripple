@@ -22,5 +22,11 @@ namespace Ripple.AST
 		{
 			visitor.VisitUnary(this);
 		}
+
+		public override T Accept<T>(IExpressionVisitor<T> visitor)
+		{
+			return visitor.VisitUnary(this);
+		}
+
 	}
 }

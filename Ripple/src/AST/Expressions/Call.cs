@@ -9,14 +9,14 @@ namespace Ripple.AST
 	class Call : Expression
 	{
 
-		public readonly Expression Expr;
+		public readonly Token Identifier;
 		public readonly Token OpenParen;
 		public readonly List<Expression> Args;
 		public readonly Token CloseParen;
 
-		public Call(Expression expr, Token openParen, List<Expression> args, Token closeParen)
+		public Call(Token identifier, Token openParen, List<Expression> args, Token closeParen)
 		{
-			this.Expr = expr;
+			this.Identifier = identifier;
 			this.OpenParen = openParen;
 			this.Args = args;
 			this.CloseParen = closeParen;
@@ -26,5 +26,11 @@ namespace Ripple.AST
 		{
 			visitor.VisitCall(this);
 		}
+
+		public override T Accept<T>(IExpressionVisitor<T> visitor)
+		{
+			return visitor.VisitCall(this);
+		}
+
 	}
 }

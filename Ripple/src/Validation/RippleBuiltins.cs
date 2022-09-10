@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
+using Ripple.Utils.Extensions;
 
 namespace Ripple.Validation
 {
@@ -27,7 +28,7 @@ namespace Ripple.Validation
                 TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan,
                 TokenType.LessThanEqual, TokenType.EqualEqual, TokenType.BangEqual, TokenType.Equal);
 
-            List<OperatorData> floatOperators = GenBinaries(RipplePrimitiveNames.Int32,
+            List<OperatorData> floatOperators = GenBinaries(RipplePrimitiveNames.Float32,
                 TokenType.Plus, TokenType.Minus, TokenType.Star, TokenType.Slash,
                 TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan,
                 TokenType.LessThanEqual, TokenType.EqualEqual, TokenType.BangEqual, TokenType.Equal);
@@ -84,6 +85,10 @@ namespace Ripple.Validation
 
         private static OperatorData GenBinary(TokenType operatorType, string typeName)
         {
+            if (operatorType.IsType(TokenType.EqualEqual, TokenType.GreaterThanEqual, TokenType.BangEqual, 
+                TokenType.LessThanEqual, TokenType.GreaterThan, TokenType.LessThan))
+                return new OperatorData.Binary(operatorType, RipplePrimitiveNames.Bool, typeName, typeName);
+
             return new OperatorData.Binary(operatorType, typeName, typeName, typeName);
         }
 

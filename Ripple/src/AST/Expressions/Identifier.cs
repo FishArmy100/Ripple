@@ -20,5 +20,11 @@ namespace Ripple.AST
 		{
 			visitor.VisitIdentifier(this);
 		}
+
+		public override T Accept<T>(IExpressionVisitor<T> visitor)
+		{
+			return visitor.VisitIdentifier(this);
+		}
+
 	}
 }

@@ -23,7 +23,6 @@ namespace Ripple.AST
 
         public virtual void VisitCall(Call call)
         {
-            call.Expr.Accept(this);
             foreach (Expression expression in call.Args)
                 expression.Accept(this);
         }
@@ -73,7 +72,8 @@ namespace Ripple.AST
 
         public virtual void VisitReturnStmt(ReturnStmt returnStmt)
         {
-            returnStmt.Expr.Accept(this);
+            if(returnStmt.Expr != null)
+                returnStmt.Expr.Accept(this);
         }
 
         public virtual void VisitUnary(Unary unary)

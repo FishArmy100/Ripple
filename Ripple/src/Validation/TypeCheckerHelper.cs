@@ -9,15 +9,15 @@ namespace Ripple.Validation
 {
     class TypeCheckerHelper
     {
-        private Dictionary<string, VariableData> m_GlobalVariables;
-        private Dictionary<TokenType, List<OperatorData>> m_Operators;
-        private Dictionary<string, List<FunctionData>> m_GlobalFuncitons;
-        private Dictionary<string, TypeData> m_Types;
+        private readonly Dictionary<string, VariableData> m_GlobalVariables;
+        private readonly OperatorList m_Operators;
+        private readonly FunctionList m_GlobalFuncitons;
+        private readonly Dictionary<string, TypeData> m_Types;
 
         public TypeCheckerHelper(Dictionary<string, VariableData> globalVariables, 
-                                   Dictionary<TokenType, List<OperatorData>> operators, 
-                                   Dictionary<string, List<FunctionData>> globalFuncitons, 
-                                   Dictionary<string, TypeData> types)
+                                 OperatorList operators,
+                                 FunctionList globalFuncitons, 
+                                 Dictionary<string, TypeData> types)
         {
             m_GlobalVariables = globalVariables;
             m_Operators = operators;
@@ -25,17 +25,49 @@ namespace Ripple.Validation
             m_Types = types;
         }
 
-        ValidationError? TryAddDeclaration(VariableData globalVariableData)
+        public bool TryGetVariable(string name, out VariableData variable)
         {
-            if (!m_GlobalVariables.TryAdd(globalVariableData.Name.Text, globalVariableData))
-                return new ValidationError("Global variable: " + globalVariableData.Name + " is already defined.", globalVariableData.Name);
-
-            return null;
+            return m_GlobalVariables.TryGetValue(name, out variable);
         }
 
-        public bool TryGetVariable(string name, out VariableData globalVariableData)
+        public bool ContainsVariable(string name)
         {
-            return m_GlobalVariables.TryGetValue(name, out globalVariableData);
+            return m_GlobalVariables.ContainsKey(name);
+        }
+
+        public bool TryGetOperator<TOp>(TokenType operatorType, List<string> paramTypes, out TOp operatorData) where TOp : OperatorData
+        {
+            return m_Operators.TryGetOperator<TOp>(operatorType, paramTypes, out operatorData);
+        }
+
+        public bool ContainsOperator<TOp>(TokenType operatorType, List<string> paramTypes) where TOp : OperatorData
+        {
+            return m_Operators.ContainsOperator<TOp>(operatorType, paramTypes);
+        }
+
+        public bool TryGetFunction(string name, List<string> paramTypes, out FunctionData functionData)
+        {
+            return m_GlobalFuncitons.TryGetFunction(name, paramTypes, out functionData);
+        }
+
+        public bool ContainsFunction(string name, List<string> paramTypes)
+        {
+            return m_GlobalFuncitons.ContainsFunction(name, paramTypes);
+        }
+
+        public bool ContainsFunctionWithName(string name)
+        {
+            return m_GlobalFuncitons.ContainsFunctionWithName(name);
+        }
+
+        public bool TryGetType(string name, out TypeData typeData)
+        {
+            return m_Types.TryGetValue(name, out typeData);
+        }
+
+        public bool ContainsType(string name)
+        {
+            return m_Types.ContainsKey(name);
         }
     }
 }

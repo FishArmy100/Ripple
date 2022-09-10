@@ -15,7 +15,7 @@ grammer Ripple
 
 	Primary = IntLiteral | FloatLiteral | Grouping | "true" | "false" | IDENTIFIER
 
-	Call = Primary ("(" Expression* ")")?;
+	Call = IDENTIFIER ("(" Expression* ")")?;
 
 	Unary = ("!" | "-") Unary | Call;
 

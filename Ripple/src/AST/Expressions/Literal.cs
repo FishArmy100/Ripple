@@ -20,5 +20,11 @@ namespace Ripple.AST
 		{
 			visitor.VisitLiteral(this);
 		}
+
+		public override T Accept<T>(IExpressionVisitor<T> visitor)
+		{
+			return visitor.VisitLiteral(this);
+		}
+
 	}
 }

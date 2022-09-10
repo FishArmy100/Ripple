@@ -16,7 +16,7 @@ namespace ASTGeneration
             {
                 "Literal : Token Val",
                 "Grouping : Token LeftParen; Expression Expr; Token RightParen",
-                "Call : Expression Expr; Token OpenParen; List<Expression> Args; Token CloseParen",
+                "Call : Token Identifier; Token OpenParen; List<Expression> Args; Token CloseParen",
                 "Unary : Token Op; Expression Expr",
                 "Binary : Expression Left; Token Op; Expression Right",
                 "Identifier : Token Name",

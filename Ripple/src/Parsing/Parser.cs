@@ -162,7 +162,14 @@ namespace Ripple.Parsing
                 return false;
 
             Token returnToken = reader.Previous();
+            if(reader.Match(TokenType.SemiColon))
+            {
+                statement = new ReturnStmt(returnToken, null, reader.Previous());
+                return true;
+            }
+
             Expression expr = ParseExpression(ref reader);
+
             Token semiColon = reader.Consume(TokenType.SemiColon, "Expected ';' after return statement");
 
             statement = new ReturnStmt(returnToken, expr, semiColon);
@@ -288,7 +295,13 @@ namespace Ripple.Parsing
 
         private static Expression ParseCall(TokenReader reader)
         {
-            Expression expr = ParsePrimary(reader);
+            bool isCurrentIdentifier = reader.Current().IsType(TokenType.Identifier);
+            bool isNextOpenParen = reader.Peek() is Token t && t.IsType(TokenType.OpenParen);
+
+            if (!isCurrentIdentifier || !isNextOpenParen)
+                return ParsePrimary(reader);
+
+            Token id = reader.Advance();
             if(reader.Current().Type == TokenType.OpenParen)
             {
                 Token openParen = reader.Advance();
@@ -306,10 +319,10 @@ namespace Ripple.Parsing
 
                 Token closeParen = reader.Previous();
 
-                return new Call(expr, openParen, args, closeParen);
+                return new Call(id, openParen, args, closeParen);
             }
 
-            return expr;
+            return ParsePrimary(reader);
         }
 
         private static Expression ParsePrimary(TokenReader reader)
