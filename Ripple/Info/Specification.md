@@ -1038,5 +1038,13 @@ if(var value = GetValue()) { ... } // the Option type overides the as operator f
 ```
 
 ### External Libraries: (ie: c, c++, c#, etc)
+Uses Compile Time attributes to link:
+```cpp
+module Core.Memory
+{
+    [[StaticLink("C", "malloc")]]
+    void* Malloc(usize size);
+}
+```
 
 ### Patturn Matching
