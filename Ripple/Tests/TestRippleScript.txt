@@ -1,5 +1,5 @@
 ﻿
-func Test(int count) -> int // compiles fine
+func Test(int count) -> int
 {
 	for(int i, j, b = 0; i < count; i = i + 1)
 	{
@@ -8,15 +8,4 @@ func Test(int count) -> int // compiles fine
 	}
 
 	return 5;
-}
-
-func Test(float x, floa y) -> int // filled with errors
-{
-	if(x == true)
-		return false;
-	if(x == 5)
-		return 16;
-	if(71) {}
-
-	return;
 }
