@@ -38,7 +38,7 @@ namespace Ripple.Transpiling
 
             private string GenCpp(int offset)
             {
-                string cpp = "#" + CKeywords.Include + "\"" + Name + ".h\"";
+                string cpp = "#" + CKeywords.Include + " \"" + Name + ".h\"\n";
 
                 foreach (Var variable in GlobalVariables)
                     cpp += variable.ConvertToCCode(offset);
@@ -52,7 +52,7 @@ namespace Ripple.Transpiling
 
             private string GenHeader()
             {
-                string header = "#pragma once";
+                string header = "#pragma once\n";
 
                 Func<string, string> includeMod = s => "#" + CKeywords.Include + "\"" + s + ".h\"";
                 header += AdditionalIncludes.Concat(includeMod, "\n");

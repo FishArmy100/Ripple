@@ -284,6 +284,9 @@ namespace Ripple.Validation
 
         private void AddVariable(Token type, Token name)
         {
+            if (!m_IsInFunction)
+                return;
+
             if(!m_Helper.ContainsType(type.Text))
             {
                 string message = "Expected a type name.";
