@@ -69,6 +69,8 @@ namespace Ripple.Transpiling
                     str += Arguments[i].ConvertToString();
                 }
 
+                str += ")";
+
                 return str;
             }
         }

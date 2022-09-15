@@ -31,8 +31,31 @@ namespace Ripple.Transpiling
 
             public override string ConvertToCCode(int offset)
             {
-                Func<string, string> includeMod = s => "#" + CKeywords.Include + "\"" + s + "\"";
-                string header = AdditionalIncludes.Concat(includeMod, "\n") + "\n\n";
+                string header = GenHeader();
+                string cpp = GenCpp(offset);
+                return header + "\n" + Seperator + cpp;
+            }
+
+            private string GenCpp(int offset)
+            {
+                string cpp = "#" + CKeywords.Include + "\"" + Name + ".h\"";
+
+                foreach (Var variable in GlobalVariables)
+                    cpp += variable.ConvertToCCode(offset);
+
+                cpp += "\n";
+
+                foreach (Func function in Functions)
+                    cpp += function.ConvertToCCode(offset);
+                return cpp;
+            }
+
+            private string GenHeader()
+            {
+                string header = "#pragma once";
+
+                Func<string, string> includeMod = s => "#" + CKeywords.Include + "\"" + s + ".h\"";
+                header += AdditionalIncludes.Concat(includeMod, "\n");
 
                 foreach (Var variable in GlobalVariables)
                     header += variable.GetForwardDeclaration();
@@ -41,6 +64,7 @@ namespace Ripple.Transpiling
 
                 foreach (Func func in Functions)
                     header += func.GetForwardDeclaration();
+                return header;
             }
         }
 
@@ -55,10 +79,10 @@ namespace Ripple.Transpiling
 
             public override string ConvertToCCode(int offset)
             {
-                string code = StringUtils.GenIndent(offset) + "{";
+                string code = StringUtils.GenIndent(offset) + "{\n";
                 foreach (CStatement statement in Statements)
                     code += statement.ConvertToCCode(offset + 1);
-                code += StringUtils.GenIndent(offset) + "}";
+                code += StringUtils.GenIndent(offset) + "}\n";
                 return code;
             }
         }
@@ -101,8 +125,15 @@ namespace Ripple.Transpiling
 
                 code += CKeywords.For + "(";
                 if(Initalizer != null)
+                {
                     code += Initalizer.ConvertToCCode(0);
-                code += ";";
+                    // removes the \n charactor for the variable declaration
+                    code = code.Remove(code.Length - 1);
+                }
+                else
+                {
+                    code += ";";
+                }
 
                 if(Condition != null)
                     code += " " + Condition.ConvertToString();
@@ -163,7 +194,7 @@ namespace Ripple.Transpiling
 
             public string GetForwardDeclaration()
             {
-                string code = CKeywords.Extern + " " + TypeName;
+                string code = CKeywords.Extern + " " + TypeName + " ";
                 for(int i = 0; i < VarNames.Count; i++)
                 {
                     if (i != 0)
@@ -178,7 +209,7 @@ namespace Ripple.Transpiling
             public override string ConvertToCCode(int offset)
             {
                 string code = StringUtils.GenIndent(offset);
-                code += TypeName;
+                code += TypeName + " ";
                 for(int i = 0; i < VarNames.Count; i++)
                 {
                     if (i != 0)
@@ -236,7 +267,7 @@ namespace Ripple.Transpiling
                     code += Parameters[i].Item1 + " " + Parameters[i].Item2;
                 }
                 code += ")\n";
-                Body.ConvertToCCode(offset);
+                code += Body.ConvertToCCode(offset);
 
                 return code;
             }

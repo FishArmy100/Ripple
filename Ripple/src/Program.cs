@@ -7,6 +7,7 @@ using Ripple.Lexing;
 using Ripple.AST;
 using Ripple.Parsing;
 using Ripple.Validation;
+using Ripple.Transpiling;
 
 namespace Ripple
 {
@@ -42,6 +43,16 @@ namespace Ripple
                     DebugSourceCode(input);
                 }
             }
+        }
+
+        private static void PrintTranspiledCode(FileStmt fileStmt)
+        {
+            TranspilerResult result = Transpiler.Transpile(fileStmt, "Test");
+
+            Console.WriteLine("Header file: " + result.HeaderFileName + "\n");
+            Console.WriteLine(result.HeaderFile);
+            Console.WriteLine("Source file: " + result.SourceFileName + "\n");
+            Console.WriteLine(result.SourceFile);
         }
 
         private static void DebugSourceCode(string src)
@@ -85,6 +96,8 @@ namespace Ripple
                 {
                     AstPrinter printer = new AstPrinter("  ");
                     printer.PrintAst(ok.Data);
+                    Console.WriteLine();
+                    PrintTranspiledCode(ok.Data);
                 }
             }
         }

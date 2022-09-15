@@ -1,11 +1,3 @@
 ﻿
-func Test(int count) -> int
-{
-	for(int i, j, b = 0; i < count; i = i + 1)
-	{
-		if(i % 2 == 0)
-			print(i + 54);
-	}
 
-	return 5;
-}
+int value = 5;

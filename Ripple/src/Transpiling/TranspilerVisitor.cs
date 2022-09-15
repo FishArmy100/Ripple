@@ -10,6 +10,19 @@ namespace Ripple.Transpiling
 {
     class TranspilerVisitor : IStatementVisitor<CStatement>, IExpressionVisitor<CExpression>
     {
+        private readonly string m_FileName;
+
+        public TranspilerVisitor(string fileName)
+        {
+            m_FileName = fileName;
+        }
+
+        public string Transpile(FileStmt fileStmt)
+        {
+            CStatement.Package package = fileStmt.Accept(this) as CStatement.Package;
+            return package.ConvertToCCode(0);
+        }
+
         public CStatement VisitExprStmt(ExprStmt exprStmt)
         {
             CExpression expression = exprStmt.Expr.Accept(this);
@@ -77,11 +90,32 @@ namespace Ripple.Transpiling
             string returnType = funcDecl.ReturnType.Text;
             List<(string, string)> parameters = funcDecl.Param.ParamList.ConvertAll(p => (p.Item1.Text, p.Item2.Text));
             CStatement.Block body = funcDecl.Body.Accept(this) as CStatement.Block;
+
+            return new CStatement.Func(returnType, funcName, parameters, body);
         }
 
         public CStatement VisitFileStmt(FileStmt fileStmt)
         {
-            throw new NotImplementedException();
+            List<CStatement.Func> functions = new List<CStatement.Func>();
+            List<CStatement.Var> variables = new List<CStatement.Var>();
+
+            foreach(Statement statement in fileStmt.Statements)
+            {
+                CStatement cStatement = statement.Accept(this);
+                switch (cStatement)
+                {
+                    case CStatement.Func f:
+                        functions.Add(f);
+                        break;
+                    case CStatement.Var v:
+                        variables.Add(v);
+                        break;
+                    default:
+                        throw new InvalidCastException("Translated statement must be a declaration");
+                }
+            }
+
+            return new CStatement.Package(m_FileName, functions, variables, new List<string>());
         }
 
         public CExpression VisitBinary(Binary binary)
@@ -148,6 +182,7 @@ namespace Ripple.Transpiling
                 TokenType.GreaterThanEqual => CBinaryOperator.GreaterThanEqual,
                 TokenType.LessThan => CBinaryOperator.LessThan,
                 TokenType.LessThanEqual => CBinaryOperator.LessThanEqual,
+                TokenType.Mod => CBinaryOperator.Mod,
                 _ => throw new ArgumentException("Cannot convert operator")
             };
         }
