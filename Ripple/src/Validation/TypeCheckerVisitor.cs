@@ -166,7 +166,20 @@ namespace Ripple.Validation
 
         public void VisitVarDecl(VarDecl varDecl)
         {
-            AddVariable(varDecl);
+            try
+            {
+                AddVariable(varDecl);
+                string exprType = varDecl.Expr.Accept(this);
+                if(exprType != varDecl.TypeName.Text)
+                {
+                    string message = "Cannot assign value of type: " + exprType + " to type: " + varDecl.TypeName.Text;
+                    m_Errors.Add(new ValidationError(message, varDecl.Equels));
+                }
+            }
+            catch(TypeCheckExeption e)
+            {
+                m_Errors.Add(new ValidationError(e.Message, e.ErrorToken));
+            }
         }
 
         public string VisitBinary(Binary binary)

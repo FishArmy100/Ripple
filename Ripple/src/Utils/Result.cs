@@ -19,9 +19,5 @@ namespace Ripple.Utils
             public TError Error { get; }
             public Fail(TError error) => Error = error;
         }
-
-        //Convenience methods
-        public static Result<TSuccess, TError> Good(TSuccess data) => new Ok(data);
-        public static Result<TSuccess, TError> Bad(TError error) => new Fail(error);
     }
 }

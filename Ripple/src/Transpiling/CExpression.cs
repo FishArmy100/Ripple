@@ -43,7 +43,7 @@ namespace Ripple.Transpiling
 
             public override string ConvertToString()
             {
-                return Op.ToCCode() + " " + Operand.ConvertToString();
+                return Op.ToCCode() + Operand.ConvertToString();
             }
         }
 

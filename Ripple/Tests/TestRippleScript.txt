@@ -1,8 +1,2 @@
 ﻿
-int a = 5;
-int b = 6;
-
-func SomeFunc() -> int
-{
-	return a + b;
-}
+bool a = !true;
