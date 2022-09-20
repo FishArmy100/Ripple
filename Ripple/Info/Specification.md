@@ -279,39 +279,54 @@ float f = reinterpret_cast<float>(value);
 
 ## Memory Management:
 
-### Pointers and References:
- Pointers can point to any block of memory, or a single object. They can be assigned to `nullptr`, witch lets them point to nothing. References point to a single object in memory, and cannot point to `nullptr`. Note, you can take a reference from a r-value.
+### Pointers:
+ Pointers can point to any block of memory, or a single object. They can be assigned to `nullptr`, witch lets them point to nothing.
 
- ```cpp
+ ```cs
  int[3] array = {5, 6, 7};
 
- int* ptr = array[0] as int*; // returns a reference, so must be converted to a pointer
- int& ref = array[2];
+ int* ptr = &array[0]; // need to get the address of the value
 
 
- int value = *ref; // value == 7
- int value2 = *ptr; // value2 == 5
+ int value = *ptr; // value == 5
 
  int* ptr2 = ptr + 1; // pointer arithmatic
  int value2 = *ptr2; // value3 == 6
 
- int& ptr3 = ptr[1]; // pointer indexing, returns a reference
+ ref int ptr3 = ptr[1]; // pointer indexing, returns a reference
 
  float* floatPtr = nullptr;
  *floatPtr; // UB, or error
  ```
- One note, is that references are dereferenced implicitly. So, if you had a `String& str`, you could call a method on it like `str.Length()`, without acctually dereferencing the reference. Although, it is entirly possible to do this: `*(str).Length()`.
 
- If you pass value by reference to a function, the value will automatically be referenced:
- ```cpp
- func SomeFunc(int& i) -> void {...}
+### References
+References can be treated like any other value, and are not counted as type qualifiers. And so, cant be passed in as a template argument.
 
- int i = 4;
+They can only be used in three spisific instances:
+- Passing by reference
+- Returning by reference
+- Binding by reference
 
- // both of these compile
- SomeFunc(&i);
- SomeFunc(i);
- ```
+```cs
+func FindChars(const ref String str, char c) -> int {...} // passing by reference
+
+// would be inside a player class, or something
+func GetName() -> const ref String // returning by reference
+{
+    // as you are returning a reference, do not need to copy or move
+    return this.m_Name; 
+}
+
+func Main() -> int
+{
+    // create player 'p' up here
+
+    // binding by reference, otherwise, would need to copy
+    const ref String s = p.GetName();
+    String s = copy p.GetName();
+}
+
+```
 
 ### Arrays:
  Arrays are contigus blobs of memory with a set size. The size of stack allocated arrays must be known at runtime.
@@ -325,11 +340,10 @@ float f = reinterpret_cast<float>(value);
 
  var numbers = { 5u, 6u, 7u }; // type can be infered???
 
- char& c = string[0] // indexing an array returns a reference
- char c = *string[0]; // c == 'H'
+ ref int c = string[0] // indexing an array returns a reference
  ```
 
-### Copying and Moveing Data:
+### Copying and Moveing Data: **Moving Data Volotile**
  Complex constructs like classes and arrays must be either copied, or moved explicitly. In these examples, we will use the class below:
  ```cpp
  using Core.Memory.C_String;
@@ -662,7 +676,7 @@ String name = copy p.GetName(); // call the method
 ### Constructors
 Constructors are you you construct objects, and assign data to them. If no constructor is stated, a default constructor will be implicitly created. You can delete the defult constructor implicitly though. 
 constructors are declared as `visibility ClassName(/*arguments*/)`.
-Constructors are the only way you can modify a const veriable, to witch, you can only do with the member veriables of the `this` object. You cannot modify compile time veriables however.
+Constructors are the only way you can modify a const veriable, to witch, you can only do with the member veriables of the `this` object. You cannot modify compile time veriables however. Use new operator???
 
 ```cpp
 using module Core;
