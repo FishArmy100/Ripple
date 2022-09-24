@@ -30,7 +30,7 @@ using module Core;
 
 func FizzBuzz(int count) -> void
 {
-    for(int i = 0; i < count; i++)
+    for(mut int i = 0; i < count; i++)
     {
         if(i % 3 == 0 && i % 5 == 0)
             Console.PrintLine("FizzBuzz");
@@ -51,7 +51,7 @@ module Core
 {
     public concept Copyable // concepts
     {
-        public This(const This&);
+        public This(ref This);
     }
 
     public concept Destructable
@@ -59,16 +59,16 @@ module Core
         public ~This();
     }
 
-    public class Scoped<T> // templates
+    public class Scoped<T> where T !is const // templates
     {
-        private T* m_Ptr; // raw memory mannagement
+        private mut T* m_Ptr; // raw memory mannagement
 
-        public Scoped(T* ptr) : m_Ptr(ptr) {}
+        public Scoped(mut T* ptr) : m_Ptr(ptr) {}
         public Scoped<TArgs...>(TArgs... args) : (alloc<T>(1) := T(move args...)) {} // variadic templates
         
-        public func operator->() -> T& // overloadable operators
+        public operator->() -> ref T // overloadable operators
         {
-            return m_Ptr as T&;
+            return *m_Ptr;
         }
 
         public T* Get()
@@ -76,27 +76,27 @@ module Core
             return m_Ptr;
         }
 
-        public const func operator->() -> const T&
+        public mut operator->() -> mut ref T
         {
-            return m_Ptr as const T&;
+            return *m_Ptr;
         }
 
-        public func Clone() -> Scoped<T> where T is Copyable
+        public func Clone() -> mut Scoped<T> where T is Copyable
         {
-            return move Scoped<T>(alloc<T>(1) := T(*m_Ptr));
+            return Scoped<T>(malloc(sizeof(T)) := T(*m_Ptr));
         }
 
         // explicit move and copy
-        public move Scoped(const Scoped&) = default;
-        public copy Scoped(const Scoped&) = delete;
+        public move Scoped(mut ref Scoped) = default;
+        public copy Scoped(ref Scoped) = delete;
 
         // Destructor
         public ~Scoped()
         {
-            constexpr if(T is Destructable)
+            comptime if(T is Destructable)
                 m_Ptr->~T();
 
-            dealloc(m_Ptr);
+            free(m_Ptr);
         }
     }
 }
@@ -202,13 +202,15 @@ var letter = 'f'; // automatic type inference with the var keyword
 
  ```
 
- ### Const:
-Const veriables cannot be edited, or changed in any way shape, or form. Unlike c++ const, you cannot cast out of const. You may implicitly cast into const, but not out of it.
+ ### Mut:
+ veriables cannot be edited, or changed in any way shape, or form by default. Unlike c++, you cannot cast from an immutable value to a mutable value. You may implicitly cast out of mutability, but not into it.
 
 ```cpp
-const int value = 5;
-
+int value = 5;
 value = 6; // compiler error, canot modify a const value
+
+mut int value2 = 4;
+value2 = 8; // is fine
 ```
 
 ---
@@ -234,7 +236,7 @@ else
 
 ### For Statment:
 ```cpp
-for(int i = 0; i < 5; i++)
+for(mut int i = 0; i < 5; i++)
 {
     // do this until i == 5
 }
@@ -308,10 +310,10 @@ They can only be used in three spisific instances:
 - Binding by reference
 
 ```cs
-func FindChars(const ref String str, char c) -> int {...} // passing by reference
+func FindChars(ref String str, char c) -> int {...} // passing by reference
 
 // would be inside a player class, or something
-func GetName() -> const ref String // returning by reference
+func GetName() -> ref String // returning by reference
 {
     // as you are returning a reference, do not need to copy or move
     return this.m_Name; 
@@ -322,7 +324,7 @@ func Main() -> int
     // create player 'p' up here
 
     // binding by reference, otherwise, would need to copy
-    const ref String s = p.GetName();
+    ref String s = p.GetName();
     String s = copy p.GetName();
 }
 
@@ -334,7 +336,7 @@ func Main() -> int
  ```cpp
  int[5] array1 = int[5](); // array of 5 intagers
 
- var = array2 = int[4](42); // array of 4 intagers initialized with the number 42
+ var array2 = int[4](42); // array of 4 intagers initialized with the number 42
 
  char[7] string = { 'H', 'e', 'l', 'l', 'o', '!', '\0' }; // initializer list
 
@@ -350,28 +352,25 @@ func Main() -> int
 
  class String
  {
-    private const char* m_CharArray;
-    private const usize m_Length;
+    private mut char* m_CharArray;
+    private usize m_Length;
 
-    public String(const char* str)
+    public String(char* str)
     {
         m_Length = StrLen(str);
         m_CharArray = StrCpy(str, m_Length);
     }
 
-    public copy String(const String& other) // copy constructor
+    public copy String(ref String other) // copy constructor
     {
         m_Length = other.m_Length;
         m_CharArray = StrCpy(other.m_CharArray, m_Length);
     }
 
-    public move String(String& other) // move constructor
+    public move String(ref String other) // move constructor
     {
         m_CharArray = other.m_CharArray;
-        other.m_CharArray = nullptr;
-
         m_Length = other.m_Length;
-        other.m_Length = 0;
     }
 
     public ~String() // destructor
@@ -379,8 +378,8 @@ func Main() -> int
         dealloc(m_CharArray);
     }
 
-    public const char* Get() { return m_CharArray; }
-    public const char* Length() { return m_Length; }
+    public char* Get() { return m_CharArray; }
+    public char* Length() { return m_Length; }
  }
  ```
 
@@ -394,7 +393,7 @@ func Main() -> int
 
  if you where to pass an object to a function, you must either copy it, or move it into the function:
  ```cpp
- func PrintString(String s) -> void
+ func PrintString(ref String s) -> void
  {
     ...
  }
@@ -418,7 +417,7 @@ func Main() -> int
  class Person
  {
     public String Name;
-    public Person(const string& name) : Name(copy *name) {}
+    public Person(ref string name) : Name(copy *name) {}
  }
  ```
  When you return a value from a function, you must either copy or move it, if it is not an r-value.
@@ -441,19 +440,13 @@ func Main() -> int
  ```
 
 ### Heap Allocation:
- All of the previous examples show how to allocate memory on the stack, the syntax for allocating on the heap is almost exactly the same for c++.
-
- ```cpp
- int* ptr = alloc<int>(1) // value allocated on the heap, and a pointer to it is returned
- dealloc(ptr); // deletes the memory
- ```
- It should be noted, that the size of a heap allocated string does not need to be known at compile time, much like c++ arrays.
+ Heap Allocation uses external C functions, like malloc, and free.
 
 ### In Place Construction:
 In place construction allows you to construct an object into an allocated block of memory. **NOTE:** it does not call the destructor of the object when used
 
 ```cpp
-int* ptr = alloc<int>(1);
+mut int* ptr = alloc<int>(1);
 ptr := int(5);
 ```
 
@@ -488,7 +481,6 @@ int sum = Add(5, 6); // sum == 11
 ```
 One slight change in how they are used, is that all arguments to the functions, if they are arrays or classes, must be explicitly copied, or moved to the function. This is a bad example, but it showcases the syntax.
 
-**Volatile**
 ```cpp
 func Index(int[5] array, usize index, int value) -> int[5]
 {
@@ -503,9 +495,10 @@ array = Index(copy array, 2, 42); // must explicitly copy the array
 
 returning a value will automatically copy or move the object, but you can explicitly call it with the `return copy`, or `return move` statements respectavely.
 
-If you pass by reference however, the reference, like the `usize` and `int` are copied implicitly, and so dont require the `copy` keyword. Also, you dont need to return the array to see the results. Also, you do not have to get the reference of an object when you pass it to a function, it will implicitly be referenced if that is the parameter of the function
+If you pass by reference however, the reference, like the `usize` and `int` are copied implicitly, and so dont require the `copy` keyword. Also, you dont need to return the array to see the results.
+
 ```cpp
-func Index(int[5]& array, usize index, int value) -> void
+func Index(mut ref int[5] array, usize index, int value) -> void
 {
     array[index] = value;
 }
@@ -513,14 +506,14 @@ func Index(int[5]& array, usize index, int value) -> void
 // call the function
 int[5] array = int[5](0);
 
-Index(&array, 2, 42); // do not need to copy the array, just need to get a reference
-Index(array, 2, 42); // implicitly referenced
+Index(array, 2, 42); // do not need to copy the array, just need to get a reference
 ```
+
 ### Function Overloading:
 function with the same name, can be overloaded with different arguments.
 ```cpp
-int Add(int a, int b) { return a + b; }
-float Add(float a, float b) { return a + b; }
+func Add(int a, int b) -> int { return a + b; }
+func Add(float a, float b) -> { return a + b; }
 ```
 
 ### Function Pointers:
@@ -561,7 +554,7 @@ Static variables in functions will remain the same value across all instances of
 ```cpp
 func Init() -> void
 {
-    static bool isInitialzied = false;
+    static mut bool isInitialzied = false;
     if(!isInitialzied)
     {
         isInitialized = true;
@@ -617,7 +610,7 @@ class Point
     public copy Point() = default; // Copy constructor
     public move Point() = default; // Move constructor
 
-    public operator+(const Point& other) -> Point // operator overloading
+    public operator+(ref Point other) -> Point // operator overloading
     {
         return Point(this.x + other.x, this.y + other.y, this.z + other.z);
     }
@@ -663,7 +656,7 @@ using module Core;
 class Person
 {
     private String m_Name = "Person"
-    public const func GetName() -> const String& { return &m_Name; }
+    public const func GetName() -> ref String { return m_Name; }
 }
 
 Person p = Person(); // creat the person
@@ -715,17 +708,17 @@ Car car = Car(30.0f, 4u);
 ```
 
 ### Copy and Move Constructors
-For some Types, you may want to implement your own custom copy or move constructors, or you may want to disable them. Copy and move constructors are declared the same way as normal constructors, but you must place the `copy` or `move` keyword before the class name, and both take either a `const ClassName&`, or `ClassName&` as the input arguments. If not specified, copy and move constructors will implicitly be added to a class.
+For some Types, you may want to implement your own custom copy or move constructors, or you may want to disable them. Copy and move constructors are declared the same way as normal constructors, but you must place the `copy` or `move` keyword before the class name, and both take a `ref ClassName` as the input arguments. If not specified, copy and move constructors will implicitly be added to a class.
 
 ```cpp
 class ChessBoard
 {
     private u8[8][8] m_Data;
     public ChessBoard() = delete; // deleting constructor explicitly, dont need to do this, because have a different constructor
-    public ChessBoard(const u8[8][8]& data) : m_Data(copy data)
+    public ChessBoard(ref u8[8][8] data) : m_Data(copy data)
 
-    public copy ChessBoard(const ChessBoard&) = default; // defult implementation
-    public move ChessBoard(const ChessBoard& other) : m_Data(move other.m_Data) {} // custom implementation of the move constructor
+    public copy ChessBoard(ref ChessBoard) = default; // defult implementation
+    public move ChessBoard(ref ChessBoard other) : m_Data(move other.m_Data) {} // custom implementation of the move constructor
 }
 
 u8[8][8] data = u8[8](u8[8](0)) data;
@@ -756,13 +749,15 @@ If you have a pointer to a class, instead of dereferencing it, then accessing th
 class Number
 {
     public int Value = 5;
+
+    public Number(int value) : Value(value) {}
 }
 
-Number* number = alloc<Number>(1) := Number();
+Number* number = alloc<Number>(1) := Number(4);
 number->Value; // using the -> operator
 (*number).Value; // does the same thing
 
-Number& num = number as Number&;
+ref Number num = *number;
 num.Value; // is fine
 num->Value; // is still fine
 (*num).Value; // is also fine
@@ -801,7 +796,7 @@ class Animal
 class Cat : Animal
 {
     public String Name;
-    public Cat(const String& name, float health) : Animal(health), Name(name) {}
+    public Cat(ref String name, float health) : Animal(health), Name(name) {}
 }
 
 Cat c = Cat("Shenobi", 0.0f);
@@ -983,11 +978,11 @@ Using template arguments, you may pass a type as an argument to either a functio
 ```cpp
 class Ref<T>
 {
-    public Ref(T& val) : Value(val) {}
-    public T& Value;
+    public Ref(ref T val) : Value(&val) {}
+    public T* Value;
 }
 
-func Add<T>(const T& a, const T& b) -> T
+func Add<T>(ref T a, ref T b) -> T
 {
     return a + b;
 }

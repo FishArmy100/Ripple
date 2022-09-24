@@ -17,8 +17,9 @@
     - bool
 
 ### Version 0.2.0 Memory Update:
-- Pointers and References:
-    - c++ or rust based
+- Pointers and References: 
+    - c# based references
+    - `ref` keyword
 - Branching Statements
     - else
     - while
@@ -40,6 +41,7 @@
     - Declarations
     - Calling
     - Assignment
-- Const?
+- Immutable by default
+    - `mut` keyword
 
 

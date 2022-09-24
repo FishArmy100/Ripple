@@ -2,33 +2,43 @@
 
 Interesting quirk about having explicit move and copy
 ```cs
-class Vec3
+public class Scoped<T> // templates
 {
-    public const int X;
-    public const int Y;
-    public const int Z;
+    private T* m_Ptr; // raw memory mannagement
 
-    public Vec3(int x, int y, int z) : X(x), Y(y), Z(z) {}
-}
+    public Scoped(T* ptr) : m_Ptr(ptr) {}
+    public Scoped<TArgs...>(TArgs... args) : (alloc<T>(1) := T(move args...)) {} // variadic templates
+    
+    public const func operator->() -> const ref T // overloadable operators
+    {
+        return *m_Ptr;
+    }
 
-class Entity
-{
-    public Vec3 Position;
-    public Vec3 Rotation;
-    public Vec3 Scale;
+    public func operator->() -> ref T
+    {
+        return *m_Ptr;
+    }
 
-    public Vec3(Vec3 pos, Vec3 rot, Vec3 scale) : Position(pos), Rotation(rot), Scale(scale) {}f
-}
+    public func Clone() -> Scoped<T> where T is Copyable
+    {
+        return Scoped<T>(malloc(sizeof(T)) := T(*m_Ptr));
+    }
 
-func New1<T, TArgs...>(TArgs... args) -> T*
-{
-    T* ptr = malloc(sizeof(T)) as T*;
-    ptr := (move args...);
-}
+    // explicit move and copy
+    public move Scoped(const ref Scoped other)
+    {
+        m_Ptr = other.m_Ptr; // error, other.m_Ptr is techncially const
+    }
 
-func Main() -> int
-{
-    // does not compile, because types must be EXPLICITLY copied
-    Entity* e1 = New1<Entity>(Vec3(3, 4, 5), Vec3(0, 0, 0), Vec3(1, 1, 1));
+    public copy Scoped(const ref Scoped) = delete;
+
+    // Destructor
+    public ~Scoped()
+    {
+        comptime if(T is Destructable)
+            m_Ptr->~T();
+
+        free(m_Ptr);
+    }
 }
 ```
