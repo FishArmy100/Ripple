@@ -17,12 +17,20 @@ namespace Ripple.Parsing
             TokenReader reader = new TokenReader(tokens);
             List<ParserError> errors = new List<ParserError>();
 
-            FileStmt file = ParseFile(ref reader, ref errors);
+            try
+            {
+                FileStmt file = ParseFile(ref reader, ref errors);
 
-            if (errors.Count > 0)
+                if (errors.Count > 0)
+                    return new Result<FileStmt, List<ParserError>>.Fail(errors);
+
+                return new Result<FileStmt, List<ParserError>>.Ok(file);
+            }
+            catch(ParserExeption e)
+            {
+                errors.Add(new ParserError(e.Message, e.Tok));
                 return new Result<FileStmt, List<ParserError>>.Fail(errors);
-
-            return new Result<FileStmt, List<ParserError>>.Ok(file);
+            }
         }
 
         private static FileStmt ParseFile(ref TokenReader reader, ref List<ParserError> errors)
@@ -41,7 +49,9 @@ namespace Ripple.Parsing
                     errors.Add(new ParserError(e.Message, e.Tok));
                     reader.SyncronizeTo(reader =>
                     {
-                        return reader.Current().IsType(TokenType.Func) || IsVarDecl(reader);
+                        return reader.Current().IsType(TokenType.Func) || 
+                               IsVarDecl(reader) ||
+                               reader.Current().IsType(TokenType.EOF);
                     });
                 }
             }
@@ -275,7 +285,7 @@ namespace Ripple.Parsing
             {
                 Token op = reader.Peek(-1).Value;
                 Expression right = previouseExpr(reader);
-                return new Binary(expr, op, right);
+                expr = new Binary(expr, op, right);
             }
 
             return expr;

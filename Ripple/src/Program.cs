@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Windows.Input;
 using System.IO;
-using Ripple.Lexing;
-using Ripple.AST;
-using Ripple.Parsing;
-using Ripple.Validation;
+using Ripple.Compiling;
 using Ripple.Transpiling;
+using Ripple.Utils;
 
 namespace Ripple
 {
@@ -45,60 +43,18 @@ namespace Ripple
             }
         }
 
-        private static void PrintTranspiledCode(FileStmt fileStmt)
-        {
-            TranspilerResult result = Transpiler.Transpile(fileStmt, "Test");
-
-            Console.WriteLine("Header file: " + result.HeaderFileName + "\n");
-            Console.WriteLine(result.HeaderFile);
-            Console.WriteLine("Source file: " + result.SourceFileName + "\n");
-            Console.WriteLine(result.SourceFile);
-        }
-
         private static void DebugSourceCode(string src)
         {
-            (var toks, var errors) = Lexer.Scan(src);
-            bool hasError = false;
-
-            if(errors.Count > 0)
+            var compilerResult = Compiler.Compile(src, "Test");
+            if(compilerResult is Result<TranspilerResult, List<CompilerError>>.Fail fail)
             {
-                Console.WriteLine("Lexing Errors:");
-                foreach (var error in errors)
-                    Console.WriteLine(error.Message + ": [" + error.Line + ", " + error.Column + "]");
-
-                hasError = true;
+                foreach (CompilerError error in fail.Error)
+                    Console.WriteLine(error);
             }
-
-            var result = Parser.Parse(toks);
-
-            if(result is Utils.Result<FileStmt, List<ParserError>>.Fail f)
+            else
             {
-                Console.WriteLine("Parsing Errors:");
-                foreach (var error in f.Error)
-                    Console.WriteLine(error.Message + ": [" + error.Tok.Line + ", " + error.Tok.Column + "]");
-
-                hasError = true;
-            }
-
-            if(!hasError)
-            {
-                var ok = result as Utils.Result<FileStmt, List<ParserError>>.Ok;
-                var validationErrors = Validator.ValidateAst(ok.Data);
-
-                if (validationErrors.Count > 0)
-                {
-                    hasError = true;
-                    foreach (var error in validationErrors)
-                        Console.WriteLine(error.Message + ": [" + error.ErrorToken.Line + ", " + error.ErrorToken.Column + "]");
-                }
-
-                if (!hasError)
-                {
-                    AstPrinter printer = new AstPrinter("  ");
-                    printer.PrintAst(ok.Data);
-                    Console.WriteLine();
-                    PrintTranspiledCode(ok.Data);
-                }
+                var code = (compilerResult as Result<TranspilerResult, List<CompilerError>>.Ok).Data;
+                Console.WriteLine(code.ToPrettyString());
             }
         }
     }

@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ripple.Utils.Extensions;
+using Ripple.Utils;
 
 namespace Ripple.Lexing
 {
     static class Lexer
     {
-        public static (List<Token>, List<LexerError>) Scan(string src)
+        public static Result<List<Token>, List<LexerError>> Scan(string src)
         {
             StringReader reader = new StringReader(src);
             List<Token> tokens = new List<Token>();
@@ -47,7 +48,10 @@ namespace Ripple.Lexing
 
             tokens.Add(new Token("", TokenType.EOF, reader.Line, reader.Line));
 
-            return (tokens, errors);
+            if (errors.Count > 0)
+                return new Result<List<Token>, List<LexerError>>.Fail(errors);
+
+            return new Result<List<Token>, List<LexerError>>.Ok(tokens);
         }
 
         private static bool ScanNumberLiteral(ref StringReader reader, ref List<LexerError> errors, out Token tok)

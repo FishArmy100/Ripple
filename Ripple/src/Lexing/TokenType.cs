@@ -27,6 +27,6 @@ namespace Ripple.Lexing
         // Keywords
         Func, For, If, True, False, Return,
 
-        EOF,
+        Unknown, EOF,
     }
 }
