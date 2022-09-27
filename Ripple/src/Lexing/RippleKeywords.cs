@@ -16,6 +16,14 @@ namespace Ripple.Lexing
             { "false",      TokenType.False     },
             { "func",       TokenType.Func      },
             { "return",     TokenType.Return    },
+            { "ref",        TokenType.Ref       },
+            { "while",      TokenType.While     },
+            { "continue",   TokenType.Continue  },
+            { "break",      TokenType.Break     },
+            { "as",         TokenType.As        },
+            { "mut",        TokenType.Mut       },
+            { "else",       TokenType.Else      },
+            { "extern",     TokenType.Extern    },
         };
     }
 }

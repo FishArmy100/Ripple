@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 using Ripple.AST;
 using Ripple.Utils.Extensions;
 using Ripple.Lexing;
+using Ripple.Utils;
 
 namespace Ripple.Validation
 {
     static class Validator
     {
-        public static List<ValidationError> ValidateAst(FileStmt fileStmt)
+        public static Result<FileStmt, List<ValidationError>> ValidateAst(FileStmt fileStmt)
         {
             AstDeclarationData data = GetBuiltinDeclarations();
             AstDeclarationFinder.AppendDeclarations(fileStmt, ref data);
@@ -21,7 +22,10 @@ namespace Ripple.Validation
             TypeCheckerVisitor typeChecker = new TypeCheckerVisitor(helper);
             errors.AddRange(typeChecker.TypeCheck(fileStmt));
 
-            return errors;
+            if (errors.Count > 0)
+                return new Result<FileStmt, List<ValidationError>>.Fail(errors);
+
+            return new Result<FileStmt, List<ValidationError>>.Ok(fileStmt);
         }
 
         private static TypeCheckerHelper CreateHelper(AstDeclarationData data, ref List<ValidationError> errors)

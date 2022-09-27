@@ -18,31 +18,21 @@ namespace Ripple.Lexing
             
             while(!reader.IsAtEnd())
             {
-                if (ScanComments(ref reader))
+                if(ScanCommentsAndWhiteSpace(ref reader))
                     continue;
-
-                if(reader.Current().IsWhiteSpace())
-                {
-                    reader.Advance();
+                if(TryLexSegment(ref reader, ref errors, ref tokens))
                     continue;
-                }
-
-                if (ScanIdentifierOrKeyword(ref reader, out Token tok))
-                {
-                    tokens.Add(tok);
-                }
-                else if (ScanSymbol(ref reader, out tok))
-                {
-                    tokens.Add(tok);
-                }
-                else if(ScanNumberLiteral(ref reader, ref errors, out tok))
-                {
-                    tokens.Add(tok);
-                }
                 else
                 {
-                    errors.Add(new LexerError("Unknown token: " + reader.Current(), reader.Line, reader.Column));
-                    reader.Advance();
+                    if(reader.IsAtEnd())
+                    {
+                        errors.Add(new LexerError("Unknown token: " + reader.Previous(), reader.Line, reader.Column));
+                    }
+                    else
+                    {
+                        errors.Add(new LexerError("Unknown token: " + reader.Current(), reader.Line, reader.Column));
+                        reader.Advance();
+                    }
                 }
             }
 
@@ -52,6 +42,50 @@ namespace Ripple.Lexing
                 return new Result<List<Token>, List<LexerError>>.Fail(errors);
 
             return new Result<List<Token>, List<LexerError>>.Ok(tokens);
+        }
+
+        private static bool TryLexSegment(ref StringReader reader, ref List<LexerError> errors, ref List<Token> tokens)
+        {
+            try
+            {
+                if (ScanIdentifierOrKeyword(ref reader, out Token tok))
+                    tokens.Add(tok);
+                else if (ScanSymbol(ref reader, out tok))
+                    tokens.Add(tok);
+                else if (ScanNumberLiteral(ref reader, ref errors, out tok))
+                    tokens.Add(tok);
+                else if (ScanStringLiteral(ref reader, out tok))
+                    tokens.Add(tok);
+                else if (ScanCharactorLiteral(ref reader, ref errors, out tok))
+                    tokens.Add(tok);
+                else
+                    return false;
+
+                return true;
+            }
+            catch(LexingExeption e)
+            {
+                errors.Add(new LexerError(e.Message, e.Line, e.Column));
+                return true;
+            }
+            catch(ReaderAtEndExeption)
+            {
+                errors.Add(new LexerError("Lexer StringReader reached end of string.", reader.Line, reader.Column));
+                return true;
+            }
+        }
+
+        private static bool ScanCommentsAndWhiteSpace(ref StringReader reader)
+        {
+            if (ScanComments(ref reader))
+                return true;
+            if (reader.Current().IsWhiteSpace())
+            {
+                reader.Advance();
+                return true;
+            }
+
+            return false;
         }
 
         private static bool ScanNumberLiteral(ref StringReader reader, ref List<LexerError> errors, out Token tok)
@@ -172,6 +206,12 @@ namespace Ripple.Lexing
                 case '}':
                     tok = GenToken(ref reader, TokenType.CloseBrace, 1);
                     return true;
+                case '[':
+                    tok = GenToken(ref reader, TokenType.OpenBracket, 1);
+                    return true;
+                case ']':
+                    tok = GenToken(ref reader, TokenType.CloseBracket, 1);
+                    return true;
 
                 // multiple
                 case '=':
@@ -242,6 +282,11 @@ namespace Ripple.Lexing
                             tok = GenToken(ref reader, TokenType.AmpersandAmpersand, 2);
                             return true;
                         }
+                        else
+                        {
+                            tok = GenToken(ref reader, TokenType.Ampersand, 1);
+                            return true;
+                        }
                     }
                     break;
 
@@ -261,6 +306,54 @@ namespace Ripple.Lexing
             }
 
             tok = new Token();
+            return false;
+        }
+
+        private static bool ScanStringLiteral(ref StringReader reader, out Token literal)
+        {
+            literal = new Token();
+
+            if(reader.Match('\"'))
+            {
+                string text = "";
+                text += reader.Previous();
+
+                while(!reader.Match('\"'))
+                {
+                    // if charactor like \": passes it all
+                    if (reader.Current() == '\\')
+                        text += reader.Advance();
+                    text += reader.Advance();
+                }
+
+                text += reader.Previous();
+
+                literal = new Token(text, TokenType.StringLiteral, reader.Line, reader.Column);
+                return true;
+            }
+
+            return false;
+        }
+        
+        private static bool ScanCharactorLiteral(ref StringReader reader, ref List<LexerError> errors, out Token literal)
+        {
+            literal = new Token();
+
+            if(reader.Current() == '\'')
+            {
+                string text = "";
+                text += reader.Advance();
+
+                if(reader.Current() == '\\') // for special charactors
+                    text += reader.Advance();
+                text += reader.Advance();
+
+                text += reader.Consume('\'', "Expected '\''.");
+
+                literal = new Token(text, TokenType.CharactorLiteral, reader.Line, reader.Column);
+                return true;
+            }
+
             return false;
         }
 

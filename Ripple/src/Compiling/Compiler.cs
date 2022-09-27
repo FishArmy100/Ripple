@@ -12,42 +12,48 @@ using Ripple.AST;
 
 namespace Ripple.Compiling
 {
-    using CompilerResult = Result<TranspilerResult, List<CompilerError>>;
-
     static class Compiler
     {
-        public static CompilerResult Compile(string rippleSource, string outputFileName)
+        public static CompilerResult<TranspilerResult> Compile(string source, string fileName)
         {
-            var lexerResult = Lexer.Scan(rippleSource);
+            return Lexer.Scan(source).ConvertToCompilerResult(e => new CompilerError(e))
+                .Match(tokens => Parser.Parse(tokens).ConvertToCompilerResult(e => new CompilerError(e)))
+                .Match(file => Validator.ValidateAst(file).ConvertToCompilerResult(e => new CompilerError(e)))
+                .Match(file =>
+                {
+                    var result = Transpiler.Transpile(file, fileName);
+                    return new CompilerResult<TranspilerResult>.Ok(result);
+                });
+        }
 
-            if(lexerResult is Result<List<Token>, List<LexerError>>.Fail f)
+        public static CompilerResult<List<Token>> RunLexer(string source)
+        {
+            return Lexer.Scan(source)
+                .ConvertToCompilerResult(e => new CompilerError(e));
+        }
+
+        public static CompilerResult<FileStmt> RunParser(string source)
+        {
+            return RunLexer(source)
+                .Match(ok => Parser.Parse(ok)
+                .ConvertToCompilerResult(e => new CompilerError(e)));
+        }
+
+        public static CompilerResult<FileStmt> RunValidator(string source)
+        {
+            return RunParser(source)
+                .Match(file => Validator.ValidateAst(file)
+                .ConvertToCompilerResult(e => new CompilerError(e)));
+        }
+
+        private static CompilerResult<TSuccess> ConvertToCompilerResult<TSuccess, TError>(this Result<TSuccess, List<TError>> self, Converter<TError, CompilerError> converter)
+        {
+            return self switch
             {
-                List<CompilerError> errors = f.Error.ConvertAll(e => new CompilerError(e));
-                return new CompilerResult.Fail(errors);
-            }
-
-            List<Token> tokens = (lexerResult as Result<List<Token>, List<LexerError>>.Ok).Data;
-
-            var parserResult = Parser.Parse(tokens);
-
-            if(parserResult is Result<FileStmt, List<ParserError>>.Fail parserFailer)
-            {
-                List<CompilerError> errors = parserFailer.Error.ConvertAll(x => new CompilerError(x));
-                return new CompilerResult.Fail(errors);
-            }
-
-            FileStmt file = (parserResult as Result<FileStmt, List<ParserError>>.Ok).Data;
-
-            List<ValidationError> validationErrors = Validator.ValidateAst(file);
-
-            if(validationErrors.Count > 0)
-            {
-                List<CompilerError> errors = validationErrors.ConvertAll(x => new CompilerError(x));
-                return new CompilerResult.Fail(errors);
-            }
-
-            TranspilerResult transpilerResult = Transpiler.Transpile(file, outputFileName);
-            return new CompilerResult.Ok(transpilerResult);
+                Result<TSuccess, List<TError>>.Ok ok => new CompilerResult<TSuccess>.Ok(ok.Data),
+                Result<TSuccess, List<TError>>.Fail fail => new CompilerResult<TSuccess>.Fail(fail.Error.ConvertAll(converter)),
+                _ => throw new ArgumentException("Result has a different result than ok, or fail")
+            };
         }
     }
 }

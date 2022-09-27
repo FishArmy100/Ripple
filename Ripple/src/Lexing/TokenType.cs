@@ -9,6 +9,7 @@ namespace Ripple.Lexing
     enum TokenType
     {
         OpenParen, CloseParen, OpenBrace, CloseBrace,
+        OpenBracket, CloseBracket,
 
         // Arithmatic
         Plus, Minus, Slash, Star, Mod,
@@ -16,16 +17,18 @@ namespace Ripple.Lexing
         // Logical
         EqualEqual, Bang, BangEqual, GreaterThanEqual, 
         GreaterThan, LessThanEqual, LessThan, 
-        AmpersandAmpersand, PipePipe,
+        AmpersandAmpersand, PipePipe, Ampersand,
 
         // Misc
         SemiColon, Equal, RightThinArrow, Identifier, Comma,
 
         // Literals
-        IntagerLiteral, FloatLiteral,
+        IntagerLiteral, FloatLiteral, CharactorLiteral, StringLiteral,
 
         // Keywords
-        Func, For, If, True, False, Return,
+        Func, For, If, True, False, Return, 
+        Ref, Break, Continue, While, Else, 
+        As, Mut, Extern,
 
         Unknown, EOF,
     }

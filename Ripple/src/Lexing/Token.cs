@@ -34,7 +34,7 @@ namespace Ripple.Lexing
 
         public string ToPrettyString()
         {
-            if(Type.IsIdentifier())
+            if(Type.IsType(TokenType.Identifier, TokenType.CharactorLiteral, TokenType.StringLiteral, TokenType.IntagerLiteral, TokenType.FloatLiteral))
                 return "[" + Type.ToString() + ": " + Text + ": " + Line + ", " + Column + "]";
             else
                 return "[" + Type.ToString() + ": " + Line + ", " + Column + "]";

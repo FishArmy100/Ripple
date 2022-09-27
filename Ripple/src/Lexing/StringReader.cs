@@ -19,7 +19,13 @@ namespace Ripple.Lexing
             Index = 0;
         }
 
-        public char Current() => Src[Index];
+        public char Current()
+        {
+            if (IsAtEnd())
+                throw new ReaderAtEndExeption();
+
+            return Src[Index];
+        }
 
         public char Advance()
         {
@@ -34,8 +40,8 @@ namespace Ripple.Lexing
             return c;
 
         }
-        
 
+        public char Previous() => Src[Index - 1];
         public char? Peek(int offset = 1) => Index + offset < Src.Length ? Src[Index + offset] : null;
 
         public bool Match(params char[] cs)
@@ -50,5 +56,13 @@ namespace Ripple.Lexing
         }
 
         public bool IsAtEnd() { return Index >= Src.Length; }
+
+        public char Consume(char c, string message)
+        {
+            if (!Match(c))
+                throw new LexingExeption(message, Line, Column);
+
+            return Previous();
+        }
     }
 }
