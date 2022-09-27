@@ -58,9 +58,9 @@ r = 6; // i also now is 6
 ```
 
 They can only be used in three spisific instances:
+- Binding by reference
 - Passing by reference
 - Returning by reference
-- Binding by reference
 
 
 ### Bind by reference
@@ -80,6 +80,13 @@ func Print(ref String s) -> void {...}
 String s = "Hello World!";
 Print(s); // dont have to copy or move it, because passing by reference
 ```
+It is possible to pass a reference to an r-value, as long as the reference is immutable:
+```cs
+func Test(ref String s) -> void {} // s is immutable
+
+Test(String("Hello!")); // technically referencing an r-value
+```
+
 ### Return by reference
 You can return a reference to an either a global object, or an object that is a member of the methods object. If a value is returned from a non-static member funciton, the compiler enforces that the reference lives, as long as the object does.
 
