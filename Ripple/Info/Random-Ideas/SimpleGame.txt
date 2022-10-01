@@ -1,0 +1,122 @@
+
+using Core.Containers;
+using Core.Option.*;
+using Core.Ref;
+using Core.Windows.Input;
+
+module MineSweeper
+{
+    public class BoardPosition
+    {
+        public int X;
+        public int Y;
+
+        public BoardPosition(int x, int y) : X(x), Y(y) {}
+        public implicit copy BoardPosition(ref BoardPosition) = default;
+
+        public BoardPosition operator+(ref BoardPosition other)
+        {
+            return BoardPosition(other.X + X, other.Y + Y);
+        }
+    }
+
+    public Array<BoardPosition, 8> NeighborOffsets = 
+    {
+        {-1,  1}, {0,  1}, {1,  1}
+        {-1,  0}           {1,  0}
+        {-1, -1}  {0, -1}, {1, -1}
+    };
+
+
+    public class Tile
+    {
+        public bool IsUncovered = false;
+        public int BombNeighbors = 0;
+        public bool IsBomb = false;
+        public bool IsFlagged = false;
+    }
+    
+    public class Board
+    {
+        private Array<Tile, 20, 20> m_Tiles = {Tile.Square(0)};
+
+        public Board(List<BoardPosition> bombs)
+        {
+            for(var pos in bombs)
+            {
+                m_Tiles[pos.X, pos.Y].IsBomb = true;
+
+                for(var offset in NeighborOffsets)
+                {
+                    BoardPosition neighbor = offset + pos;
+                    if(IsInBoard(neighbor))
+                        m_Tiles[neighbor.X, neighbor.Y].BombNeighbors++;
+                }
+            }
+        }
+
+        public func GetWidth() -> int
+        {
+            return m_Tiles.GetLength(0);
+        }
+
+        public func GetHeight() -> int
+        {
+            return m_Tiles.GetLength(1);
+        }
+
+        public mut func GetTile(BoardPosition pos) -> Option<mut Ref<Tile>>
+        {
+            if(IsInBoard(pos))
+            {
+                return Some({ m_Tiles[pos.X, pos.Y] });
+            }
+
+            return None;
+        }
+
+        public func GetTile(BoardPosition pos) -> Option<Ref<Tile>>
+        {
+            if(IsInBoard(pos))
+            {
+                return Some({ m_Tiles[pos.X, pos.Y] });
+            }
+
+            return None;
+        }
+
+        public func IsBomb(BoardPosition pos) -> bool
+        {
+            if(GetTile(pos) is Some s)
+            {
+                return s->IsBomb;
+            }
+
+            return false;
+        }
+
+        public func IsInBoard(BoardPosition pos) -> bool
+        {
+            return pos.x < m_Tiles.GetLength(0) && 
+                   pos.y < m_Tiles.GetLength(1) &&
+                   pos.x > -1 &&
+                   pos.y > -1;
+        }
+    }
+
+    public static class Renderer
+    {
+        public static func RenderBoard(ref Board board) -> void {...}
+        public static func ShowLossScreen(ref Board board) -> void {...}
+        public static func ShowWinScreen(ref Board board) -> void {...}
+    }
+}
+
+[EntryPoint]
+public func Main() -> int
+{
+    
+}
+
+
+

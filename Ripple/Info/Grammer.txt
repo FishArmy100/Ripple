@@ -1,23 +1,44 @@
-﻿Using the Maple Syntax
+﻿// Using the Maple Syntax
 
 
 grammer Ripple
 {
-	// Utilities
-	TypeName = IDENTIFIER;
+	// Utilites:
 	Parameters = "(" (TypeName Identifier ("," TypeName Identifier))* ")"
-	Arguments = "(" (Expression ("," Expression))? ")"
+	ExpressionList = Expression ("," Expression)*
+	TypeList = TypeName ("," TypeName)*
 
 	IntLiteral = DIGIT+;
 	FloatLiteral = DIGIT+ "." DIGIT+;
+	CharLiteral = "\'" CHARACTOR "\'";
+	StringLiteral = C_STRING_LITERAL;
+
+	// Types:
+	GroupedType = "(" TypeName ")";
+	PointerType = TypeName "*";
+	ReferenceType = TypeName "&";
+	FuncPtr = "(" TypeList ")" "->" TypeName
+	TypeName = GroupedType | PointerType | ReferenceType | FuncPtr | IDENTIFIER
+
+	// Expressions:
+	InitalizerList = "{" ExpressionList "}";
 
 	Grouping = "(" Expression ")";
 
-	Primary = IntLiteral | FloatLiteral | Grouping | "true" | "false" | IDENTIFIER
+	Primary = IntLiteral		|
+	          FloatLiteral		|
+			  Grouping			|
+			  "true"			|
+			  "false"			|
+			  StringLiteral		|
+			  CharLiteral		|
+			  IDENTIFIER		|
+			  InitalizerList;
 
-	Call = IDENTIFIER ("(" Expression* ")")?;
+	Call = Expression "(" ExpressionList? ")";
+	Index = Expression "[" Expression "]";
 
-	Unary = ("!" | "-") Unary | Call;
+	Unary = ("!" | "-" | "&" | "*") Unary | (Call | Index);
 
 	Factor = Unary (("*" | "/" | "%") Unary)*
 	Term = Factor (("+" | "-") Factor)*
@@ -27,21 +48,30 @@ grammer Ripple
 	LogicalAnd = Equality ("&&" Equality)*;
 	LogicalOr = LogicalAnd ("||" LogicalOr)*;
 
-	Assignment = IDENTIFIER "=" Assignment | LogicalOr;
+	Casting = LogicalOr ("as" TypeName)*
+
+	Assignment = IDENTIFIER "=" Assignment | Casting;
 
 	Expression = Assignment;
 
+	// Statements:
 	ExprStmt = Expression ";";
 	Block = "{" Statement* "}";
 	IfStmt = "if" "(" Expression ")" Statement;
 	ForStmt = "for" "(" VarDecl? ";" Expression? ";" Expression? ";" ")" Statement;
+	WhileStmt = "while" "(" Expression ")" Statement;
 	ReturnStmt = "return" Expression? ";";
+	BreakStmt = "break" ";";
+	ContinueStmt = "continue" ";";
 
 	VarDecl = TypeName IDENTIFIER ("," IDENTIFIER)* "=" Expression ";";
 	FuncDecl = "func" IDENTIFIER Parameters "->" TypeName Block;
+	ExternFuncDecl = "extern" StringLiteral? "func" IDENTIFIER Parameters "->"  TypeName ";";
 
-	Statement = ExprStmt | Block | IfStmt | ForStmt | VarDecl | ReturnStmt;
-	Declaration = VarDecl | FuncDecl;
+	Statement = ExprStmt | Block | IfStmt | ForStmt | WhileStmt | VarDecl | ReturnStmt | ContinueStmt | BreakStmt;
+	Declaration = VarDecl | FuncDecl | ExternFuncDecl;
 
-	main File = Declaration* EOF;
+	File = Declaration* EOF;
+
+	main Program = File*;
 }

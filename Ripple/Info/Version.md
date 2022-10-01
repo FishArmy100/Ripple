@@ -20,18 +20,18 @@
 - Pointers and References: 
     - c# based references
     - `ref` keyword
-- Branching Statements
+- Branching Statements:
     - else
     - while
     - break
     - continue
+- Strings:
+    - `char` type
+    - c-string literals
+    - charactor literals
 - Casting:
     - float -> int
     - int -> float
-- External Code:
-    - Declared with by attributes
-    - malloc, free
-    - *printf?*
 - New Operators:
     - `[]`: indexing
     - `*`: dereference
@@ -41,6 +41,9 @@
     - Declarations
     - Calling
     - Assignment
+- External functions
+    - `extern` keyword
+    - External declarations
 - Immutable by default
     - `mut` keyword
 
