@@ -8,7 +8,6 @@ namespace Ripple.AST
 {
 	class ForStmt : Statement
 	{
-
 		public readonly Token ForTok;
 		public readonly Token OpenParen;
 		public readonly Statement Init;
@@ -38,5 +37,18 @@ namespace Ripple.AST
 			return visitor.VisitForStmt(this);
 		}
 
+		public override bool Equals(object other)
+		{
+			if(other is ForStmt forStmt)
+			{
+				return ForTok.Equals(forStmt.ForTok) && OpenParen.Equals(forStmt.OpenParen) && Init.Equals(forStmt.Init) && Condition.Equals(forStmt.Condition) && Iter.Equals(forStmt.Iter) && CloseParen.Equals(forStmt.CloseParen) && Body.Equals(forStmt.Body);
+			}
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			return HashCode.Combine(ForTok, OpenParen, Init, Condition, Iter, CloseParen, Body);
+		}
 	}
 }

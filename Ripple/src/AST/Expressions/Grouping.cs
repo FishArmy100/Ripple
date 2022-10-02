@@ -8,7 +8,6 @@ namespace Ripple.AST
 {
 	class Grouping : Expression
 	{
-
 		public readonly Token LeftParen;
 		public readonly Expression Expr;
 		public readonly Token RightParen;
@@ -30,5 +29,18 @@ namespace Ripple.AST
 			return visitor.VisitGrouping(this);
 		}
 
+		public override bool Equals(object other)
+		{
+			if(other is Grouping grouping)
+			{
+				return LeftParen.Equals(grouping.LeftParen) && Expr.Equals(grouping.Expr) && RightParen.Equals(grouping.RightParen);
+			}
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			return HashCode.Combine(LeftParen, Expr, RightParen);
+		}
 	}
 }

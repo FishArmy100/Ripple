@@ -8,7 +8,6 @@ namespace Ripple.AST
 {
 	class Identifier : Expression
 	{
-
 		public readonly Token Name;
 
 		public Identifier(Token name)
@@ -26,5 +25,18 @@ namespace Ripple.AST
 			return visitor.VisitIdentifier(this);
 		}
 
+		public override bool Equals(object other)
+		{
+			if(other is Identifier identifier)
+			{
+				return Name.Equals(identifier.Name);
+			}
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			return HashCode.Combine(Name);
+		}
 	}
 }

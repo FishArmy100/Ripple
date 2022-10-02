@@ -8,7 +8,6 @@ namespace Ripple.AST
 {
 	class ReturnStmt : Statement
 	{
-
 		public readonly Token ReturnTok;
 		public readonly Expression Expr;
 		public readonly Token SemiColin;
@@ -30,5 +29,18 @@ namespace Ripple.AST
 			return visitor.VisitReturnStmt(this);
 		}
 
+		public override bool Equals(object other)
+		{
+			if(other is ReturnStmt returnStmt)
+			{
+				return ReturnTok.Equals(returnStmt.ReturnTok) && Expr.Equals(returnStmt.Expr) && SemiColin.Equals(returnStmt.SemiColin);
+			}
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			return HashCode.Combine(ReturnTok, Expr, SemiColin);
+		}
 	}
 }

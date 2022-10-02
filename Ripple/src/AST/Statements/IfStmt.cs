@@ -8,7 +8,6 @@ namespace Ripple.AST
 {
 	class IfStmt : Statement
 	{
-
 		public readonly Token IfTok;
 		public readonly Token OpenParen;
 		public readonly Expression Expr;
@@ -34,5 +33,18 @@ namespace Ripple.AST
 			return visitor.VisitIfStmt(this);
 		}
 
+		public override bool Equals(object other)
+		{
+			if(other is IfStmt ifStmt)
+			{
+				return IfTok.Equals(ifStmt.IfTok) && OpenParen.Equals(ifStmt.OpenParen) && Expr.Equals(ifStmt.Expr) && CloseParen.Equals(ifStmt.CloseParen) && Body.Equals(ifStmt.Body);
+			}
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			return HashCode.Combine(IfTok, OpenParen, Expr, CloseParen, Body);
+		}
 	}
 }

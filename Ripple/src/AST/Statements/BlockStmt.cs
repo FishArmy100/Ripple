@@ -8,7 +8,6 @@ namespace Ripple.AST
 {
 	class BlockStmt : Statement
 	{
-
 		public readonly Token OpenBrace;
 		public readonly List<Statement> Statements;
 		public readonly Token CloseBrace;
@@ -30,5 +29,18 @@ namespace Ripple.AST
 			return visitor.VisitBlockStmt(this);
 		}
 
+		public override bool Equals(object other)
+		{
+			if(other is BlockStmt blockStmt)
+			{
+				return OpenBrace.Equals(blockStmt.OpenBrace) && Statements.Equals(blockStmt.Statements) && CloseBrace.Equals(blockStmt.CloseBrace);
+			}
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			return HashCode.Combine(OpenBrace, Statements, CloseBrace);
+		}
 	}
 }

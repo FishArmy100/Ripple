@@ -8,7 +8,6 @@ namespace Ripple.AST
 {
 	class Parameters : Statement
 	{
-
 		public readonly Token OpenParen;
 		public readonly List<(Token,Token)> ParamList;
 		public readonly Token CloseParen;
@@ -30,5 +29,18 @@ namespace Ripple.AST
 			return visitor.VisitParameters(this);
 		}
 
+		public override bool Equals(object other)
+		{
+			if(other is Parameters parameters)
+			{
+				return OpenParen.Equals(parameters.OpenParen) && ParamList.Equals(parameters.ParamList) && CloseParen.Equals(parameters.CloseParen);
+			}
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			return HashCode.Combine(OpenParen, ParamList, CloseParen);
+		}
 	}
 }

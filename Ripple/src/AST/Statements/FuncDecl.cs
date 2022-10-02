@@ -8,7 +8,6 @@ namespace Ripple.AST
 {
 	class FuncDecl : Statement
 	{
-
 		public readonly Token FuncTok;
 		public readonly Token Name;
 		public readonly Parameters Param;
@@ -36,5 +35,18 @@ namespace Ripple.AST
 			return visitor.VisitFuncDecl(this);
 		}
 
+		public override bool Equals(object other)
+		{
+			if(other is FuncDecl funcDecl)
+			{
+				return FuncTok.Equals(funcDecl.FuncTok) && Name.Equals(funcDecl.Name) && Param.Equals(funcDecl.Param) && Arrow.Equals(funcDecl.Arrow) && ReturnType.Equals(funcDecl.ReturnType) && Body.Equals(funcDecl.Body);
+			}
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			return HashCode.Combine(FuncTok, Name, Param, Arrow, ReturnType, Body);
+		}
 	}
 }

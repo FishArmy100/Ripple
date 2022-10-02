@@ -9,6 +9,22 @@ namespace ASTGeneration
     {
         static void Main(string[] args)
         {
+            //RunTests();
+            GenerateRippleAst();
+        }
+
+        private static void RunTests()
+        {
+            AstGenerator.Generate("C:\\dev\\Ripple\\ASTGeneration\\src\\Tests", "ASTGeneration.Tests", "Expression", new List<string>
+            {
+                "Literal : string LiteralValue",
+                "Binary : Expression Left; char Op; Expression Right",
+                "Unary : Expression Operand; char Op"
+            }, new List<string>());
+        }
+
+        private static void GenerateRippleAst()
+        {
             List<string> additionalUsings = new List<string>() { "System.Collections.Generic", "Ripple.Lexing", "Ripple.Parsing" };
 
             //Expressions
@@ -36,6 +52,15 @@ namespace ASTGeneration
                 "FuncDecl : Token FuncTok; Token Name; Parameters Param; Token Arrow; Token ReturnType; BlockStmt Body",
 
                 "FileStmt : List<Statement> Statements; Token EOFTok",
+            }, additionalUsings);
+
+            // Types:
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Types", "Ripple.AST", "TypeName", new List<string>
+            {
+                "GroupedType : Token OpenParen; TypeName GroupedType; Token CloseParen",
+                "PointerType : TypeName BaseType; Token Star",
+                "ReferenceType : TypeName BaseType; Token Ampersand",
+                "FuncPtr : Token OpenParen; List<TypeName> Parameters; Token CloseParen; Token Arrow; TypeName ReturnType",
             }, additionalUsings);
         }
     }

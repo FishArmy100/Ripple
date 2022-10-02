@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Linq;
+using ASTGeneration.Utils.Extensions;
 
 namespace ASTGeneration
 {
     static class AstGenerator
     {
-        public static void Generate(string directoryName, string namespaceName, string baseName, List<string> nodes, List<string> additionalUsings)
+        public static void Generate(string directoryName, string namespaceName, string baseName, List<string> nodeNames, List<string> additionalUsings)
         {
-            var data = GenerateNodeData(namespaceName, baseName, nodes);
-            string visitorName = GetVisitorName(baseName);
-            CodeGenerator.GenerateCode(directoryName, namespaceName, visitorName, baseName, data, additionalUsings);
+            var nodes = GenerateNodeData(namespaceName, baseName, nodeNames);
+            BasicCodeData codeData = new BasicCodeData(directoryName, namespaceName, baseName);
+            CodeGenerator.GenerateCode(codeData, nodes, additionalUsings);
         }
 
         private static List<NodeData> GenerateNodeData(string namespaceName, string baseName, List<string> nodes)
@@ -31,24 +32,10 @@ namespace ASTGeneration
                     feilds.Add(new KeyValuePair<string, string>(typeNamePair[0].RemoveWhitespace(), typeNamePair[1].RemoveWhitespace()));
                 }
 
-                nodeDatas.Add(new NodeData(
-                                 namespaceName, baseName, name,
-                                 feilds, GetVisitorName(baseName),
-                                 GetVisitorMethodName(name)));
+                nodeDatas.Add(new NodeData(namespaceName, baseName, name, feilds));
             }
 
             return nodeDatas;
-        }
-
-        private static string GetVisitorName(string baseName) => "I" + baseName + "Visitor";
-        private static string GetVisitorMethodName(string name) => "Visit" + name;
-
-
-        public static string RemoveWhitespace(this string input)
-        {
-            return new string(input.ToCharArray()
-                .Where(c => !Char.IsWhiteSpace(c))
-                .ToArray());
         }
     }
 }

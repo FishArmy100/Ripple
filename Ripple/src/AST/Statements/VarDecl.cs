@@ -8,7 +8,6 @@ namespace Ripple.AST
 {
 	class VarDecl : Statement
 	{
-
 		public readonly Token TypeName;
 		public readonly List<Token> VarNames;
 		public readonly Token Equels;
@@ -34,5 +33,18 @@ namespace Ripple.AST
 			return visitor.VisitVarDecl(this);
 		}
 
+		public override bool Equals(object other)
+		{
+			if(other is VarDecl varDecl)
+			{
+				return TypeName.Equals(varDecl.TypeName) && VarNames.Equals(varDecl.VarNames) && Equels.Equals(varDecl.Equels) && Expr.Equals(varDecl.Expr) && SemiColin.Equals(varDecl.SemiColin);
+			}
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			return HashCode.Combine(TypeName, VarNames, Equels, Expr, SemiColin);
+		}
 	}
 }

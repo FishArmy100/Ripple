@@ -1,18 +1,15 @@
 using System;
-using System.Collections.Generic;
-using Ripple.Lexing;
-using Ripple.Parsing;
 
 
-namespace Ripple.AST
+namespace ASTGeneration.Tests
 {
 	class Literal : Expression
 	{
-		public readonly Token Val;
+		public readonly string LiteralValue;
 
-		public Literal(Token val)
+		public Literal(string literalValue)
 		{
-			this.Val = val;
+			this.LiteralValue = literalValue;
 		}
 
 		public override void Accept(IExpressionVisitor visitor)
@@ -29,14 +26,14 @@ namespace Ripple.AST
 		{
 			if(other is Literal literal)
 			{
-				return Val.Equals(literal.Val);
+				return LiteralValue.Equals(literal.LiteralValue);
 			}
 			return false;
 		}
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(Val);
+			return HashCode.Combine(LiteralValue);
 		}
 	}
 }

@@ -1,26 +1,31 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using ASTGeneration.Utils.Extensions;
+using ASTGeneration.Utils;
 
 namespace ASTGeneration
 {
     static class CodeGenerator
     {
-        public static void GenerateCode(string dir, string namespaceName, string visitorName, string baseName, List<NodeData> nodes, List<string> additionalUsings)
+        public static void GenerateCode(BasicCodeData data, List<NodeData> nodes, List<string> additionalUsings)
         {
+            string visitorName = "I" + data.BaseName + "Visitor";
+
             foreach (NodeData node in nodes)
             {
                 string src = GenerateCodeForNode(node, additionalUsings);
-                WriteToFile(dir, node.Name, src);
+                WriteToFile(data.Directory, node.Name, src);
             }
 
-            string baseSrc = GenerateBaseClassForNodes(baseName, namespaceName, visitorName);
-            WriteToFile(dir, baseName, baseSrc);
+            string baseSrc = GenerateBaseClassForNodes(data.BaseName, data.NamespaceName, visitorName);
+            WriteToFile(data.Directory, data.BaseName, baseSrc);
 
             string[] nodeNames = nodes.ConvertAll(x => x.Name).ToArray();
-            string visitorSrc = GenerateVisitorForNodes(visitorName, namespaceName, nodeNames);
-            WriteToFile(dir, visitorName, visitorSrc);
+            string visitorSrc = GenerateVisitorForNodes(visitorName, data.NamespaceName, nodeNames);
+            WriteToFile(data.Directory, visitorName, visitorSrc);
         }
 
         public static string GenerateCodeForNode(NodeData nodeData, List<string> additionalUsings)
@@ -31,7 +36,6 @@ namespace ASTGeneration
             builder.AppendLine("\tclass " + nodeData.Name + " : " + nodeData.BaseName);
             builder.AppendLine("\t{");
 
-            builder.AppendLine();
             GenFeilds(nodeData, builder);
 
             builder.AppendLine();
@@ -39,10 +43,15 @@ namespace ASTGeneration
 
             builder.AppendLine();
             GenAcceptVisitorMethod(nodeData, builder);
-            builder.AppendLine();
 
-            GenGenericAcceptVisitorMethod(nodeData, builder);
             builder.AppendLine();
+            GenGenericAcceptVisitorMethod(nodeData, builder);
+
+            builder.AppendLine();
+            GenEqualsOverride(nodeData, builder);
+
+            builder.AppendLine();
+            GenGetHashCodeOverride(nodeData, builder);
 
             builder.AppendLine("\t}");
             EndCodeFile(builder);
@@ -111,19 +120,64 @@ namespace ASTGeneration
             builder.AppendLine("{");
         }
 
+        private static void GenEqualsOverride(NodeData nodeData, StringBuilder builder)
+        {
+            builder.AppendLine("\t\tpublic override bool Equals(object other)");
+            builder.AppendLine("\t\t{");
+
+            string valName = nodeData.Name.FirstCharToLowerCase();
+            builder.AppendLine("\t\t\tif(other is " + nodeData.Name + " " + valName + ")");
+            builder.AppendLine("\t\t\t{");
+            builder.Append("\t\t\t\treturn ");
+
+            for(int i = 0; i < nodeData.FeildData.Count; i++)
+            {
+                if (i != 0)
+                    builder.Append(" && ");
+
+                string feildName = nodeData.FeildData[i].Value;
+
+                builder.Append(feildName + ".Equals(" + valName + "." + feildName + ")");
+            }
+
+            builder.AppendLine(";");
+            builder.AppendLine("\t\t\t}");
+
+            builder.AppendLine("\t\t\treturn false;");
+
+            builder.AppendLine("\t\t}");
+        }
+
+        private static void GenGetHashCodeOverride(NodeData nodeData, StringBuilder builder)
+        {
+            builder.AppendLine("\t\tpublic override int GetHashCode()");
+            builder.AppendLine("\t\t{");
+
+            List<string> feildNames = nodeData.FeildData.ConvertAll(f => f.Value);
+            string args = feildNames.Concat(", ");
+
+            builder.AppendLine("\t\t\treturn HashCode.Combine(" + args + ");");
+            builder.AppendLine("\t\t}");
+        }
+
+        private static void GenHashCodeOverride(NodeData nodeData, StringBuilder builder)
+        {
+
+        }
+
         private static void GenAcceptVisitorMethod(NodeData nodeData, StringBuilder builder)
         {
-            builder.AppendLine("\t\tpublic override void " + Keywords.AcceptVisitorName + "(" + nodeData.VisitorName + " visitor)");
+            builder.AppendLine("\t\tpublic override void " + Keywords.AcceptVisitorName + "(" + Nameing.GetVisitorName(nodeData) + " visitor)");
             builder.AppendLine("\t\t{");
-            builder.AppendLine("\t\t\tvisitor." + nodeData.VisitorMethod + "(this);");
+            builder.AppendLine("\t\t\tvisitor." + Nameing.GetVisitorMethodName(nodeData) + "(this);");
             builder.AppendLine("\t\t}");
         }
 
         private static void GenGenericAcceptVisitorMethod(NodeData nodeData, StringBuilder builder)
         {
-            builder.AppendLine("\t\tpublic override T " + Keywords.AcceptVisitorName + "<T>(" + nodeData.VisitorName + "<T> visitor)");
+            builder.AppendLine("\t\tpublic override T " + Keywords.AcceptVisitorName + "<T>(" + Nameing.GetVisitorName(nodeData) + "<T> visitor)");
             builder.AppendLine("\t\t{");
-            builder.AppendLine("\t\t\treturn visitor." + nodeData.VisitorMethod + "(this);");
+            builder.AppendLine("\t\t\treturn visitor." + Nameing.GetVisitorMethodName(nodeData) + "(this);");
             builder.AppendLine("\t\t}");
         }
 
@@ -170,13 +224,5 @@ namespace ASTGeneration
         }
 
         private static string GetPath(string dir, string name) => dir + "\\" + name + ".cs";
-
-        private static string FirstCharToLowerCase(this string str)
-        {
-            if (!string.IsNullOrEmpty(str) && char.IsUpper(str[0]))
-                return str.Length == 1 ? char.ToLower(str[0]).ToString() : char.ToLower(str[0]) + str[1..];
-
-            return str;
-        }
     }
 }

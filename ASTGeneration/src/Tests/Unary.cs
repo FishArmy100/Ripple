@@ -1,20 +1,16 @@
 using System;
-using System.Collections.Generic;
-using Ripple.Lexing;
-using Ripple.Parsing;
 
-
-namespace Ripple.AST
+namespace ASTGeneration.Tests
 {
 	class Unary : Expression
 	{
-		public readonly Token Op;
-		public readonly Expression Expr;
+		public readonly Expression Operand;
+		public readonly char Op;
 
-		public Unary(Token op, Expression expr)
+		public Unary(Expression operand, char op)
 		{
+			this.Operand = operand;
 			this.Op = op;
-			this.Expr = expr;
 		}
 
 		public override void Accept(IExpressionVisitor visitor)
@@ -31,14 +27,14 @@ namespace Ripple.AST
 		{
 			if(other is Unary unary)
 			{
-				return Op.Equals(unary.Op) && Expr.Equals(unary.Expr);
+				return Operand.Equals(unary.Operand) && Op.Equals(unary.Op);
 			}
 			return false;
 		}
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(Op, Expr);
+			return HashCode.Combine(Operand, Op);
 		}
 	}
 }

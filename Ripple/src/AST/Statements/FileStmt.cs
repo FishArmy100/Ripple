@@ -8,7 +8,6 @@ namespace Ripple.AST
 {
 	class FileStmt : Statement
 	{
-
 		public readonly List<Statement> Statements;
 		public readonly Token EOFTok;
 
@@ -28,5 +27,18 @@ namespace Ripple.AST
 			return visitor.VisitFileStmt(this);
 		}
 
+		public override bool Equals(object other)
+		{
+			if(other is FileStmt fileStmt)
+			{
+				return Statements.Equals(fileStmt.Statements) && EOFTok.Equals(fileStmt.EOFTok);
+			}
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			return HashCode.Combine(Statements, EOFTok);
+		}
 	}
 }

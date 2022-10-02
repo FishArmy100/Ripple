@@ -8,7 +8,6 @@ namespace Ripple.AST
 {
 	class Call : Expression
 	{
-
 		public readonly Token Identifier;
 		public readonly Token OpenParen;
 		public readonly List<Expression> Args;
@@ -32,5 +31,18 @@ namespace Ripple.AST
 			return visitor.VisitCall(this);
 		}
 
+		public override bool Equals(object other)
+		{
+			if(other is Call call)
+			{
+				return Identifier.Equals(call.Identifier) && OpenParen.Equals(call.OpenParen) && Args.Equals(call.Args) && CloseParen.Equals(call.CloseParen);
+			}
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			return HashCode.Combine(Identifier, OpenParen, Args, CloseParen);
+		}
 	}
 }

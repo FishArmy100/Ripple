@@ -1,18 +1,15 @@
 using System;
-using System.Collections.Generic;
-using Ripple.Lexing;
-using Ripple.Parsing;
 
 
-namespace Ripple.AST
+namespace ASTGeneration.Tests
 {
 	class Binary : Expression
 	{
 		public readonly Expression Left;
-		public readonly Token Op;
+		public readonly char Op;
 		public readonly Expression Right;
 
-		public Binary(Expression left, Token op, Expression right)
+		public Binary(Expression left, char op, Expression right)
 		{
 			this.Left = left;
 			this.Op = op;
