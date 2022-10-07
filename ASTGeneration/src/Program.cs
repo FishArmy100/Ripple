@@ -27,31 +27,40 @@ namespace ASTGeneration
         {
             List<string> additionalUsings = new List<string>() { "System.Collections.Generic", "Ripple.Lexing", "Ripple.Parsing" };
 
-            //Expressions
+            // Expressions
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Expressions", "Ripple.AST", "Expression", new List<string>()
             {
                 "Literal : Token Val",
                 "Grouping : Token LeftParen; Expression Expr; Token RightParen",
-                "Call : Token Identifier; Token OpenParen; List<Expression> Args; Token CloseParen",
+                "Call : Expression Callee; Token OpenParen; List<Expression> Args; Token CloseParen",
+                "Index : Expression Indexed; Token OpenBracket; Expression Argument; Token CloseBracket",
+                "Cast : Expression Castee; Token AsToken; TypeName TypeToCastTo",
                 "Unary : Token Op; Expression Expr",
                 "Binary : Expression Left; Token Op; Expression Right",
                 "Identifier : Token Name",
+                "InitializerList : Token OpenBrace; List<Expression> Expressions; Token CloseBrace",
             }, additionalUsings);
 
-            //Statements
+            // Statements
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Statements", "Ripple.AST", "Statement", new List<string>()
             {
                 "ExprStmt : Expression Expr; Token SemiColin",
                 "BlockStmt : Token OpenBrace; List<Statement> Statements; Token CloseBrace",
-                "IfStmt : Token IfTok; Token OpenParen; Expression Expr; Token CloseParen; Statement Body",
+                "IfStmt : Token IfTok; Token OpenParen; Expression Expr; Token CloseParen; Statement Body; Token? ElseToken; Statement ElseBody",
                 "ForStmt : Token ForTok; Token OpenParen; Statement Init; Expression Condition; Expression Iter; Token CloseParen; Statement Body",
-                "VarDecl : Token TypeName; List<Token> VarNames; Token Equels; Expression Expr; Token SemiColin",
+                "WhileStmt : Token WhileToken; Token OpenParen; Expression Condition; Token CloseParen; Statement Body",
+                "VarDecl : TypeName Type; List<Token> VarNames; Token Equels; Expression Expr; Token SemiColin",
                 "ReturnStmt : Token ReturnTok; Expression Expr; Token SemiColin",
 
-                "Parameters : Token OpenParen; List<(Token,Token)> ParamList; Token CloseParen",
-                "FuncDecl : Token FuncTok; Token Name; Parameters Param; Token Arrow; Token ReturnType; BlockStmt Body",
+                "ContinueStmt : Token ContinueToken; Token SemiColon",
+                "BreakStmt : Token BreakToken; Token SemiColon",
+
+                "Parameters : Token OpenParen; List<(TypeName,Token)> ParamList; Token CloseParen",
+                "FuncDecl : Token FuncTok; Token Name; Parameters Param; Token Arrow; TypeName ReturnType; BlockStmt Body",
+                "ExternalFuncDecl : Token ExternToken; Token Specifier; Token FuncToken; Token Name; Parameters Parameters; Token Arrow; TypeName ReturnType; Token SemiColon",
 
                 "FileStmt : List<Statement> Statements; Token EOFTok",
+                "Program : List<FileStmt> Files"
             }, additionalUsings);
 
             // Types:

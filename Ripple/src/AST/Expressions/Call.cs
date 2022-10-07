@@ -8,14 +8,14 @@ namespace Ripple.AST
 {
 	class Call : Expression
 	{
-		public readonly Token Identifier;
+		public readonly Expression Callee;
 		public readonly Token OpenParen;
 		public readonly List<Expression> Args;
 		public readonly Token CloseParen;
 
-		public Call(Token identifier, Token openParen, List<Expression> args, Token closeParen)
+		public Call(Expression callee, Token openParen, List<Expression> args, Token closeParen)
 		{
-			this.Identifier = identifier;
+			this.Callee = callee;
 			this.OpenParen = openParen;
 			this.Args = args;
 			this.CloseParen = closeParen;
@@ -35,14 +35,14 @@ namespace Ripple.AST
 		{
 			if(other is Call call)
 			{
-				return Identifier.Equals(call.Identifier) && OpenParen.Equals(call.OpenParen) && Args.Equals(call.Args) && CloseParen.Equals(call.CloseParen);
+				return Callee.Equals(call.Callee) && OpenParen.Equals(call.OpenParen) && Args.Equals(call.Args) && CloseParen.Equals(call.CloseParen);
 			}
 			return false;
 		}
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(Identifier, OpenParen, Args, CloseParen);
+			return HashCode.Combine(Callee, OpenParen, Args, CloseParen);
 		}
 	}
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.AST
 {
-    class AstPrinter : IAstVisitor
+    class AstPrinter : IStatementVisitor, IExpressionVisitor
     {
         private int m_Index = 0;
         private readonly string m_Seperator;
@@ -55,10 +55,18 @@ namespace Ripple.AST
             ifStmt.Expr.Accept(this);
             TabLeft();
 
-            Print("Body:");
+            Print("Main Branch:");
             TabRight();
             ifStmt.Body.Accept(this);
             TabLeft();
+
+            if(ifStmt.ElseToken.HasValue)
+            {
+                Print("Else Branch");
+                TabRight();
+                ifStmt.ElseBody.Accept(this);
+                TabLeft();
+            }
 
             TabLeft();
         }
@@ -104,7 +112,7 @@ namespace Ripple.AST
         {
             Print("Variable Declaration:");
             TabRight();
-            Print("Type: " + varDecl.TypeName.Text);
+            Print("Type: " + TypeNamePrinter.PrintType(varDecl.Type));
 
             string names = "";
             for(int i = 0; i < varDecl.VarNames.Count; i++)
@@ -140,7 +148,7 @@ namespace Ripple.AST
             Print("Parameters: ");
             TabRight();
             foreach (var pair in parameters.ParamList)
-                Print(pair.Item1.Text + " " + pair.Item2.Text);
+                Print(TypeNamePrinter.PrintType(pair.Item1) + " " + pair.Item2.Text);
             TabLeft();
         }
 
@@ -149,7 +157,7 @@ namespace Ripple.AST
             Print("Function Declaration:");
             TabRight();
             funcDecl.Param.Accept(this);
-            Print("Return type: " + funcDecl.ReturnType.Text);
+            Print("Return type: " + TypeNamePrinter.PrintType(funcDecl.ReturnType));
             funcDecl.Body.Accept(this);
             TabLeft();
         }
@@ -163,6 +171,50 @@ namespace Ripple.AST
             TabLeft();
         }
 
+        public void VisitWhileStmt(WhileStmt whileStmt)
+        {
+            Print("While Loop:");
+            TabRight();
+
+            Print("Condition:");
+            TabRight();
+            whileStmt.Condition.Accept(this);
+            TabLeft();
+
+            Print("Body:");
+            TabRight();
+            whileStmt.Body.Accept(this);
+            TabLeft();
+
+            TabLeft();
+        }
+
+        public void VisitContinueStmt(ContinueStmt continueStmt)
+        {
+            Print("Continue Statement");
+        }
+
+        public void VisitBreakStmt(BreakStmt breakStmt)
+        {
+            Print("Break Statement");
+        }
+
+        public void VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl)
+        {
+            Print("External Function Declaration:");
+            TabRight();
+            externalFuncDecl.Parameters.Accept(this);
+            Print("Return type: " + TypeNamePrinter.PrintType(externalFuncDecl.ReturnType));
+            TabLeft();
+        }
+
+        public void VisitProgram(Program program)
+        {
+            Print("Program:");
+            foreach (FileStmt file in program.Files)
+                file.Accept(this);
+        }
+
         public void VisitBinary(Binary binary)
         {
             Print("Binary: " + binary.Op.Text);
@@ -174,8 +226,13 @@ namespace Ripple.AST
 
         public void VisitCall(Call call)
         {
-            Print("Call: " + call.Identifier.Text);
+            Print("Call:");
             TabRight();
+            Print("Callee:");
+
+            TabRight();
+            call.Callee.Accept(this);
+            TabLeft();
 
             Print("Arguments:");
             TabRight();
@@ -209,6 +266,40 @@ namespace Ripple.AST
         public void VisitIdentifier(Identifier variable)
         {
             Print("Identifier: " + variable.Name.Text);
+        }
+
+        public void VisitIndex(Index index)
+        {
+            Print("Index:");
+            TabRight();
+            Print("Indexed:");
+
+            TabRight();
+            index.Indexed.Accept(this);
+            TabLeft();
+
+            Print("Argument:");
+            TabRight();
+            index.Argument.Accept(this);
+            TabLeft();
+            TabLeft();
+        }
+
+        public void VisitCast(Cast cast)
+        {
+            Print("Cast: " + TypeNamePrinter.PrintType(cast.TypeToCastTo));
+            TabLeft();
+            cast.Castee.Accept(this);
+            TabRight();
+        }
+
+        public void VisitInitializerList(InitializerList initializerList)
+        {
+            Print("Initializer List:");
+            TabRight();
+            foreach (Expression expression in initializerList.Expressions)
+                expression.Accept(this);
+            TabLeft();
         }
 
         private void TabRight() { m_Index++; }

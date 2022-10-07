@@ -20,6 +20,10 @@ namespace Ripple.AST
                 statement.Accept(this);
         }
 
+        public void VisitBreakStmt(BreakStmt breakStmt)
+        {
+            throw new NotImplementedException();
+        }
 
         public virtual void VisitCall(Call call)
         {
@@ -27,9 +31,24 @@ namespace Ripple.AST
                 expression.Accept(this);
         }
 
+        public void VisitCast(Cast cast)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitContinueStmt(ContinueStmt continueStmt)
+        {
+            throw new NotImplementedException();
+        }
+
         public virtual void VisitExprStmt(ExprStmt exprStmt)
         {
             exprStmt.Expr.Accept(this);
+        }
+
+        public void VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl)
+        {
+            throw new NotImplementedException();
         }
 
         public virtual void VisitFileStmt(FileStmt fileStmt)
@@ -52,6 +71,15 @@ namespace Ripple.AST
             funcDecl.Body.Accept(this);
         }
 
+        public void VisitFuncPtr(FuncPtr funcPtr)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitGroupedType(GroupedType groupedType)
+        {
+            throw new NotImplementedException();
+        }
 
         public virtual void VisitGrouping(Grouping grouping)
         {
@@ -66,9 +94,34 @@ namespace Ripple.AST
             ifStmt.Body.Accept(this);
         }
 
+        public void VisitIndex(Index index)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitInitializerList(InitializerList initializerList)
+        {
+            throw new NotImplementedException();
+        }
+
         public virtual void VisitLiteral(Literal literal) { }
 
         public virtual void VisitParameters(Parameters parameters) { }
+
+        public void VisitPointerType(PointerType pointerType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitProgram(Program program)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitReferenceType(ReferenceType referenceType)
+        {
+            throw new NotImplementedException();
+        }
 
         public virtual void VisitReturnStmt(ReturnStmt returnStmt)
         {
@@ -84,6 +137,11 @@ namespace Ripple.AST
         public virtual void VisitVarDecl(VarDecl varDecl)
         {
             varDecl.Expr.Accept(this);
+        }
+
+        public void VisitWhileStmt(WhileStmt whileStmt)
+        {
+            throw new NotImplementedException();
         }
     }
 }

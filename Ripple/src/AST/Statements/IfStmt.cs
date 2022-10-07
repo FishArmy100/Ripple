@@ -13,14 +13,18 @@ namespace Ripple.AST
 		public readonly Expression Expr;
 		public readonly Token CloseParen;
 		public readonly Statement Body;
+		public readonly Token? ElseToken;
+		public readonly Statement ElseBody;
 
-		public IfStmt(Token ifTok, Token openParen, Expression expr, Token closeParen, Statement body)
+		public IfStmt(Token ifTok, Token openParen, Expression expr, Token closeParen, Statement body, Token? elseToken, Statement elseBody)
 		{
 			this.IfTok = ifTok;
 			this.OpenParen = openParen;
 			this.Expr = expr;
 			this.CloseParen = closeParen;
 			this.Body = body;
+			this.ElseToken = elseToken;
+			this.ElseBody = elseBody;
 		}
 
 		public override void Accept(IStatementVisitor visitor)
@@ -37,14 +41,14 @@ namespace Ripple.AST
 		{
 			if(other is IfStmt ifStmt)
 			{
-				return IfTok.Equals(ifStmt.IfTok) && OpenParen.Equals(ifStmt.OpenParen) && Expr.Equals(ifStmt.Expr) && CloseParen.Equals(ifStmt.CloseParen) && Body.Equals(ifStmt.Body);
+				return IfTok.Equals(ifStmt.IfTok) && OpenParen.Equals(ifStmt.OpenParen) && Expr.Equals(ifStmt.Expr) && CloseParen.Equals(ifStmt.CloseParen) && Body.Equals(ifStmt.Body) && ElseToken.Equals(ifStmt.ElseToken) && ElseBody.Equals(ifStmt.ElseBody);
 			}
 			return false;
 		}
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(IfTok, OpenParen, Expr, CloseParen, Body);
+			return HashCode.Combine(IfTok, OpenParen, Expr, CloseParen, Body, ElseToken, ElseBody);
 		}
 	}
 }

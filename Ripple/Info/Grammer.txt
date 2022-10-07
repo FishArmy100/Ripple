@@ -66,7 +66,7 @@ grammer Ripple
 
 	VarDecl = TypeName IDENTIFIER ("," IDENTIFIER)* "=" Expression ";";
 	FuncDecl = "func" IDENTIFIER Parameters "->" TypeName Block;
-	ExternFuncDecl = "extern" StringLiteral? "func" IDENTIFIER Parameters "->"  TypeName ";";
+	ExternFuncDecl = "extern" StringLiteral "func" IDENTIFIER Parameters "->"  TypeName ";";
 
 	Statement = ExprStmt | Block | IfStmt | ForStmt | WhileStmt | VarDecl | ReturnStmt | ContinueStmt | BreakStmt;
 	Declaration = VarDecl | FuncDecl | ExternFuncDecl;

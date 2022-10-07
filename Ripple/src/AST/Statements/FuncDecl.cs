@@ -12,10 +12,10 @@ namespace Ripple.AST
 		public readonly Token Name;
 		public readonly Parameters Param;
 		public readonly Token Arrow;
-		public readonly Token ReturnType;
+		public readonly TypeName ReturnType;
 		public readonly BlockStmt Body;
 
-		public FuncDecl(Token funcTok, Token name, Parameters param, Token arrow, Token returnType, BlockStmt body)
+		public FuncDecl(Token funcTok, Token name, Parameters param, Token arrow, TypeName returnType, BlockStmt body)
 		{
 			this.FuncTok = funcTok;
 			this.Name = name;

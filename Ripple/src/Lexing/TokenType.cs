@@ -27,8 +27,8 @@ namespace Ripple.Lexing
 
         // Keywords
         Func, For, If, True, False, Return, 
-        Ref, Break, Continue, While, Else, 
-        As, Mut, Extern,
+        Break, Continue, While, Else, As, 
+        Mut, Extern,
 
         Unknown, EOF,
     }

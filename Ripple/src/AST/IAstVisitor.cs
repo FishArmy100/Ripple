@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.AST
 {
-    interface IAstVisitor : IExpressionVisitor, IStatementVisitor
+    interface IAstVisitor : IExpressionVisitor, IStatementVisitor, ITypeNameVisitor
     {
     }
 }
