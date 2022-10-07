@@ -20,7 +20,7 @@ class Player
 }
 
 // forces any value passed to have the methods defined in Stringable
-func Print<T>(T& stringable) -> void where T is IStringable /
+func Print<T>(T& stringable) -> void where T is IStringable
 {
   PrintLine(stringable->ToString());
 }
