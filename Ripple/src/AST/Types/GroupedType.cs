@@ -9,13 +9,13 @@ namespace Ripple.AST
 	class GroupedType : TypeName
 	{
 		public readonly Token OpenParen;
-		public readonly TypeName GroupedType;
+		public readonly TypeName Type;
 		public readonly Token CloseParen;
 
-		public GroupedType(Token openParen, TypeName groupedType, Token closeParen)
+		public GroupedType(Token openParen, TypeName type, Token closeParen)
 		{
 			this.OpenParen = openParen;
-			this.GroupedType = groupedType;
+			this.Type = type;
 			this.CloseParen = closeParen;
 		}
 
@@ -33,14 +33,14 @@ namespace Ripple.AST
 		{
 			if(other is GroupedType groupedType)
 			{
-				return OpenParen.Equals(groupedType.OpenParen) && GroupedType.Equals(groupedType.GroupedType) && CloseParen.Equals(groupedType.CloseParen);
+				return OpenParen.Equals(groupedType.OpenParen) && Type.Equals(groupedType.Type) && CloseParen.Equals(groupedType.CloseParen);
 			}
 			return false;
 		}
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(OpenParen, GroupedType, CloseParen);
+			return HashCode.Combine(OpenParen, Type, CloseParen);
 		}
 	}
 }

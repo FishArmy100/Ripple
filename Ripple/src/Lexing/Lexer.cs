@@ -159,7 +159,7 @@ namespace Ripple.Lexing
 
         private static bool ScanSymbol(ref StringReader reader, out Token tok)
         {
-            Token GenToken(ref StringReader reader, TokenType type, int length)
+            static Token GenToken(ref StringReader reader, TokenType type, int length)
             {
                 string src = "";
                 int line = reader.Line;
@@ -215,89 +215,64 @@ namespace Ripple.Lexing
 
                 // multiple
                 case '=':
-                    if(nc.HasValue)
+                    if(nc.HasValue && nc.Value == '=')
                     {
-                        if(nc.Value == '=')
-                        {
-                            tok = GenToken(ref reader, TokenType.EqualEqual, 2);
-                            return true;
-                        }
+                        tok = GenToken(ref reader, TokenType.EqualEqual, 2);
+                        return true;
                     }
                     tok = GenToken(ref reader, TokenType.Equal, 1);
                     return true;
 
                 case '<':
-                    if (nc.HasValue)
+                    if (nc.HasValue && nc.Value == '=')
                     {
-                        if (nc.Value == '=')
-                        {
-                            tok = GenToken(ref reader, TokenType.LessThanEqual, 2);
-                            return true;
-                        }
+                        tok = GenToken(ref reader, TokenType.LessThanEqual, 2);
+                        return true;
                     }
                     tok = GenToken(ref reader, TokenType.LessThan, 1);
                     return true;
 
                 case '>':
-                    if (nc.HasValue)
+                    if (nc.HasValue && nc.Value == '=')
                     {
-                        if (nc.Value == '=')
-                        {
-                            tok = GenToken(ref reader, TokenType.GreaterThanEqual, 2);
-                            return true;
-                        }
+                        tok = GenToken(ref reader, TokenType.GreaterThanEqual, 2);
+                        return true;
                     }
                     tok = GenToken(ref reader, TokenType.GreaterThan, 1);
                     return true;
 
                 case '!':
-                    if (nc.HasValue)
+                    if (nc.HasValue && nc.Value == '=')
                     {
-                        if (nc.Value == '=')
-                        {
-                            tok = GenToken(ref reader, TokenType.BangEqual, 2);
-                            return true;
-                        }
+                        tok = GenToken(ref reader, TokenType.BangEqual, 2);
+                        return true;
                     }
                     tok = GenToken(ref reader, TokenType.Bang, 1);
                     return true;
 
                 case '-':
-                    if (nc.HasValue)
+                    if (nc.HasValue && nc.Value == '>')
                     {
-                        if (nc.Value == '>')
-                        {
-                            tok = GenToken(ref reader, TokenType.RightThinArrow, 2);
-                            return true;
-                        }
+                        tok = GenToken(ref reader, TokenType.RightThinArrow, 2);
+                        return true;
                     }
                     tok = GenToken(ref reader, TokenType.Minus, 1);
                     return true;
 
                 case '&':
-                    if (nc.HasValue)
+                    if (nc.HasValue && nc.Value == '&')
                     {
-                        if (nc.Value == '&')
-                        {
-                            tok = GenToken(ref reader, TokenType.AmpersandAmpersand, 2);
-                            return true;
-                        }
-                        else
-                        {
-                            tok = GenToken(ref reader, TokenType.Ampersand, 1);
-                            return true;
-                        }
+                        tok = GenToken(ref reader, TokenType.AmpersandAmpersand, 2);
+                        return true;
                     }
-                    break;
+                    tok = GenToken(ref reader, TokenType.Ampersand, 1);
+                    return true;
 
                 case '|':
-                    if (nc.HasValue)
+                    if (nc.HasValue && nc.Value == '|')
                     {
-                        if (nc.Value == '|')
-                        {
-                            tok = GenToken(ref reader, TokenType.PipePipe, 2);
-                            return true;
-                        }
+                        tok = GenToken(ref reader, TokenType.PipePipe, 2);
+                        return true;
                     }
                     break;
 

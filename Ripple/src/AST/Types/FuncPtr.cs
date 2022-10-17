@@ -8,14 +8,16 @@ namespace Ripple.AST
 {
 	class FuncPtr : TypeName
 	{
+		public readonly Token? MutToken;
 		public readonly Token OpenParen;
 		public readonly List<TypeName> Parameters;
 		public readonly Token CloseParen;
 		public readonly Token Arrow;
 		public readonly TypeName ReturnType;
 
-		public FuncPtr(Token openParen, List<TypeName> parameters, Token closeParen, Token arrow, TypeName returnType)
+		public FuncPtr(Token? mutToken, Token openParen, List<TypeName> parameters, Token closeParen, Token arrow, TypeName returnType)
 		{
+			this.MutToken = mutToken;
 			this.OpenParen = openParen;
 			this.Parameters = parameters;
 			this.CloseParen = closeParen;
@@ -37,14 +39,14 @@ namespace Ripple.AST
 		{
 			if(other is FuncPtr funcPtr)
 			{
-				return OpenParen.Equals(funcPtr.OpenParen) && Parameters.Equals(funcPtr.Parameters) && CloseParen.Equals(funcPtr.CloseParen) && Arrow.Equals(funcPtr.Arrow) && ReturnType.Equals(funcPtr.ReturnType);
+				return MutToken.Equals(funcPtr.MutToken) && OpenParen.Equals(funcPtr.OpenParen) && Parameters.Equals(funcPtr.Parameters) && CloseParen.Equals(funcPtr.CloseParen) && Arrow.Equals(funcPtr.Arrow) && ReturnType.Equals(funcPtr.ReturnType);
 			}
 			return false;
 		}
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(OpenParen, Parameters, CloseParen, Arrow, ReturnType);
+			return HashCode.Combine(MutToken, OpenParen, Parameters, CloseParen, Arrow, ReturnType);
 		}
 	}
 }

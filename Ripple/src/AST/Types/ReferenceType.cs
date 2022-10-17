@@ -9,11 +9,13 @@ namespace Ripple.AST
 	class ReferenceType : TypeName
 	{
 		public readonly TypeName BaseType;
+		public readonly Token? MutToken;
 		public readonly Token Ampersand;
 
-		public ReferenceType(TypeName baseType, Token ampersand)
+		public ReferenceType(TypeName baseType, Token? mutToken, Token ampersand)
 		{
 			this.BaseType = baseType;
+			this.MutToken = mutToken;
 			this.Ampersand = ampersand;
 		}
 
@@ -31,14 +33,14 @@ namespace Ripple.AST
 		{
 			if(other is ReferenceType referenceType)
 			{
-				return BaseType.Equals(referenceType.BaseType) && Ampersand.Equals(referenceType.Ampersand);
+				return BaseType.Equals(referenceType.BaseType) && MutToken.Equals(referenceType.MutToken) && Ampersand.Equals(referenceType.Ampersand);
 			}
 			return false;
 		}
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(BaseType, Ampersand);
+			return HashCode.Combine(BaseType, MutToken, Ampersand);
 		}
 	}
 }

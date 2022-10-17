@@ -18,8 +18,8 @@
 
 ### Version 0.2.0 Memory Update:
 - Pointers and References: 
-    - c# based references
-    - `ref` keyword
+    - rust based references
+    - `&` to denote them
 - Branching Statements:
     - else
     - while
@@ -46,5 +46,7 @@
     - External declarations
 - Immutable by default
     - `mut` keyword
+- Initalizer lists
+    - For arrays
 
 

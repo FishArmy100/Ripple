@@ -1,0 +1,9 @@
+﻿
+
+func Test() -> void
+{
+	int[5] array = {1, 2, 3, 4, 5};
+	int* ptr = &array[0] as int*;
+
+	ptr[0] = 2;
+}

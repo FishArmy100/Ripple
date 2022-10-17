@@ -41,7 +41,7 @@ namespace Ripple.Validation
                 m_IsInFunction = true;
                 Functions.Push(new TempFuncData());
                 Functions.Peek().Name = funcDecl.Name;
-                Functions.Peek().ReturnType = funcDecl.ReturnType;
+                Functions.Peek().ReturnType = new Token();
                 base.VisitFuncDecl(funcDecl);
                 m_IsInFunction = false;
             }
@@ -49,7 +49,7 @@ namespace Ripple.Validation
             public override void VisitParameters(Parameters parameters)
             {
                 foreach ((var type, var name) in parameters.ParamList)
-                    Functions.Peek().Paramaters.Add((type, name));
+                    Functions.Peek().Paramaters.Add((new Token(), name));
             }
 
             public override void VisitVarDecl(VarDecl varDecl)
@@ -57,7 +57,7 @@ namespace Ripple.Validation
                 if(!m_IsInFunction)
                 {
                     foreach (Token varName in varDecl.VarNames)
-                        GlobalVariables.Add(new VariableData(varName, varDecl.TypeName));
+                        GlobalVariables.Add(new VariableData(varName, new Token()));
                 }
             }
         }

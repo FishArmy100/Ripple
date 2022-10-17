@@ -9,11 +9,13 @@ namespace Ripple.AST
 	class PointerType : TypeName
 	{
 		public readonly TypeName BaseType;
+		public readonly Token? MutToken;
 		public readonly Token Star;
 
-		public PointerType(TypeName baseType, Token star)
+		public PointerType(TypeName baseType, Token? mutToken, Token star)
 		{
 			this.BaseType = baseType;
+			this.MutToken = mutToken;
 			this.Star = star;
 		}
 
@@ -31,14 +33,14 @@ namespace Ripple.AST
 		{
 			if(other is PointerType pointerType)
 			{
-				return BaseType.Equals(pointerType.BaseType) && Star.Equals(pointerType.Star);
+				return BaseType.Equals(pointerType.BaseType) && MutToken.Equals(pointerType.MutToken) && Star.Equals(pointerType.Star);
 			}
 			return false;
 		}
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(BaseType, Star);
+			return HashCode.Combine(BaseType, MutToken, Star);
 		}
 	}
 }

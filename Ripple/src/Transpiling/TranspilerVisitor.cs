@@ -67,7 +67,7 @@ namespace Ripple.Transpiling
 
         public CStatement VisitVarDecl(VarDecl varDecl)
         {
-            string typeName = varDecl.TypeName.Text;
+            string typeName = TypeNamePrinter.PrintType(varDecl.Type);
             List<string> varNames = varDecl.VarNames.ConvertAll(t => t.Text);
             CExpression initalizer = TranspilerExpressionVisitor.Visit(varDecl.Expr);
 
@@ -87,8 +87,8 @@ namespace Ripple.Transpiling
         public CStatement VisitFuncDecl(FuncDecl funcDecl)
         {
             string funcName = funcDecl.Name.Text;
-            string returnType = funcDecl.ReturnType.Text;
-            List<(string, string)> parameters = funcDecl.Param.ParamList.ConvertAll(p => (p.Item1.Text, p.Item2.Text));
+            string returnType = TypeNamePrinter.PrintType(funcDecl.ReturnType);
+            List<(string, string)> parameters = funcDecl.Param.ParamList.ConvertAll(p => (TypeNamePrinter.PrintType(p.Item1), p.Item2.Text));
             CStatement.Block body = funcDecl.Body.Accept(this) as CStatement.Block;
 
             return new CStatement.Func(returnType, funcName, parameters, body);
@@ -118,5 +118,29 @@ namespace Ripple.Transpiling
             return new CStatement.Package(m_FileName, functions, variables, new List<string>());
         }
 
+        public CStatement VisitWhileStmt(WhileStmt whileStmt)
+        {
+            throw new NotImplementedException();
+        }
+
+        public CStatement VisitContinueStmt(ContinueStmt continueStmt)
+        {
+            throw new NotImplementedException();
+        }
+
+        public CStatement VisitBreakStmt(BreakStmt breakStmt)
+        {
+            throw new NotImplementedException();
+        }
+
+        public CStatement VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl)
+        {
+            throw new NotImplementedException();
+        }
+
+        public CStatement VisitProgram(AST.Program program)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

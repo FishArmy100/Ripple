@@ -15,10 +15,12 @@ grammer Ripple
 
 	// Types:
 	GroupedType = "(" TypeName ")";
-	PointerType = TypeName "*";
-	ReferenceType = TypeName "&";
-	FuncPtr = "(" TypeList ")" "->" TypeName
-	TypeName = GroupedType | PointerType | ReferenceType | FuncPtr | IDENTIFIER
+	PointerType = TypeName "mut"? "*";
+	ReferenceType = TypeName "mut"? "&";
+	ArrayType = TypeName "mut"? "[" IntLiteral "]";
+	FuncPtr = mut? "(" TypeList ")" "->" TypeName
+
+	TypeName = GroupedType | PointerType | ReferenceType | FuncPtr | ("mut"? IDENTIFIER);
 
 	// Expressions:
 	InitalizerList = "{" ExpressionList "}";
@@ -35,7 +37,7 @@ grammer Ripple
 			  IDENTIFIER		|
 			  InitalizerList;
 
-	Call = Expression "(" ExpressionList? ")";
+	Call = Primary "(" ExpressionList? ")";
 	Index = Expression "[" Expression "]";
 
 	Unary = ("!" | "-" | "&" | "*") Unary | (Call | Index);
@@ -50,7 +52,7 @@ grammer Ripple
 
 	Casting = LogicalOr ("as" TypeName)*
 
-	Assignment = IDENTIFIER "=" Assignment | Casting;
+	Assignment = Casting "=" Assignment | Casting;
 
 	Expression = Assignment;
 

@@ -4,6 +4,8 @@ using System.Collections;
 using System.Windows.Input;
 using System.IO;
 using Ripple.Compiling;
+using Ripple.AST;
+using Ripple.Parsing;
 
 namespace Ripple
 {
@@ -43,16 +45,17 @@ namespace Ripple
 
         private static void DebugSourceCode(string src)
         {
-            var lexingResult = Compiler.RunLexer(src);
-
-            lexingResult.Match(
-                ok => {
-                    foreach (Lexing.Token token in ok)
-                        Console.WriteLine(token.ToPrettyString());
-                },
-                fail => {
-                    foreach (CompilerError error in fail)
-                        Console.WriteLine(error);
+            var parserResult = Compiler.RunParser(src);
+            parserResult.Match(
+                ok => 
+                {
+                    AstPrinter printer = new AstPrinter("  ");
+                    printer.PrintAst(ok);
+                }, 
+                fail => 
+                {
+                    foreach (CompilerError compilerError in fail)
+                        Console.WriteLine(compilerError);
                 });
         }
     }

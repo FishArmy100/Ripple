@@ -66,10 +66,12 @@ namespace ASTGeneration
             // Types:
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Types", "Ripple.AST", "TypeName", new List<string>
             {
-                "GroupedType : Token OpenParen; TypeName GroupedType; Token CloseParen",
-                "PointerType : TypeName BaseType; Token Star",
-                "ReferenceType : TypeName BaseType; Token Ampersand",
-                "FuncPtr : Token OpenParen; List<TypeName> Parameters; Token CloseParen; Token Arrow; TypeName ReturnType",
+                "BasicType : Token? MutToken; Token Identifier",
+                "GroupedType : Token OpenParen; TypeName Type; Token CloseParen",
+                "PointerType : TypeName BaseType; Token? MutToken; Token Star",
+                "ReferenceType : TypeName BaseType; Token? MutToken; Token Ampersand",
+                "ArrayType : TypeName BaseType; Token? MutToken; Token OpenBracket; Token Size; Token CloseBracket",
+                "FuncPtr : Token? MutToken; Token OpenParen; List<TypeName> Parameters; Token CloseParen; Token Arrow; TypeName ReturnType",
             }, additionalUsings);
         }
     }

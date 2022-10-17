@@ -32,7 +32,7 @@ namespace Ripple.Transpiling
             foreach (Expression arg in call.Args)
                 args.Add(arg.Accept(this));
 
-            return new CExpression.Call(args, call.Identifier.Text);
+            return new CExpression.Call(args, "");
         }
 
         public CExpression VisitGrouping(Grouping grouping)
@@ -94,6 +94,21 @@ namespace Ripple.Transpiling
                 TokenType.Bang => CUnaryOperator.Bang,
                 _ => throw new ArgumentException("Cannot convert operator")
             };
+        }
+
+        public CExpression VisitIndex(AST.Index index)
+        {
+            throw new NotImplementedException();
+        }
+
+        public CExpression VisitCast(Cast cast)
+        {
+            throw new NotImplementedException();
+        }
+
+        public CExpression VisitInitializerList(InitializerList initializerList)
+        {
+            throw new NotImplementedException();
         }
     }
 }

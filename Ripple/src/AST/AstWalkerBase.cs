@@ -8,6 +8,16 @@ namespace Ripple.AST
 {
     abstract class AstWalkerBase : IAstVisitor
     {
+        public void VisitArrayType(ArrayType arrayType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitBasicType(BasicType basicType)
+        {
+            throw new NotImplementedException();
+        }
+
         public virtual void VisitBinary(Binary binary)
         {
             binary.Left.Accept(this);

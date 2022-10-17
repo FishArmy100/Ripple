@@ -78,7 +78,7 @@ namespace Ripple.Validation
 
         public void VisitFuncDecl(FuncDecl funcDecl)
         {
-            string returnTypeName = funcDecl.ReturnType.Text;
+            string returnTypeName = TypeNamePrinter.PrintType(funcDecl.ReturnType);
             if(m_Helper.ContainsType(returnTypeName))
             {
                 m_CurrentFunctionReturnType = returnTypeName;
@@ -86,7 +86,7 @@ namespace Ripple.Validation
             else
             {
                 string message = "Return type" + returnTypeName + " does not exist.";
-                m_Errors.Add(new ValidationError(message, funcDecl.ReturnType));
+                m_Errors.Add(new ValidationError(message, funcDecl.Arrow));
             }
             m_IsInFunction = true;
             
@@ -126,7 +126,7 @@ namespace Ripple.Validation
         public void VisitParameters(Parameters parameters)
         {
             foreach ((var type, var name) in parameters.ParamList)
-                AddVariable(type, name);
+                AddVariable(new Token(), name);
         }
 
         public void VisitReturnStmt(ReturnStmt returnStmt)
@@ -170,9 +170,9 @@ namespace Ripple.Validation
             {
                 AddVariable(varDecl);
                 string exprType = varDecl.Expr.Accept(this);
-                if(exprType != varDecl.TypeName.Text)
+                if(exprType != TypeNamePrinter.PrintType(varDecl.Type))
                 {
-                    string message = "Cannot assign value of type: " + exprType + " to type: " + varDecl.TypeName.Text;
+                    string message = "Cannot assign value of type: " + exprType + " to type: " + TypeNamePrinter.PrintType(varDecl.Type);
                     m_Errors.Add(new ValidationError(message, varDecl.Equels));
                 }
             }
@@ -207,7 +207,7 @@ namespace Ripple.Validation
             foreach (Expression expression in call.Args)
                 argTypes.Add(expression.Accept(this));
 
-            string funcName = call.Identifier.Text;
+            string funcName = "";
             if(m_Helper.TryGetFunction(funcName, argTypes, out FunctionData functionData))
             {
                 return functionData.ReturnType.Text;
@@ -218,7 +218,7 @@ namespace Ripple.Validation
                     "Funtion: " + funcName + "does not have an overload with the given argument types defined." :
                     "Function: " + funcName + " is not defined.";
 
-                throw new TypeCheckExeption(message, call.Identifier);
+                throw new TypeCheckExeption(message, new Token());
             }
         }
 
@@ -292,7 +292,7 @@ namespace Ripple.Validation
         private void AddVariable(VarDecl varDecl)
         {
             foreach (Token name in varDecl.VarNames)
-                AddVariable(varDecl.TypeName, name);
+                AddVariable(new Token(), name);
         }
 
         private void AddVariable(Token type, Token name)
@@ -335,6 +335,46 @@ namespace Ripple.Validation
                 m_Errors.Add(new ValidationError(message, name));
                 return;
             }
+        }
+
+        public string VisitIndex(AST.Index index)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string VisitCast(Cast cast)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string VisitInitializerList(InitializerList initializerList)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitWhileStmt(WhileStmt whileStmt)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitContinueStmt(ContinueStmt continueStmt)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitBreakStmt(BreakStmt breakStmt)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitProgram(AST.Program program)
+        {
+            throw new NotImplementedException();
         }
     }
 }
