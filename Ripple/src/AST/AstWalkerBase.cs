@@ -123,7 +123,7 @@ namespace Ripple.AST
             throw new NotImplementedException();
         }
 
-        public void VisitProgram(Program program)
+        public void VisitProgramStmt(ProgramStmt program)
         {
             throw new NotImplementedException();
         }

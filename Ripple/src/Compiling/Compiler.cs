@@ -14,35 +14,38 @@ namespace Ripple.Compiling
 {
     static class Compiler
     {
-        public static CompilerResult<TranspilerResult> Compile(string source, string fileName)
+        public static CompilerResult<List<Token>> RunLexer(List<SourceFile> sourceFiles)
         {
-            return Lexer.Scan(source).ConvertToCompilerResult(e => new CompilerError(e))
-                .Match(tokens => Parser.Parse(tokens).ConvertToCompilerResult(e => new CompilerError(e)))
-                .Match(file => Validator.ValidateAst(file).ConvertToCompilerResult(e => new CompilerError(e)))
-                .Match(file =>
-                {
-                    var result = Transpiler.Transpile(file, fileName);
-                    return new CompilerResult<TranspilerResult>.Ok(result);
-                });
+            var results = sourceFiles
+                .ConvertAll(f => Lexer.Scan(f.Source))
+                .ConvertAll(lr => lr.ConvertToCompilerResult(e => new CompilerError(e)));
+
+            List<Token> tokens = new List<Token>();
+            List<CompilerError> compilerErrors = new List<CompilerError>();
+
+            foreach(var result in results)
+            {
+                result.Match(
+                    ok =>
+                    {
+                        tokens.AddRange(ok);
+                    },
+                    fail =>
+                    {
+                        compilerErrors.AddRange(fail);
+                    });
+            }
+
+            if (compilerErrors.Count > 0)
+                return new CompilerResult<List<Token>>.Fail(compilerErrors);
+            else
+                return new CompilerResult<List<Token>>.Ok(tokens);
         }
 
-        public static CompilerResult<List<Token>> RunLexer(string source)
+        public static CompilerResult<ProgramStmt> RunParser(List<SourceFile> sourceFiles)
         {
-            return Lexer.Scan(source)
-                .ConvertToCompilerResult(e => new CompilerError(e));
-        }
-
-        public static CompilerResult<FileStmt> RunParser(string source)
-        {
-            return RunLexer(source)
+            return RunLexer(sourceFiles)
                 .Match(ok => Parser.Parse(ok)
-                .ConvertToCompilerResult(e => new CompilerError(e)));
-        }
-
-        public static CompilerResult<FileStmt> RunValidator(string source)
-        {
-            return RunParser(source)
-                .Match(file => Validator.ValidateAst(file)
                 .ConvertToCompilerResult(e => new CompilerError(e)));
         }
 

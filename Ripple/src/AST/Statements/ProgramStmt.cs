@@ -6,30 +6,30 @@ using Ripple.Parsing;
 
 namespace Ripple.AST
 {
-	class Program : Statement
+	class ProgramStmt : Statement
 	{
 		public readonly List<FileStmt> Files;
 
-		public Program(List<FileStmt> files)
+		public ProgramStmt(List<FileStmt> files)
 		{
 			this.Files = files;
 		}
 
 		public override void Accept(IStatementVisitor visitor)
 		{
-			visitor.VisitProgram(this);
+			visitor.VisitProgramStmt(this);
 		}
 
 		public override T Accept<T>(IStatementVisitor<T> visitor)
 		{
-			return visitor.VisitProgram(this);
+			return visitor.VisitProgramStmt(this);
 		}
 
 		public override bool Equals(object other)
 		{
-			if(other is Program program)
+			if(other is ProgramStmt programStmt)
 			{
-				return Files.Equals(program.Files);
+				return Files.Equals(programStmt.Files);
 			}
 			return false;
 		}

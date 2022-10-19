@@ -138,7 +138,7 @@ namespace Ripple.Transpiling
             throw new NotImplementedException();
         }
 
-        public CStatement VisitProgram(AST.Program program)
+        public CStatement VisitProgramStmt(ProgramStmt program)
         {
             throw new NotImplementedException();
         }

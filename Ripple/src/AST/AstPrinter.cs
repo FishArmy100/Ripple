@@ -208,11 +208,13 @@ namespace Ripple.AST
             TabLeft();
         }
 
-        public void VisitProgram(Program program)
+        public void VisitProgramStmt(ProgramStmt program)
         {
             Print("Program:");
+            TabRight();
             foreach (FileStmt file in program.Files)
                 file.Accept(this);
+            TabLeft();
         }
 
         public void VisitBinary(Binary binary)

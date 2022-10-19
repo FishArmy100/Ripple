@@ -372,7 +372,7 @@ namespace Ripple.Validation
             throw new NotImplementedException();
         }
 
-        public void VisitProgram(AST.Program program)
+        public void VisitProgramStmt(ProgramStmt program)
         {
             throw new NotImplementedException();
         }

@@ -60,7 +60,7 @@ namespace ASTGeneration
                 "ExternalFuncDecl : Token ExternToken; Token Specifier; Token FuncToken; Token Name; Parameters Parameters; Token Arrow; TypeName ReturnType; Token SemiColon",
 
                 "FileStmt : List<Statement> Statements; Token EOFTok",
-                "Program : List<FileStmt> Files"
+                "ProgramStmt : List<FileStmt> Files"
             }, additionalUsings);
 
             // Types:

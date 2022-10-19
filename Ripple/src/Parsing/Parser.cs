@@ -12,25 +12,38 @@ namespace Ripple.Parsing
 {
     static class Parser
     {
-        public static Result<FileStmt, List<ParserError>> Parse(List<Token> tokens)
+        public static Result<ProgramStmt, List<ParserError>> Parse(List<Token> tokens)
         {
             TokenReader reader = new TokenReader(tokens);
             List<ParserError> errors = new List<ParserError>();
+            List<FileStmt> files = new List<FileStmt>();
 
-            try
+            while (!reader.IsAtEnd())
             {
-                FileStmt file = ParseFile(ref reader, ref errors);
+                try
+                {
+                    FileStmt file = ParseFile(ref reader, ref errors);
+                    files.Add(file);
+                }
+                catch (ParserExeption e)
+                {
+                    errors.Add(new ParserError(e.Message, e.Tok));
+                    reader.SyncronizeTo(TokenType.EOF);
 
-                if (errors.Count > 0)
-                    return new Result<FileStmt, List<ParserError>>.Fail(errors);
+                    if (!reader.IsAtEnd())
+                        reader.Advance(); // go passed EOF token
+                }
+                catch(ReaderAtEndExeption)
+                {
+                    errors.Add(new ParserError("Reader passed the end of the token list.", new Token()));
+                    break;
+                }
+            }
 
-                return new Result<FileStmt, List<ParserError>>.Ok(file);
-            }
-            catch(ParserExeption e)
-            {
-                errors.Add(new ParserError(e.Message, e.Tok));
-                return new Result<FileStmt, List<ParserError>>.Fail(errors);
-            }
+            if (errors.Count > 0)
+                return new Result<ProgramStmt, List<ParserError>>.Fail(errors);
+
+            return new Result<ProgramStmt, List<ParserError>>.Ok(new ProgramStmt(files));
         }
 
         private static FileStmt ParseFile(ref TokenReader reader, ref List<ParserError> errors)

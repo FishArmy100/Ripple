@@ -18,7 +18,7 @@ namespace Ripple.AST
 		public abstract void VisitFuncDecl(FuncDecl funcDecl);
 		public abstract void VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl);
 		public abstract void VisitFileStmt(FileStmt fileStmt);
-		public abstract void VisitProgram(Program program);
+		public abstract void VisitProgramStmt(ProgramStmt programStmt);
 	}
 
 	interface IStatementVisitor<T>
@@ -36,6 +36,6 @@ namespace Ripple.AST
 		public abstract T VisitFuncDecl(FuncDecl funcDecl);
 		public abstract T VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl);
 		public abstract T VisitFileStmt(FileStmt fileStmt);
-		public abstract T VisitProgram(Program program);
+		public abstract T VisitProgramStmt(ProgramStmt programStmt);
 	}
 }
