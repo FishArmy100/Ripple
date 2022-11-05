@@ -1,15 +1,19 @@
 # Basic Ripple Requirments
 - Primatives
-    - Int
-    - Unsigned int
-    - Float 
-    - Charactor
+    - Int: 8, 16, 32, 64 types
+    - Unsigned int: 8, 16, 32, 64 types
+    - Float: 32, 64 bit types
+    - Charactor: 8 bit type
 - Operators
     - Arithmatic:
+        - Binary:
+        - Unary Prefix
+    - Logical:
     - Reference of:
-    - Casting:
-    - Call:
-    - Index:
+        - ``
+    - Casting: `expr "as" typename`
+    - Call: `expr "(" expr* ")"`
+    - Index: `expr "[" expr "]"`
 - References:
     - Lifetimes:
     - Getting references:
