@@ -1,4 +1,5 @@
 # Basic Ripple Requirments
+## Core Requirements:
 - Primatives
     - Int: 8, 16, 32, 64 types
     - Unsigned int: 8, 16, 32, 64 types
@@ -41,3 +42,9 @@
 - External Code:
     - Declaration:
     - Linking:
+
+
+## Utility Definitions:
+- Cast = `expr "as" type_name`
+
+
