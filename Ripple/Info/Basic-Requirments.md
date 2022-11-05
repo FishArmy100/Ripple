@@ -1,13 +1,41 @@
 # Basic Ripple Requirments
 - Primatives
+    - Int
+    - Unsigned int
+    - Float 
+    - Charactor
 - Operators
-- References
-    - Lifetimes
-- Pointers
-    - Unsafe
+    - Arithmatic:
+    - Reference of:
+    - Casting:
+    - Call:
+    - Index:
+- References:
+    - Lifetimes:
+    - Getting references:
+        - Mutable
+        - Immutable 
+    - Rust reference rules:
+    - Unsafe References:
+    - Dereferencing/Indirection:
+- Pointers:
+    - Unsafe:
+    - Indexing:
+    - Dereferencing/Indirection
+- Arrays:
+    - Stack Allocated 
+    - Statically sized
     - Indexing
-    - Dereferencing
-- Veriables
-- Mutablility
-- Functions
-- External Code
+- Veriables:
+    - Declarations:
+    - Assignment:
+    - Allocation:
+- Mutablility:
+- Scope:
+- Functions:
+    - Declaration:
+    - Calling:
+    - Function pointers:
+- External Code:
+    - Declaration:
+    - Linking:
