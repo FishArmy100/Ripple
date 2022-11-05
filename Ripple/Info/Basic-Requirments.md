@@ -6,19 +6,17 @@
     - Charactor: 8 bit type
 - Operators
     - Arithmatic:
-        - Binary:
-        - Unary Prefix
+        - Binary: `expr op expr`
+        - Unary Prefix: `op expr`
     - Logical:
     - Reference of:
-        - ``
+        - Mutable: `"&" "mut" expr`
+        - Immutable: `"&" expr`
     - Casting: `expr "as" typename`
     - Call: `expr "(" expr* ")"`
     - Index: `expr "[" expr "]"`
 - References:
-    - Lifetimes:
-    - Getting references:
-        - Mutable
-        - Immutable 
+    - Lifetimes: 
     - Rust reference rules:
     - Unsafe References:
     - Dereferencing/Indirection:
