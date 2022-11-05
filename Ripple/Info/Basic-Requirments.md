@@ -1,0 +1,13 @@
+# Basic Ripple Requirments
+- Primatives
+- Operators
+- References
+    - Lifetimes
+- Pointers
+    - Unsafe
+    - Indexing
+    - Dereferencing
+- Veriables
+- Mutablility
+- Functions
+- External Code

@@ -5,12 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Utils.Extensions;
 using Ripple.Utils;
+using Ripple.Compiling;
 
 namespace Ripple.Lexing
 {
     static class Lexer
     {
-        public static Result<List<Token>, List<LexerError>> Scan(string src)
+        public static Result<List<Token>, List<LexerError>> Scan(string src, string fileName)
         {
             StringReader reader = new StringReader(src);
             List<Token> tokens = new List<Token>();
@@ -36,7 +37,7 @@ namespace Ripple.Lexing
                 }
             }
 
-            tokens.Add(new Token("", TokenType.EOF, reader.Line, reader.Line));
+            tokens.Add(new Token(fileName, TokenType.EOF, reader.Line, reader.Line));
 
             if (errors.Count > 0)
                 return new Result<List<Token>, List<LexerError>>.Fail(errors);
