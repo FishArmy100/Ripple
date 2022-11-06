@@ -1,50 +1,47 @@
 # Basic Ripple Requirments
 ## Core Requirements:
 - Primatives
-    - Int: 8, 16, 32, 64 types
-    - Unsigned int: 8, 16, 32, 64 types
-    - Float: 32, 64 bit types
-    - Charactor: 8 bit type
-- Operators
-    - Arithmatic:
-        - Binary: `expr op expr`
-        - Unary Prefix: `op expr`
+    - Int: `i8`, `i16`, `i32`, `i64` types
+    - Unsigned int: `u8`, `u16`, `u32`, `u64` types
+    - Float: `f32`, `f64` bit types
+    - Charactor: `char` bit type
+    - Bool: `bool` type, `true`/`false` values
+    - All have C-Style operations
     - Logical:
-    - Reference of:
+    - Casting: `expr "as" typename`
+- References: `typename "mut"? "&"`
+    - Reference of operators:
         - Mutable: `"&" "mut" expr`
         - Immutable: `"&" expr`
-    - Casting: `expr "as" typename`
-    - Call: `expr "(" expr* ")"`
-    - Index: `expr "[" expr "]"`
-- References:
-    - Lifetimes: 
+    - Lifetimes: `"'" identifier`
+        - Anotate references: `"&" "'" identifier`
+        - Lifetime inference for functions
     - Rust reference rules:
+        - Only one live mutable reference
+        - Cannot mutate an object with a live immutable reference
+        - Lifetime of referenced object must outlive the reference
     - Unsafe References:
-    - Dereferencing/Indirection:
-- Pointers:
-    - Unsafe:
-    - Indexing:
-    - Dereferencing/Indirection
-- Arrays:
+    - Dereferencing: `"*" expr`
+- Pointers: `typename "mut"? "*"`
+    - Unsafe: cannot be used outside of unsafe code
+    - Indexing: `expr "[" expr "]"`
+    - Dereferencing: `"*" expr`
+- Arrays: `typename "[" size "]"`
     - Stack Allocated 
     - Statically sized
-    - Indexing
-- Veriables:
-    - Declarations:
-    - Assignment:
-    - Allocation:
+    - Index: `expr "[" expr "]"`
+- Veriables: `typename id_list "=" expr`
+    - Assignment
+    - Allocation: RAII???
 - Mutablility:
-- Scope:
-- Functions:
-    - Declaration:
-    - Calling:
-    - Function pointers:
-- External Code:
-    - Declaration:
+    - Anything marked as `mut` can be changed
+- Scope: `"{" statment* "}"`
+- Functions: `"func" identifier lifetime_params? "(" param_list ")" "->" typename body`
+    - Call: `expr "(" expr* ")"`
+    - Function pointers: `"(" type_list ")" "->" typename`
+- External Code: `"extern" string_literal "func" identifier lifetime_params? "(" param_list ")" "->" typename`
     - Linking:
-
-
-## Utility Definitions:
-- Cast = `expr "as" type_name`
+        - For c code, will attempt to statically link
+        - Only c valid for now
 
 
