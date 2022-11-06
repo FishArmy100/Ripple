@@ -20,6 +20,7 @@ References are the backbone of ripples safe memory management. A reference repre
 
 
 ## Code:
+### Basic Lifetimes:
 ```swift
 public class Ref<T, 'a> : IInderectable<T, 'a>, ICopyable
 {
@@ -32,34 +33,37 @@ public class Ref<T, 'a> : IInderectable<T, 'a>, ICopyable
     }
 }
 
+func DoesntWork<'a>() -> int&'a
+{
+    return &5; // lifetime of 5, is shorter than the required lifetime
+}
 
 func Main() -> void
 {
     int i = 0;
-    lifetime l = lifetimeof(i);
-
     mut Option<Ref<int>> opt = None; // lifetimes will be infered by the compiler
     opt = Ref<int>(i); // lifetime infered
 }
 ```
 
+### Mutability:
 ```swift
-// there is a problem with:
-public class Test<T>
-{
-    public T&'lifetimeof(this) Ref;
-    public Test(T&'lifetimeof(this) ref) : Ref(ref) {}
-}
-
-func HeresYourProblem() -> Test<int>
-{
-    int i = 5;
-    return Test<int>(&i);
-}
-
 func Main() -> void
 {
-    Test<int> problem = HeresYourProblem();
+    mut int i = 5;
+    int ci = 42;
+    {
+        mut int& ref1 = &mut i;
+        mut int& ref2 = &mut i; // does not compile
+
+        int& cref = &i;
+        *ref1 = 6; // does not compile
+    }
+
+    mut int& ref = &mut i; // works fine
+    *ref = 6; // also works
+
+    mut int& other = &mut i; // does not compile
 }
 ```
 

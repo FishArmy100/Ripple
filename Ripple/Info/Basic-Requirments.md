@@ -9,6 +9,13 @@
     - All have C-Style operations
     - Logical:
     - Casting: `expr "as" typename`
+        - Float -> Int, <->
+        - Int -> Uint, <->
+        - Float -> Uint, <->
+        - Ptr -> Ref, <->
+        - Int -> Int, <->
+        - Float -> Float, <->
+        - Uint -> Uint, <->
 - References: `typename "mut"? "&"`
     - Reference of operators:
         - Mutable: `"&" "mut" expr`
@@ -36,9 +43,16 @@
 - Mutablility:
     - Anything marked as `mut` can be changed
 - Scope: `"{" statment* "}"`
+- Control Flow:
+    - If: `"if" "(" expr ")" statement ("else" statement)?`
+    - For: same as c++
+    - While: same as c++
+    - Break: `break`
+    - Continue: `continue`
 - Functions: `"func" identifier lifetime_params? "(" param_list ")" "->" typename body`
     - Call: `expr "(" expr* ")"`
     - Function pointers: `"(" type_list ")" "->" typename`
+    - Return statement: `"return" expr`
 - External Code: `"extern" string_literal "func" identifier lifetime_params? "(" param_list ")" "->" typename`
     - Linking:
         - For c code, will attempt to statically link
