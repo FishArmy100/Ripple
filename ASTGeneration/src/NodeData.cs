@@ -11,7 +11,6 @@ namespace ASTGeneration
         public readonly string Name;
         public readonly List<KeyValuePair<string, string>> FeildData;
 
-
         public NodeData(string namespaceName, string baseName, string name, List<KeyValuePair<string, string>> feildData)
         {
             NamespaceName = namespaceName;

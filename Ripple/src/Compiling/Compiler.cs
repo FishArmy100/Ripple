@@ -17,7 +17,7 @@ namespace Ripple.Compiling
         public static CompilerResult<List<Token>> RunLexer(List<SourceFile> sourceFiles)
         {
             var results = sourceFiles
-                .ConvertAll(f => Lexer.Scan(f.Source))
+                .ConvertAll(f => Lexer.Scan(f.Source, f.Path))
                 .ConvertAll(lr => lr.ConvertToCompilerResult(e => new CompilerError(e)));
 
             List<Token> tokens = new List<Token>();

@@ -70,7 +70,7 @@ namespace Ripple.Parsing
             }
 
             Token eof = reader.Consume(TokenType.EOF, "Expected end of file.");
-            return new FileStmt(declarations, eof);
+            return new FileStmt(declarations, eof.Text, eof);
         }
 
         private static Statement ParseDeclaration(ref TokenReader reader, ref List<ParserError> errors)

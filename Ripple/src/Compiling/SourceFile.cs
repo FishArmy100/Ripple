@@ -10,11 +10,13 @@ namespace Ripple.Compiling
     {
         public readonly string Path;
         public readonly string Source;
+        public readonly string Name;
 
         public SourceFile(string path, string source)
         {
             Path = path;
             Source = source;
+            Name = System.IO.Path.GetFileName(Path);
         }
     }
 }

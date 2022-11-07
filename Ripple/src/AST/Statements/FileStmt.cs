@@ -9,11 +9,13 @@ namespace Ripple.AST
 	class FileStmt : Statement
 	{
 		public readonly List<Statement> Statements;
+		public readonly string FilePath;
 		public readonly Token EOFTok;
 
-		public FileStmt(List<Statement> statements, Token eOFTok)
+		public FileStmt(List<Statement> statements, string filePath, Token eOFTok)
 		{
 			this.Statements = statements;
+			this.FilePath = filePath;
 			this.EOFTok = eOFTok;
 		}
 
@@ -31,14 +33,14 @@ namespace Ripple.AST
 		{
 			if(other is FileStmt fileStmt)
 			{
-				return Statements.Equals(fileStmt.Statements) && EOFTok.Equals(fileStmt.EOFTok);
+				return Statements.Equals(fileStmt.Statements) && FilePath.Equals(fileStmt.FilePath) && EOFTok.Equals(fileStmt.EOFTok);
 			}
 			return false;
 		}
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(Statements, EOFTok);
+			return HashCode.Combine(Statements, FilePath, EOFTok);
 		}
 	}
 }

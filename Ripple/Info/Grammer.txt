@@ -4,9 +4,11 @@
 grammer Ripple
 {
 	// Utilites:
-	Parameters = "(" (TypeName Identifier ("," TypeName Identifier))* ")"
-	ExpressionList = Expression ("," Expression)*
-	TypeList = TypeName ("," TypeName)*
+	Parameters = "(" (TypeName Identifier ("," TypeName Identifier))* ")";
+	ExpressionList = Expression ("," Expression)*;
+	TypeList = TypeName ("," TypeName)*;
+	GenericParams = "<" (TypeName | IDENTIFIER | Lifetime)* ">";
+	GenericArgs = "<" (TypeName | Expression | Lifetime)* ">";
 
 	IntLiteral = DIGIT+;
 	FloatLiteral = DIGIT+ "." DIGIT+;
@@ -18,14 +20,26 @@ grammer Ripple
 	PointerType = TypeName "mut"? "*";
 	ReferenceType = TypeName "mut"? "&";
 	ArrayType = TypeName "mut"? "[" IntLiteral "]";
-	FuncPtr = mut? "(" TypeList ")" "->" TypeName
+	FuncPtr = "mut"? "(" TypeList ")" "->" TypeName;
+	GenericType = IDENTIFIER GenericArgs
 
-	TypeName = GroupedType | PointerType | ReferenceType | FuncPtr | ("mut"? IDENTIFIER);
+	TypeName = GroupedType			|
+			   PointerType			|
+			   ReferenceType		|
+			   FuncPtr				|
+			   GenericType			|
+			   ("mut"? IDENTIFIER);
+
+	Lifetime = "'" IDENTIFIER;
+
+	ClassVisibility = "public" | "private";
 
 	// Expressions:
 	InitalizerList = "{" ExpressionList "}";
 
 	Grouping = "(" Expression ")";
+	MemberSelection = Expression ("." IDENTIFIER)*;
+	Construction = TypeName "(" ExpressionList? ")";
 
 	Primary = IntLiteral		|
 	          FloatLiteral		|
@@ -35,9 +49,12 @@ grammer Ripple
 			  StringLiteral		|
 			  CharLiteral		|
 			  IDENTIFIER		|
-			  InitalizerList;
+			  InitalizerList	|
+			  MemberSelection	|
+			  Construction;
+			  
 
-	Call = Primary "(" ExpressionList? ")";
+	Call = MemberSelection GenericArgs? "(" ExpressionList? ")";
 	Index = Expression "[" Expression "]";
 
 	Unary = ("!" | "-" | "&" | "*") Unary | (Call | Index);
@@ -66,12 +83,34 @@ grammer Ripple
 	BreakStmt = "break" ";";
 	ContinueStmt = "continue" ";";
 
-	VarDecl = TypeName IDENTIFIER ("," IDENTIFIER)* "=" Expression ";";
-	FuncDecl = "func" IDENTIFIER Parameters "->" TypeName Block;
+	// Declarations:
+	VarDecl = TypeName IDENTIFIER ("," IDENTIFIER)* ("=" Expression)? ";";
+	FuncDecl = "func" IDENTIFIER GenericParams? Parameters "->" TypeName Block;
 	ExternFuncDecl = "extern" StringLiteral "func" IDENTIFIER Parameters "->"  TypeName ";";
 
-	Statement = ExprStmt | Block | IfStmt | ForStmt | WhileStmt | VarDecl | ReturnStmt | ContinueStmt | BreakStmt;
-	Declaration = VarDecl | FuncDecl | ExternFuncDecl;
+	MemberDecl = ClassVisibility ("mut"? FuncDecl | VarDecl);
+	ClassDecl = "class" IDENTIFIER GenericParams? "{" MemberDecl* "}"
+
+	ExternMemberDecl = TypeName IDENTIFIER ("," IDENTIFIER)* | 
+					   "func" IDENTIFIER Parameters "->"  TypeName ";";
+
+	ExternClassDecl = "extern" StringLiteral "class" IDENTIFIER "{" "}";
+
+	Statement = ExprStmt		| 
+				Block			| 
+				IfStmt			| 
+				ForStmt			| 
+				WhileStmt		| 
+				VarDecl			| 
+				ReturnStmt		| 
+				ContinueStmt	| 
+				BreakStmt;
+	
+	Declaration = VarDecl			|
+				  FuncDecl			|
+				  ExternFuncDecl	|
+				  ClassDecl			|
+				  ExternClassDecl;
 
 	File = Declaration* EOF;
 
