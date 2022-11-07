@@ -18,7 +18,7 @@ grammer Ripple
 	// Types:
 	GroupedType = "(" TypeName ")";
 	PointerType = TypeName "mut"? "*";
-	ReferenceType = TypeName "mut"? "&";
+	ReferenceType = TypeName "mut"? "&" Lifetime?;
 	ArrayType = TypeName "mut"? "[" IntLiteral "]";
 	FuncPtr = "mut"? "(" TypeList ")" "->" TypeName;
 	GenericType = IDENTIFIER GenericArgs
