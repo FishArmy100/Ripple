@@ -57,7 +57,7 @@ namespace Ripple.Lexing
                     tokens.Add(tok);
                 else if (ScanStringLiteral(ref reader, out tok))
                     tokens.Add(tok);
-                else if (ScanCharactorLiteral(ref reader, ref errors, out tok))
+                else if (ScanCharactorLiteralOrLifetime(ref reader, out tok))
                     tokens.Add(tok);
                 else
                     return false;
@@ -311,26 +311,63 @@ namespace Ripple.Lexing
             return false;
         }
         
-        private static bool ScanCharactorLiteral(ref StringReader reader, ref List<LexerError> errors, out Token literal)
+        private static bool ScanCharactorLiteralOrLifetime(ref StringReader reader, out Token token)
         {
-            literal = new Token();
-
+            token = new Token();
             if(reader.Current() == '\'')
             {
-                string text = "";
-                text += reader.Advance();
-
-                if(reader.Current() == '\\') // for special charactors
-                    text += reader.Advance();
-                text += reader.Advance();
-
-                text += reader.Consume('\'', "Expected '\''.");
-
-                literal = new Token(text, TokenType.CharactorLiteral, reader.Line, reader.Column);
-                return true;
+                if(ScanCharactorLiteral(ref reader) is Token literal)
+                {
+                    token = literal;
+                    return true;
+                }
+                else if(ScanLifetime(ref reader) is Token lifetime)
+                {
+                    token = lifetime;
+                    return true;
+                }
             }
 
             return false;
+        }
+
+        private static Token? ScanCharactorLiteral(ref StringReader reader)
+        {
+            if(reader.Peek(2) is char second)
+            {
+                if(second == '\'')
+                {
+                    string text = "" + reader.Advance(); // the beginning '
+                    text += reader.Advance(); // the charactor
+                    text += reader.Advance(); // the '
+                    return new Token(text, TokenType.CharactorLiteral, reader.Line, reader.Column);
+                }
+                else if(second == '\\' && reader.Peek(3) is char c && c == '\'')
+                {
+                    string text = "" + reader.Advance(); // the beginning '
+                    text += reader.Advance(); // the \
+                    text += reader.Advance(); // the charactor
+                    text += reader.Advance(); // the '
+                    return new Token(text, TokenType.CharactorLiteral, reader.Line, reader.Column);
+                }
+            }
+
+            return null;
+        }
+
+        private static Token? ScanLifetime(ref StringReader reader)
+        {
+            if(reader.Peek() is char c && c.IsAlpha())
+            {
+                string text = "";
+                text += reader.Advance(); // the '
+                while (!reader.IsAtEnd() && reader.Current().IsAlphaNumeric())
+                    text += reader.Advance();
+
+                return new Token(text, TokenType.Lifetime, reader.Line, reader.Column);
+            }
+
+            return null;
         }
 
         private static bool ScanComments(ref StringReader reader)

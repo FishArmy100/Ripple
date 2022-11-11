@@ -23,6 +23,12 @@ namespace Ripple.Lexing
             { "mut",        TokenType.Mut       },
             { "else",       TokenType.Else      },
             { "extern",     TokenType.Extern    },
+            { "class",      TokenType.Class     },
+            { "public",     TokenType.Public    },
+            { "private",    TokenType.Private   },
+            { "where",      TokenType.Where     },
+            { "unsafe",     TokenType.Unsafe    },
+            { "nullptr",    TokenType.Nullptr   },
         };
     }
 }

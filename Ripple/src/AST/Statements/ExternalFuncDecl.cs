@@ -50,7 +50,16 @@ namespace Ripple.AST
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(ExternToken, Specifier, FuncToken, Name, Parameters, Arrow, ReturnType, SemiColon);
+			HashCode code = new HashCode();
+			code.Add(ExternToken);
+			code.Add(Specifier);
+			code.Add(FuncToken);
+			code.Add(Name);
+			code.Add(Parameters);
+			code.Add(Arrow);
+			code.Add(ReturnType);
+			code.Add(SemiColon);
+			return code.ToHashCode();
 		}
 	}
 }

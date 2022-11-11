@@ -36,7 +36,9 @@ namespace Ripple.AST
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(Files);
+			HashCode code = new HashCode();
+			code.Add(Files);
+			return code.ToHashCode();
 		}
 	}
 }

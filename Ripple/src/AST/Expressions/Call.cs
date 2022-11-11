@@ -42,7 +42,12 @@ namespace Ripple.AST
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(Callee, OpenParen, Args, CloseParen);
+			HashCode code = new HashCode();
+			code.Add(Callee);
+			code.Add(OpenParen);
+			code.Add(Args);
+			code.Add(CloseParen);
+			return code.ToHashCode();
 		}
 	}
 }

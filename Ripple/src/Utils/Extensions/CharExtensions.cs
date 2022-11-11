@@ -18,6 +18,11 @@ namespace Ripple.Utils.Extensions
             return char.IsLetter(c) || c == '_';
         }
 
+        public static bool IsLetter(this char c)
+        {
+            return char.IsLetter(c);
+        }
+
         public static bool IsAlphaNumeric(this char c)
         {
             return c.IsAlpha() || c.IsNumeric();

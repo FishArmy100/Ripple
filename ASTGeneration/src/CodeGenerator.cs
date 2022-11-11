@@ -153,16 +153,13 @@ namespace ASTGeneration
             builder.AppendLine("\t\tpublic override int GetHashCode()");
             builder.AppendLine("\t\t{");
 
-            List<string> feildNames = nodeData.FeildData.ConvertAll(f => f.Value);
-            string args = feildNames.Concat(", ");
+            builder.AppendLine("\t\t\tHashCode code = new HashCode();");
+            foreach (var feild in nodeData.FeildData)
+                builder.AppendLine("\t\t\tcode.Add(" + feild.Value + ");");
 
-            builder.AppendLine("\t\t\treturn HashCode.Combine(" + args + ");");
+            builder.AppendLine("\t\t\treturn code.ToHashCode();");
+
             builder.AppendLine("\t\t}");
-        }
-
-        private static void GenHashCodeOverride(NodeData nodeData, StringBuilder builder)
-        {
-
         }
 
         private static void GenAcceptVisitorMethod(NodeData nodeData, StringBuilder builder)

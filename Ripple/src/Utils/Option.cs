@@ -6,17 +6,46 @@ using System.Threading.Tasks;
 
 namespace Ripple.Utils
 {
-    public abstract class Option<T>
+    class NullOptionExeption : Exception { }
+
+    public struct Option<T> where T : class
     {
-        public class Some : Option<T>
+        private readonly T m_Value;
+        public Option(T value)
         {
-            public readonly T Value;
-            public Some(T value) { Value = value; }
+            m_Value = value;
         }
 
-        public class None : Option<T> { }
+        public static implicit operator Option<T>(T value)
+        {
+            return new Option<T>(value);
+        }
 
-        public static Option<T> Good(T value) => new Some(value);
-        public static Option<T> Bad() => new None();
+        public T Value
+        {
+            get
+            {
+                if (m_Value == null)
+                    return m_Value;
+                else
+                    throw new NullOptionExeption();
+            }
+        }
+
+        public bool HasValue() => m_Value != null;
+
+        public void Match(Action<T> okFunc, Action failFunc)
+        {
+            if (HasValue())
+                okFunc(Value);
+            else
+                failFunc();
+        }
+
+        public void Match(Action<T> okFunc)
+        {
+            if (HasValue())
+                okFunc(Value);
+        }
     }
 }

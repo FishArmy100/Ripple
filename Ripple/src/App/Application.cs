@@ -9,6 +9,8 @@ using Ripple.AST;
 using System.IO;
 using Ripple.Utils;
 using Ripple.Utils.Extensions;
+using Ripple.Lexing;
+using Sharprompt;
 
 namespace Ripple.App
 {
@@ -16,6 +18,23 @@ namespace Ripple.App
     {
         private bool m_IsRunning = false;
         private static string PathSavePath => Directory.GetCurrentDirectory() + "/CompilerData/CurrentPath.txt";
+        private static string ModeSavePath => Directory.GetCurrentDirectory() + "/CompilerData/CurrentMode.txt";
+
+        private static CompilerMode? CurrentMode
+        {
+            get
+            {
+                if (FileUtils.ReadFile(ModeSavePath, out string text))
+                    return (CompilerMode)Enum.Parse(typeof(CompilerMode), text);
+
+                return null;
+            }
+            set
+            {
+                FileUtils.WriteToFile(ModeSavePath, value.ToString());
+            }
+        }
+
         private static string CurrentPath
         {
             get
@@ -30,7 +49,6 @@ namespace Ripple.App
                 FileUtils.WriteToFile(PathSavePath, value);
             }
         }
-
 
         public void Run()
         {
@@ -63,15 +81,52 @@ namespace Ripple.App
                     case AppInputCommand.SelectFolder:
                         SelectFolder();
                         break;
+                    case AppInputCommand.SelectMode:
+                        SelectCompilerMode();
+                        break;
+                    case AppInputCommand.PrintInputPath:
+                        PrintInputPath();
+                        break;
+                    case AppInputCommand.PrintCompilerMode:
+                        PrintCompilerMode();
+                        break;
+                    case AppInputCommand.HelpCommand:
+                        PrintCommands();
+                        break;
                 }
             }
             else
             {
-                ConsoleHelper.WriteLineError("Unknown command: " + input);
+                ConsoleHelper.WriteLineError("Unknown command: \'" + input + "\', try \'help\', to show a list of commands.");
             }
         }
 
-        private void SelectFile()
+        private static void PrintCommands()
+        {
+            Console.WriteLine("Commands:");
+            foreach (string command in InputCommandHelper.GetCommands())
+                Console.WriteLine(" - " + command);
+        }
+
+        private void PrintCompilerMode()
+        {
+            if (CurrentMode.HasValue)
+                Console.WriteLine("Compiler Mode: " + CurrentMode.ToString());
+            else
+                ConsoleHelper.WriteLineError("No compiler mode selected.");
+        }
+
+        private static void PrintInputPath()
+        {
+            Console.WriteLine("Input path: " + CurrentPath);
+        }
+
+        private static void SelectCompilerMode()
+        {
+            CurrentMode = Prompt.Select<CompilerMode>("Select compiler mode");
+        }
+
+        private static void SelectFile()
         {
             if (string.IsNullOrEmpty(CurrentPath))
                 CurrentPath = FileBrowser.SelectFile(Directory.GetCurrentDirectory(), Core.FileExtensions.RippleFileExtension);
@@ -79,7 +134,7 @@ namespace Ripple.App
                 CurrentPath = FileBrowser.SelectFile(CurrentPath, Core.FileExtensions.RippleFileExtension);
         }
 
-        private void SelectFolder()
+        private static void SelectFolder()
         {
             if (string.IsNullOrEmpty(CurrentPath))
                 CurrentPath = FileBrowser.SelectFolder(Directory.GetCurrentDirectory());
@@ -95,18 +150,41 @@ namespace Ripple.App
                 return;
             }
 
-            var parserResult = Compiler.RunParser(sourceFiles);
-            parserResult.Match(
-                ok =>
-                {
-                    AstPrinter printer = new AstPrinter("  ");
-                    printer.PrintAst(ok);
-                },
-                fail =>
-                {
-                    foreach (CompilerError compilerError in fail)
-                        ConsoleHelper.WriteLineError(compilerError.ToString());
-                });
+            switch (CurrentMode)
+            {
+                case CompilerMode.Lexing:
+                    var lexerResult = Compiler.RunLexer(sourceFiles);
+                    lexerResult.Match(
+                        ok =>
+                        {
+                            foreach (Token token in ok)
+                                Console.WriteLine(token.ToPrettyString());
+                        },
+                        fail =>
+                        {
+                            foreach (CompilerError compilerError in fail)
+                                ConsoleHelper.WriteLineError(compilerError.ToString());
+                        });
+                    break;
+                case CompilerMode.Parsing:
+                    var parserResult = Compiler.RunParser(sourceFiles);
+                    parserResult.Match(
+                        ok =>
+                        {
+                            AstPrinter printer = new AstPrinter("   ");
+                            printer.PrintAst(ok);
+                        },
+                        fail =>
+                        {
+                            foreach (CompilerError compilerError in fail)
+                                ConsoleHelper.WriteLineError(compilerError.ToString());
+                        });
+                    break;
+                case CompilerMode.Validating:
+                case CompilerMode.Transpiling:
+                    ConsoleHelper.WriteLineError("Compiler mode has not been implemented yet");
+                    break;
+            }
         }
 
         private void RunCompiler()

@@ -20,15 +20,18 @@ namespace Ripple.Lexing
         AmpersandAmpersand, PipePipe, Ampersand,
 
         // Misc
-        SemiColon, Equal, RightThinArrow, Identifier, Comma,
+        SemiColon, Equal, RightThinArrow, Identifier, Comma, Lifetime,
 
         // Literals
         IntagerLiteral, FloatLiteral, CharactorLiteral, StringLiteral,
+        Nullptr,
 
         // Keywords
         Func, For, If, True, False, Return, 
         Break, Continue, While, Else, As, 
-        Mut, Extern,
+        Mut, Extern, 
+        
+        Where, Class, Public, Private, Unsafe,
 
         Unknown, EOF,
     }

@@ -15,6 +15,8 @@ grammer Ripple
 	CharLiteral = "\'" CHARACTOR "\'";
 	StringLiteral = C_STRING_LITERAL;
 
+	WhereClause = "where" Expression
+
 	// Types:
 	GroupedType = "(" TypeName ")";
 	PointerType = TypeName "mut"? "*";
@@ -41,20 +43,24 @@ grammer Ripple
 	MemberSelection = Expression ("." IDENTIFIER)*;
 	Construction = TypeName "(" ExpressionList? ")";
 
-	Primary = IntLiteral		|
-	          FloatLiteral		|
-			  Grouping			|
-			  "true"			|
-			  "false"			|
-			  StringLiteral		|
-			  CharLiteral		|
-			  IDENTIFIER		|
-			  InitalizerList	|
-			  MemberSelection	|
+	QualifiedIdentifier = IDENTIFIER GenericArgs? ("." IDENTIFIER GenericArgs?)*
+
+	Primary = IntLiteral			|
+			  "nullptr"				|
+			  Lifetime				|
+	          FloatLiteral			|
+			  Grouping				|
+			  "true"				|
+			  "false"				|
+			  StringLiteral			|
+			  CharLiteral			|
+			  QualifiedIdentifier	|
+			  InitalizerList		|
+			  MemberSelection		|
 			  Construction;
 			  
 
-	Call = MemberSelection GenericArgs? "(" ExpressionList? ")";
+	Call = Primary "(" ExpressionList? ")";
 	Index = Expression "[" Expression "]";
 
 	Unary = ("!" | "-" | "&" | "*") Unary | (Call | Index);
@@ -76,6 +82,7 @@ grammer Ripple
 	// Statements:
 	ExprStmt = Expression ";";
 	Block = "{" Statement* "}";
+	UnsafeBlock = "unsafe" "{" Statement* "}";
 	IfStmt = "if" "(" Expression ")" Statement;
 	ForStmt = "for" "(" VarDecl? ";" Expression? ";" Expression? ";" ")" Statement;
 	WhileStmt = "while" "(" Expression ")" Statement;
@@ -84,12 +91,12 @@ grammer Ripple
 	ContinueStmt = "continue" ";";
 
 	// Declarations:
-	VarDecl = TypeName IDENTIFIER ("," IDENTIFIER)* ("=" Expression)? ";";
-	FuncDecl = "func" IDENTIFIER GenericParams? Parameters "->" TypeName Block;
+	VarDecl = "unsafe"? TypeName IDENTIFIER ("," IDENTIFIER)* ("=" Expression)? ";";
+	FuncDecl = "unsafe"? "func" IDENTIFIER GenericParams? Parameters "->" TypeName WhereClause? Block;
 	ExternFuncDecl = "extern" StringLiteral "func" IDENTIFIER Parameters "->"  TypeName ";";
 
 	MemberDecl = ClassVisibility ("mut"? FuncDecl | VarDecl);
-	ClassDecl = "class" IDENTIFIER GenericParams? "{" MemberDecl* "}"
+	ClassDecl = "unsafe"? "class" IDENTIFIER GenericParams? WhereClause? "{" MemberDecl* "}"
 
 	ExternMemberDecl = TypeName IDENTIFIER ("," IDENTIFIER)* | 
 					   "func" IDENTIFIER Parameters "->"  TypeName ";";

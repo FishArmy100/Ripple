@@ -38,7 +38,10 @@ namespace Ripple.AST
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(MutToken, Identifier);
+			HashCode code = new HashCode();
+			code.Add(MutToken);
+			code.Add(Identifier);
+			return code.ToHashCode();
 		}
 	}
 }
