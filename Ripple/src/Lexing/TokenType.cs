@@ -31,7 +31,7 @@ namespace Ripple.Lexing
         Break, Continue, While, Else, As, 
         Mut, Extern, 
         
-        Where, Class, Public, Private, Unsafe,
+        Where, Class, Public, Private, Unsafe, Sizeof,
 
         Unknown, EOF,
     }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
+using Ripple.Utils;
 
 
 namespace Ripple.AST
@@ -11,12 +12,14 @@ namespace Ripple.AST
 		public readonly TypeName BaseType;
 		public readonly Token? MutToken;
 		public readonly Token Ampersand;
+		public readonly Token? Lifetime;
 
-		public ReferenceType(TypeName baseType, Token? mutToken, Token ampersand)
+		public ReferenceType(TypeName baseType, Token? mutToken, Token ampersand, Token? lifetime)
 		{
 			this.BaseType = baseType;
 			this.MutToken = mutToken;
 			this.Ampersand = ampersand;
+			this.Lifetime = lifetime;
 		}
 
 		public override void Accept(ITypeNameVisitor visitor)
@@ -33,7 +36,7 @@ namespace Ripple.AST
 		{
 			if(other is ReferenceType referenceType)
 			{
-				return BaseType.Equals(referenceType.BaseType) && MutToken.Equals(referenceType.MutToken) && Ampersand.Equals(referenceType.Ampersand);
+				return BaseType.Equals(referenceType.BaseType) && MutToken.Equals(referenceType.MutToken) && Ampersand.Equals(referenceType.Ampersand) && Lifetime.Equals(referenceType.Lifetime);
 			}
 			return false;
 		}
@@ -44,6 +47,7 @@ namespace Ripple.AST
 			code.Add(BaseType);
 			code.Add(MutToken);
 			code.Add(Ampersand);
+			code.Add(Lifetime);
 			return code.ToHashCode();
 		}
 	}

@@ -58,16 +58,16 @@ namespace Ripple.Validation
             m_IsInForOrIf = true;
 
             m_LocalVarStack.PushScope();
-            forStmt.Init.Accept(this);
+            forStmt.Init.Match(init => init.Accept(this));
 
-            if(TryTypeCheckExpression(forStmt.Condition, out string type) &&
+            if(TryTypeCheckExpression(forStmt.Condition.Value, out string type) &&
                 type != RipplePrimitiveNames.Bool)
             {
                 string message = "For conditional expression must be of type bool.";
                 m_Errors.Add(new ValidationError(message, forStmt.ForTok));
             }
 
-            TryTypeCheckExpression(forStmt.Iter, out _);
+            TryTypeCheckExpression(forStmt.Iter.Value, out _);
 
             forStmt.Body.Accept(this);
             m_LocalVarStack.PopScope();
@@ -138,7 +138,7 @@ namespace Ripple.Validation
                 return;
             }
 
-            if(returnStmt.Expr == null)
+            if(returnStmt.Expr.HasValue())
             {
                 if(m_CurrentFunctionReturnType != RipplePrimitiveNames.Void)
                 {
@@ -150,7 +150,7 @@ namespace Ripple.Validation
 
             if(m_CurrentFunctionReturnType != null)
             {
-                if(TryTypeCheckExpression(returnStmt.Expr, out string type)&& 
+                if(TryTypeCheckExpression(returnStmt.Expr.Value, out string type)&& 
                    type != m_CurrentFunctionReturnType)
                 {
                     string message = "Return statement must return the same type as the function.";
@@ -373,6 +373,31 @@ namespace Ripple.Validation
         }
 
         public void VisitProgramStmt(ProgramStmt program)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitGenericParameters(GenericParameters genericParameters)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitWhereClause(WhereClause whereClause)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitUnsafeBlock(UnsafeBlock unsafeBlock)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string VisitTypeExpression(TypeExpression typeExpression)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string VisitSizeOf(SizeOf sizeOf)
         {
             throw new NotImplementedException();
         }

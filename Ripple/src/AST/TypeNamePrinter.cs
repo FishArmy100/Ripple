@@ -70,6 +70,9 @@ namespace Ripple.AST
                     str += " " + t.Text;
 
                 str += "&";
+                if (referenceType.Lifetime is Token lifetime)
+                    str += lifetime.Text;
+
                 return str;
             }
         }

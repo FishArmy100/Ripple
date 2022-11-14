@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
+using Ripple.Utils;
 
 
 namespace Ripple.AST

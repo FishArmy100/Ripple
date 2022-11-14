@@ -110,5 +110,15 @@ namespace Ripple.Transpiling
         {
             throw new NotImplementedException();
         }
+
+        public CExpression VisitTypeExpression(TypeExpression typeExpression)
+        {
+            throw new NotImplementedException();
+        }
+
+        public CExpression VisitSizeOf(SizeOf sizeOf)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

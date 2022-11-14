@@ -11,10 +11,10 @@ namespace Ripple.Parsing
 {
     static class TypeNameHelper
     {
-        public static bool IsTypeName(ref TokenReader reader, out int length)
+        public static bool IsTypeName(ref TokenReader reader, out int length, int beginOffset  = 0)
         {
             length = 0;
-            TokenReader typeReader = new TokenReader(reader.GetTokens(), reader.Index);
+            TokenReader typeReader = new TokenReader(reader.GetTokens(), reader.Index + beginOffset);
             try
             {
                 int initialIndex = typeReader.Index;
@@ -73,7 +73,8 @@ namespace Ripple.Parsing
             }
             else if(reader.Match(TokenType.Ampersand))
             {
-                TypeName refType = new ReferenceType(previous, mut, reader.Previous());
+                Token? lifetime = reader.TryMatch(TokenType.Lifetime);
+                TypeName refType = new ReferenceType(previous, mut, reader.Previous(), lifetime);
                 return ParseTypePrefixRecursive(ref reader, refType);
             }
             else if(reader.Match(TokenType.OpenBracket))

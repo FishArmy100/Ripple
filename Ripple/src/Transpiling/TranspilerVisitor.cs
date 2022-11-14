@@ -48,17 +48,17 @@ namespace Ripple.Transpiling
         public CStatement VisitForStmt(ForStmt forStmt)
         {
             CStatement.Var initalizer = null;
-            if (forStmt.Init is VarDecl v)
+            if (forStmt.Init.HasValue() && forStmt.Init.Value is VarDecl v)
                 initalizer = v.Accept(this) as CStatement.Var;
 
 
             CExpression condition = null;
-            if(forStmt.Condition is not null)
-                condition = TranspilerExpressionVisitor.Visit(forStmt.Condition);
+            if(forStmt.Condition.HasValue())
+                condition = TranspilerExpressionVisitor.Visit(forStmt.Condition.Value);
 
             CExpression iterator = null;
-            if (forStmt.Iter is not null)
-                iterator = TranspilerExpressionVisitor.Visit(forStmt.Iter);
+            if (forStmt.Iter.HasValue())
+                iterator = TranspilerExpressionVisitor.Visit(forStmt.Iter.Value);
 
             CStatement body = forStmt.Body.Accept(this);
             
@@ -76,7 +76,7 @@ namespace Ripple.Transpiling
 
         public CStatement VisitReturnStmt(ReturnStmt returnStmt)
         {
-            return new CStatement.Return(TranspilerExpressionVisitor.Visit(returnStmt.Expr));
+            return new CStatement.Return(TranspilerExpressionVisitor.Visit(returnStmt.Expr.Value));
         }
 
         public CStatement VisitParameters(Parameters parameters) // Unused
@@ -139,6 +139,21 @@ namespace Ripple.Transpiling
         }
 
         public CStatement VisitProgramStmt(ProgramStmt program)
+        {
+            throw new NotImplementedException();
+        }
+
+        public CStatement VisitGenericParameters(GenericParameters genericParameters)
+        {
+            throw new NotImplementedException();
+        }
+
+        public CStatement VisitWhereClause(WhereClause whereClause)
+        {
+            throw new NotImplementedException();
+        }
+
+        public CStatement VisitUnsafeBlock(UnsafeBlock unsafeBlock)
         {
             throw new NotImplementedException();
         }

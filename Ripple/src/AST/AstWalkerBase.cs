@@ -6,18 +6,8 @@ using System.Threading.Tasks;
 
 namespace Ripple.AST
 {
-    abstract class AstWalkerBase : IAstVisitor
+    abstract class AstWalkerBase : IStatementVisitor, IExpressionVisitor
     {
-        public void VisitArrayType(ArrayType arrayType)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void VisitBasicType(BasicType basicType)
-        {
-            throw new NotImplementedException();
-        }
-
         public virtual void VisitBinary(Binary binary)
         {
             binary.Left.Accept(this);
@@ -30,10 +20,7 @@ namespace Ripple.AST
                 statement.Accept(this);
         }
 
-        public void VisitBreakStmt(BreakStmt breakStmt)
-        {
-            throw new NotImplementedException();
-        }
+        public virtual void VisitBreakStmt(BreakStmt breakStmt) { }
 
         public virtual void VisitCall(Call call)
         {
@@ -41,25 +28,19 @@ namespace Ripple.AST
                 expression.Accept(this);
         }
 
-        public void VisitCast(Cast cast)
+        public virtual void VisitCast(Cast cast)
         {
-            throw new NotImplementedException();
+            cast.Castee.Accept(this);
         }
 
-        public void VisitContinueStmt(ContinueStmt continueStmt)
-        {
-            throw new NotImplementedException();
-        }
+        public virtual void VisitContinueStmt(ContinueStmt continueStmt) { }
 
         public virtual void VisitExprStmt(ExprStmt exprStmt)
         {
             exprStmt.Expr.Accept(this);
         }
 
-        public void VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl)
-        {
-            throw new NotImplementedException();
-        }
+        public virtual void VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl) { }
 
         public virtual void VisitFileStmt(FileStmt fileStmt)
         {
@@ -69,9 +50,9 @@ namespace Ripple.AST
 
         public virtual void VisitForStmt(ForStmt forStmt)
         {
-            forStmt.Init.Accept(this);
-            forStmt.Condition.Accept(this);
-            forStmt.Iter.Accept(this);
+            forStmt.Init.Match(init => init.Accept(this));
+            forStmt.Condition.Match(con => con.Accept(this));
+            forStmt.Iter.Match(iter => iter.Accept(this));
             forStmt.Body.Accept(this);
         }
 
@@ -81,15 +62,7 @@ namespace Ripple.AST
             funcDecl.Body.Accept(this);
         }
 
-        public void VisitFuncPtr(FuncPtr funcPtr)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void VisitGroupedType(GroupedType groupedType)
-        {
-            throw new NotImplementedException();
-        }
+        public virtual void VisitGenericParameters(GenericParameters genericParameters) { }
 
         public virtual void VisitGrouping(Grouping grouping)
         {
@@ -104,44 +77,47 @@ namespace Ripple.AST
             ifStmt.Body.Accept(this);
         }
 
-        public void VisitIndex(Index index)
+        public virtual void VisitIndex(Index index)
         {
-            throw new NotImplementedException();
+            index.Indexed.Accept(this);
+            index.Argument.Accept(this);
         }
 
-        public void VisitInitializerList(InitializerList initializerList)
+        public virtual void VisitInitializerList(InitializerList initializerList)
         {
-            throw new NotImplementedException();
+            foreach (Expression expr in initializerList.Expressions)
+                expr.Accept(this);
         }
 
         public virtual void VisitLiteral(Literal literal) { }
 
         public virtual void VisitParameters(Parameters parameters) { }
 
-        public void VisitPointerType(PointerType pointerType)
+        public virtual void VisitProgramStmt(ProgramStmt program)
         {
-            throw new NotImplementedException();
-        }
-
-        public void VisitProgramStmt(ProgramStmt program)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void VisitReferenceType(ReferenceType referenceType)
-        {
-            throw new NotImplementedException();
+            foreach (FileStmt file in program.Files)
+                file.Accept(this);
         }
 
         public virtual void VisitReturnStmt(ReturnStmt returnStmt)
         {
-            if(returnStmt.Expr != null)
-                returnStmt.Expr.Accept(this);
+            if(returnStmt.Expr.HasValue())
+                returnStmt.Expr.Value.Accept(this);
         }
+
+        public void VisitSizeOf(SizeOf sizeOf) { }
+
+        public virtual void VisitTypeExpression(TypeExpression typeExpression) { }
 
         public virtual void VisitUnary(Unary unary)
         {
             unary.Expr.Accept(this);
+        }
+
+        public virtual void VisitUnsafeBlock(UnsafeBlock unsafeBlock)
+        {
+            foreach (Statement statement in unsafeBlock.Statements)
+                statement.Accept(this);
         }
 
         public virtual void VisitVarDecl(VarDecl varDecl)
@@ -149,9 +125,15 @@ namespace Ripple.AST
             varDecl.Expr.Accept(this);
         }
 
-        public void VisitWhileStmt(WhileStmt whileStmt)
+        public virtual void VisitWhereClause(WhereClause whereClause)
         {
-            throw new NotImplementedException();
+            whereClause.Expression.Accept(this);
+        }
+
+        public virtual void VisitWhileStmt(WhileStmt whileStmt)
+        {
+            whileStmt.Condition.Accept(this);
+            whileStmt.Body.Accept(this);
         }
     }
 }

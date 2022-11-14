@@ -21,6 +21,11 @@ namespace Ripple.Utils
             return new Option<T>(value);
         }
 
+        public static explicit operator T(Option<T> option)
+        {
+            return option.Value;
+        }
+
         public T Value
         {
             get

@@ -2,20 +2,23 @@ using System;
 using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
+using Ripple.Utils;
 
 
 namespace Ripple.AST
 {
 	class VarDecl : Statement
 	{
+		public readonly Token? UnsafeToken;
 		public readonly TypeName Type;
 		public readonly List<Token> VarNames;
 		public readonly Token Equels;
 		public readonly Expression Expr;
 		public readonly Token SemiColin;
 
-		public VarDecl(TypeName type, List<Token> varNames, Token equels, Expression expr, Token semiColin)
+		public VarDecl(Token? unsafeToken, TypeName type, List<Token> varNames, Token equels, Expression expr, Token semiColin)
 		{
+			this.UnsafeToken = unsafeToken;
 			this.Type = type;
 			this.VarNames = varNames;
 			this.Equels = equels;
@@ -37,7 +40,7 @@ namespace Ripple.AST
 		{
 			if(other is VarDecl varDecl)
 			{
-				return Type.Equals(varDecl.Type) && VarNames.Equals(varDecl.VarNames) && Equels.Equals(varDecl.Equels) && Expr.Equals(varDecl.Expr) && SemiColin.Equals(varDecl.SemiColin);
+				return UnsafeToken.Equals(varDecl.UnsafeToken) && Type.Equals(varDecl.Type) && VarNames.Equals(varDecl.VarNames) && Equels.Equals(varDecl.Equels) && Expr.Equals(varDecl.Expr) && SemiColin.Equals(varDecl.SemiColin);
 			}
 			return false;
 		}
@@ -45,6 +48,7 @@ namespace Ripple.AST
 		public override int GetHashCode()
 		{
 			HashCode code = new HashCode();
+			code.Add(UnsafeToken);
 			code.Add(Type);
 			code.Add(VarNames);
 			code.Add(Equels);

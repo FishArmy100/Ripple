@@ -7,7 +7,9 @@ grammer Ripple
 	Parameters = "(" (TypeName Identifier ("," TypeName Identifier))* ")";
 	ExpressionList = Expression ("," Expression)*;
 	TypeList = TypeName ("," TypeName)*;
-	GenericParams = "<" (TypeName | IDENTIFIER | Lifetime)* ">";
+
+	GenericParam = TypeName | IDENTIFIER | Lifetime
+	GenericParams = "<" GenericParam ("," GenericParam)* ">";
 	GenericArgs = "<" (TypeName | Expression | Lifetime)* ">";
 
 	IntLiteral = DIGIT+;
@@ -44,6 +46,8 @@ grammer Ripple
 	Construction = TypeName "(" ExpressionList? ")";
 
 	QualifiedIdentifier = IDENTIFIER GenericArgs? ("." IDENTIFIER GenericArgs?)*
+
+	Sizeof = "sizeof" "<" TypeName ">" "(" ")";
 
 	Primary = IntLiteral			|
 			  "nullptr"				|

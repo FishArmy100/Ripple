@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
+using Ripple.Utils;
 
 
 namespace Ripple.AST
@@ -10,13 +11,13 @@ namespace Ripple.AST
 	{
 		public readonly Token ForTok;
 		public readonly Token OpenParen;
-		public readonly Statement Init;
-		public readonly Expression Condition;
-		public readonly Expression Iter;
+		public readonly Option<Statement> Init;
+		public readonly Option<Expression> Condition;
+		public readonly Option<Expression> Iter;
 		public readonly Token CloseParen;
 		public readonly Statement Body;
 
-		public ForStmt(Token forTok, Token openParen, Statement init, Expression condition, Expression iter, Token closeParen, Statement body)
+		public ForStmt(Token forTok, Token openParen, Option<Statement> init, Option<Expression> condition, Option<Expression> iter, Token closeParen, Statement body)
 		{
 			this.ForTok = forTok;
 			this.OpenParen = openParen;

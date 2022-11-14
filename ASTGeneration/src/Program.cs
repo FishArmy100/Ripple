@@ -36,8 +36,9 @@ namespace ASTGeneration
                 "Unary : Token Op; Expression Expr",
                 "Binary : Expression Left; Token Op; Expression Right",
                 "Identifier : Token Name",
-                "TypeExpression : Token Name; List<Token> Lifetimes",
+                "TypeExpression : Token Name; Token GreaterThan; List<Token> Lifetimes; Token LessThan",
                 "InitializerList : Token OpenBrace; List<Expression> Expressions; Token CloseBrace",
+                "SizeOf : Token SizeofToken; Token LessThan; TypeName Type; Token GreaterThan; Token OpenParen; Token CloseParen",
             }, additionalUsings);
 
             // Statements
@@ -60,7 +61,7 @@ namespace ASTGeneration
                 "WhereClause : Token WhereToken; Expression Expression",
                 "UnsafeBlock : Token UnsafeToken; Token OpenBrace; List<Statement> Statements; Token CloseBrace",
 
-                "FuncDecl : Token? UnsafeToken; Token FuncTok; Token Name; Option<GenericParameters> GenericParams; Parameters Param; Token Arrow; TypeName ReturnType; Option<WhereClause> WhereClause BlockStmt Body",
+                "FuncDecl : Token? UnsafeToken; Token FuncTok; Token Name; Option<GenericParameters> GenericParams; Parameters Param; Token Arrow; TypeName ReturnType; Option<WhereClause> WhereClause; BlockStmt Body",
                 "ExternalFuncDecl : Token ExternToken; Token Specifier; Token FuncToken; Token Name; Parameters Parameters; Token Arrow; TypeName ReturnType; Token SemiColon",
 
                 "FileStmt : List<Statement> Statements; string FilePath; Token EOFTok",

@@ -1,3 +1,10 @@
 ﻿
 
-'&
+unsafe func Test<'a>(int&'a number) -> void
+{
+	unsafe
+	{
+		mut int b = 5;
+		b = *a;
+	}
+}

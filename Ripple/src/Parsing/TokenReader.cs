@@ -52,6 +52,27 @@ namespace Ripple.Parsing
             return Peek(offset) is Token t && t.IsType(types);
         }
 
+        public Token? TryMatch(params TokenType[] types)
+        {
+            if (Match(types))
+                return Previous();
+
+            return null;
+        }
+
+        public bool CheckSequence(params TokenType[] types)
+        {
+            for(int i = 0; i < types.Length; i++)
+            {
+                if (Peek(i) is Token t && t.Type == types[i])
+                    continue;
+                else
+                    return false;
+            }
+
+            return true;
+        }
+
         public Token? Peek(int offset = 1) => Index + offset < m_Tokens.Count ? m_Tokens[Index + offset] : null;
 
         public bool IsAtEnd() => Index >= m_Tokens.Count;

@@ -13,7 +13,9 @@ namespace Ripple.AST
 		public abstract void VisitUnary(Unary unary);
 		public abstract void VisitBinary(Binary binary);
 		public abstract void VisitIdentifier(Identifier identifier);
+		public abstract void VisitTypeExpression(TypeExpression typeExpression);
 		public abstract void VisitInitializerList(InitializerList initializerList);
+		public abstract void VisitSizeOf(SizeOf sizeOf);
 	}
 
 	interface IExpressionVisitor<T>
@@ -26,6 +28,8 @@ namespace Ripple.AST
 		public abstract T VisitUnary(Unary unary);
 		public abstract T VisitBinary(Binary binary);
 		public abstract T VisitIdentifier(Identifier identifier);
+		public abstract T VisitTypeExpression(TypeExpression typeExpression);
 		public abstract T VisitInitializerList(InitializerList initializerList);
+		public abstract T VisitSizeOf(SizeOf sizeOf);
 	}
 }

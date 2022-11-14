@@ -15,6 +15,9 @@ namespace Ripple.AST
 		public abstract void VisitContinueStmt(ContinueStmt continueStmt);
 		public abstract void VisitBreakStmt(BreakStmt breakStmt);
 		public abstract void VisitParameters(Parameters parameters);
+		public abstract void VisitGenericParameters(GenericParameters genericParameters);
+		public abstract void VisitWhereClause(WhereClause whereClause);
+		public abstract void VisitUnsafeBlock(UnsafeBlock unsafeBlock);
 		public abstract void VisitFuncDecl(FuncDecl funcDecl);
 		public abstract void VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl);
 		public abstract void VisitFileStmt(FileStmt fileStmt);
@@ -33,6 +36,9 @@ namespace Ripple.AST
 		public abstract T VisitContinueStmt(ContinueStmt continueStmt);
 		public abstract T VisitBreakStmt(BreakStmt breakStmt);
 		public abstract T VisitParameters(Parameters parameters);
+		public abstract T VisitGenericParameters(GenericParameters genericParameters);
+		public abstract T VisitWhereClause(WhereClause whereClause);
+		public abstract T VisitUnsafeBlock(UnsafeBlock unsafeBlock);
 		public abstract T VisitFuncDecl(FuncDecl funcDecl);
 		public abstract T VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl);
 		public abstract T VisitFileStmt(FileStmt fileStmt);

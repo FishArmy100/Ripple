@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Ripple.Lexing;
+using Ripple.Utils.Extensions;
 
 namespace Ripple.AST
 {
@@ -76,27 +78,27 @@ namespace Ripple.AST
             Print("For Statement");
             TabRight();
 
-            if(forStmt.Init != null)
+            if(forStmt.Init.HasValue())
             {
                 Print("Initalization:");
                 TabRight();
-                forStmt.Init.Accept(this);
+                forStmt.Init.Value.Accept(this);
                 TabLeft();
             }
 
-            if(forStmt.Condition != null)
+            if(forStmt.Condition.HasValue())
             {
                 Print("Condition:");
                 TabRight();
-                forStmt.Condition.Accept(this);
+                forStmt.Condition.Value.Accept(this);
                 TabLeft();
             }
 
-            if(forStmt.Iter != null)
+            if(forStmt.Iter.HasValue())
             {
                 Print("Iterator:");
                 TabRight();
-                forStmt.Iter.Accept(this);
+                forStmt.Iter.Value.Accept(this);
                 TabLeft();
             }
 
@@ -110,7 +112,11 @@ namespace Ripple.AST
 
         public void VisitVarDecl(VarDecl varDecl)
         {
-            Print("Variable Declaration:");
+            if (varDecl.UnsafeToken.HasValue)
+                Print("Unsafe Variable Declaration:");
+            else
+                Print("Variable Declaration:");
+
             TabRight();
             Print("Type: " + TypeNamePrinter.PrintType(varDecl.Type));
 
@@ -135,10 +141,10 @@ namespace Ripple.AST
         public void VisitReturnStmt(ReturnStmt returnStmt)
         {
             Print("Return Statement:");
-            if(returnStmt.Expr != null)
+            if(returnStmt.Expr.HasValue())
             {
                 TabRight();
-                returnStmt.Expr.Accept(this);
+                returnStmt.Expr.Value.Accept(this);
                 TabLeft();
             }
         }
@@ -154,10 +160,15 @@ namespace Ripple.AST
 
         public void VisitFuncDecl(FuncDecl funcDecl)
         {
-            Print("Function Declaration:");
+            if (funcDecl.UnsafeToken.HasValue)
+                Print("Unsafe Function Declaration:");
+            else
+                Print("Function Declaration:");
+
             TabRight();
             funcDecl.Param.Accept(this);
             Print("Return type: " + TypeNamePrinter.PrintType(funcDecl.ReturnType));
+            funcDecl.WhereClause.Match(w => w.Accept(this));
             funcDecl.Body.Accept(this);
             TabLeft();
         }
@@ -208,6 +219,32 @@ namespace Ripple.AST
             TabLeft();
         }
 
+        public void VisitGenericParameters(GenericParameters genericParameters)
+        {
+            Print("Generic Parameters:");
+            TabRight();
+            foreach (Token t in genericParameters.Lifetimes)
+                Print(t.Text);
+            TabLeft();
+        }
+
+        public void VisitWhereClause(WhereClause whereClause)
+        {
+            Print("Where: ");
+            TabRight();
+            whereClause.Expression.Accept(this);
+            TabLeft();
+        }
+
+        public void VisitUnsafeBlock(UnsafeBlock unsafeBlock)
+        {
+            Print("Unsafe Block:");
+            TabRight();
+            foreach (Statement statement in unsafeBlock.Statements)
+                statement.Accept(this);
+            TabLeft();
+        }
+
         public void VisitProgramStmt(ProgramStmt program)
         {
             Print("Program:");
@@ -242,6 +279,11 @@ namespace Ripple.AST
                 expr.Accept(this);
             TabLeft();
             TabLeft();
+        }
+
+        public void VisitSizeOf(SizeOf sizeOf)
+        {
+            Print("SizeOf: " + TypeNamePrinter.PrintType(sizeOf.Type));
         }
 
         public void VisitGrouping(Grouping grouping)
@@ -302,6 +344,11 @@ namespace Ripple.AST
             foreach (Expression expression in initializerList.Expressions)
                 expression.Accept(this);
             TabLeft();
+        }
+
+        public void VisitTypeExpression(TypeExpression typeExpression)
+        {
+            Print("Type Expression: " + typeExpression.Lifetimes.ConvertAll(l => l.Text).Concat(", "));
         }
 
         private void TabRight() { m_Index++; }

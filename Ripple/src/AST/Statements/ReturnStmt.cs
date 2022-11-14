@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
+using Ripple.Utils;
 
 
 namespace Ripple.AST
@@ -9,10 +10,10 @@ namespace Ripple.AST
 	class ReturnStmt : Statement
 	{
 		public readonly Token ReturnTok;
-		public readonly Expression Expr;
+		public readonly Option<Expression> Expr;
 		public readonly Token SemiColin;
 
-		public ReturnStmt(Token returnTok, Expression expr, Token semiColin)
+		public ReturnStmt(Token returnTok, Option<Expression> expr, Token semiColin)
 		{
 			this.ReturnTok = returnTok;
 			this.Expr = expr;

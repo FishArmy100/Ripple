@@ -7,14 +7,16 @@ using Ripple.Utils;
 
 namespace Ripple.AST
 {
-	class BlockStmt : Statement
+	class UnsafeBlock : Statement
 	{
+		public readonly Token UnsafeToken;
 		public readonly Token OpenBrace;
 		public readonly List<Statement> Statements;
 		public readonly Token CloseBrace;
 
-		public BlockStmt(Token openBrace, List<Statement> statements, Token closeBrace)
+		public UnsafeBlock(Token unsafeToken, Token openBrace, List<Statement> statements, Token closeBrace)
 		{
+			this.UnsafeToken = unsafeToken;
 			this.OpenBrace = openBrace;
 			this.Statements = statements;
 			this.CloseBrace = closeBrace;
@@ -22,19 +24,19 @@ namespace Ripple.AST
 
 		public override void Accept(IStatementVisitor visitor)
 		{
-			visitor.VisitBlockStmt(this);
+			visitor.VisitUnsafeBlock(this);
 		}
 
 		public override T Accept<T>(IStatementVisitor<T> visitor)
 		{
-			return visitor.VisitBlockStmt(this);
+			return visitor.VisitUnsafeBlock(this);
 		}
 
 		public override bool Equals(object other)
 		{
-			if(other is BlockStmt blockStmt)
+			if(other is UnsafeBlock unsafeBlock)
 			{
-				return OpenBrace.Equals(blockStmt.OpenBrace) && Statements.Equals(blockStmt.Statements) && CloseBrace.Equals(blockStmt.CloseBrace);
+				return UnsafeToken.Equals(unsafeBlock.UnsafeToken) && OpenBrace.Equals(unsafeBlock.OpenBrace) && Statements.Equals(unsafeBlock.Statements) && CloseBrace.Equals(unsafeBlock.CloseBrace);
 			}
 			return false;
 		}
@@ -42,6 +44,7 @@ namespace Ripple.AST
 		public override int GetHashCode()
 		{
 			HashCode code = new HashCode();
+			code.Add(UnsafeToken);
 			code.Add(OpenBrace);
 			code.Add(Statements);
 			code.Add(CloseBrace);
