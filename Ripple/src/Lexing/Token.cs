@@ -39,5 +39,22 @@ namespace Ripple.Lexing
             else
                 return "[" + Type.ToString() + ": " + Line + ", " + Column + "]";
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Token other &&
+                other.Type == Type &&
+                other.Text == Text;
+        }
+
+        public bool StrictEquals(Token token)
+        {
+            return base.Equals(token);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Type, Text);
+        }
     }
 }

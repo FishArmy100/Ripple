@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.AST;
 using Ripple.Lexing;
+using Ripple.Validation.AstInfo;
 
 namespace Ripple.Validation
 {
@@ -14,7 +15,7 @@ namespace Ripple.Validation
         {
             DeclarationFinderWalker walker = new DeclarationFinderWalker();
             fileStmt.Accept(walker);
-            declarationData.GlobalVariables.AddRange(walker.GlobalVariables);
+            //declarationData.GlobalVariables.AddRange(walker.GlobalVariables);
 
             List<FunctionData> globalFunctions = walker.Functions
                 .ToList()
@@ -57,7 +58,7 @@ namespace Ripple.Validation
                 if(!m_IsInFunction)
                 {
                     foreach (Token varName in varDecl.VarNames)
-                        GlobalVariables.Add(new VariableData(varName, new Token()));
+                        GlobalVariables.Add(new VariableData(varName, new BasicType(null, new Token())));
                 }
             }
         }

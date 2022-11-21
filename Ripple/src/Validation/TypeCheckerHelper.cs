@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
+using Ripple.Validation.AstInfo;
 
 namespace Ripple.Validation
 {

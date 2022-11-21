@@ -7,6 +7,7 @@ using Ripple.AST;
 using Ripple.Utils.Extensions;
 using Ripple.Lexing;
 using Ripple.Utils;
+using Ripple.Validation.AstInfo;
 
 namespace Ripple.Validation
 {
@@ -73,11 +74,11 @@ namespace Ripple.Validation
                     continue;
                 }
 
-                if (!globalVariables.TryAdd(variable.Name.Text, variable))
-                {
-                    string errorMessage = "Global variable: " + variable.Name.Text + " has already been defined";
-                    errors.Add(new ValidationError(errorMessage, variable.Name));
-                }
+                //if (!globalVariables.TryAdd(variable.Name.Text, variable))
+                //{
+                //    string errorMessage = "Global variable: " + variable.Name.Text + " has already been defined";
+                //    errors.Add(new ValidationError(errorMessage, variable.Name));
+                //}
             }
 
             return globalVariables;

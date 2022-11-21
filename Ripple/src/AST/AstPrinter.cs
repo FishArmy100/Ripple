@@ -348,7 +348,11 @@ namespace Ripple.AST
 
         public void VisitTypeExpression(TypeExpression typeExpression)
         {
-            Print("Type Expression: " + typeExpression.Lifetimes.ConvertAll(l => l.Text).Concat(", "));
+            Print("Type Expression: " + typeExpression.Name);
+            TabRight();
+            foreach (Token lifetime in typeExpression.Lifetimes)
+                Print(lifetime.Text);
+            TabLeft();
         }
 
         private void TabRight() { m_Index++; }

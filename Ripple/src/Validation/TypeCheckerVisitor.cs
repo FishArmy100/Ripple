@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.AST;
 using Ripple.Lexing;
+using Ripple.Validation.AstInfo;
 
 namespace Ripple.Validation
 {
@@ -61,7 +62,7 @@ namespace Ripple.Validation
             forStmt.Init.Match(init => init.Accept(this));
 
             if(TryTypeCheckExpression(forStmt.Condition.Value, out string type) &&
-                type != RipplePrimitiveNames.Bool)
+                type != RipplePrimitives.BoolName)
             {
                 string message = "For conditional expression must be of type bool.";
                 m_Errors.Add(new ValidationError(message, forStmt.ForTok));
@@ -95,7 +96,7 @@ namespace Ripple.Validation
             funcDecl.Body.Accept(this);
             m_LocalVarStack.PopScope();
 
-            if(returnTypeName != RipplePrimitiveNames.Void && !m_DoesFunctionHaveReturn)
+            if(returnTypeName != RipplePrimitives.VoidName && !m_DoesFunctionHaveReturn)
             {
                 string message = "Non-void function must have a return statement.";
                 m_Errors.Add(new ValidationError(message, funcDecl.Arrow));
@@ -112,7 +113,7 @@ namespace Ripple.Validation
             m_IsInForOrIf = true;
 
             if(TryTypeCheckExpression(ifStmt.Expr, out string type) &&
-               type != RipplePrimitiveNames.Bool)
+               type != RipplePrimitives.BoolName)
             {
                 string message = "Expression in an if statement must be of type bool.";
                 m_Errors.Add(new ValidationError(message, ifStmt.IfTok));
@@ -140,7 +141,7 @@ namespace Ripple.Validation
 
             if(returnStmt.Expr.HasValue())
             {
-                if(m_CurrentFunctionReturnType != RipplePrimitiveNames.Void)
+                if(m_CurrentFunctionReturnType != RipplePrimitives.VoidName)
                 {
                     string message = "Return statement must return the same type as the function.";
                     m_Errors.Add(new ValidationError(message, returnStmt.ReturnTok));
@@ -237,7 +238,7 @@ namespace Ripple.Validation
 
             if(variableExists)
             {
-                return variable.Type.Text;
+                return "";
             }
             else
             {
@@ -250,9 +251,9 @@ namespace Ripple.Validation
         {
             return literal.Val.Type switch
             {
-                TokenType.IntagerLiteral => RipplePrimitiveNames.Int32,
-                TokenType.True or TokenType.False => RipplePrimitiveNames.Bool,
-                TokenType.FloatLiteral => RipplePrimitiveNames.Float32,
+                TokenType.IntagerLiteral => RipplePrimitives.Int32Name,
+                TokenType.True or TokenType.False => RipplePrimitives.BoolName,
+                TokenType.FloatLiteral => RipplePrimitives.Float32Name,
                 _ => throw new ArgumentException("Literal is of a unknown type."),
             };
         }
@@ -328,7 +329,7 @@ namespace Ripple.Validation
                 return;
             }
 
-            VariableData data = new VariableData(name, type);
+            VariableData data = new VariableData(name, null);
             if (!m_LocalVarStack.TryAddVariable(data))
             {
                 string message = "Local variable: " + name.Text + " is already defined.";

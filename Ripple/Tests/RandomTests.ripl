@@ -1,10 +1,6 @@
 ﻿
 
-unsafe func Test<'a>(int&'a number) -> void
+func Test() -> void
 {
-	unsafe
-	{
-		mut int b = 5;
-		b = *a;
-	}
+	Add<'a, 'b>(5, 6);
 }

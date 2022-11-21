@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Utils.Extensions;
 
-namespace Ripple.Validation
+namespace Ripple.Validation.AstInfo
 {
     class FunctionList
     {

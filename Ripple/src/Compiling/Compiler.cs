@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Ripple.Validation;
-using Ripple.Transpiling;
 using Ripple.Utils;
 using Ripple.AST;
 

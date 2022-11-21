@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.Utils.Extensions;
 
-namespace Ripple.Validation
+namespace Ripple.Validation.AstInfo
 {
     static class RippleBuiltins
     {
@@ -14,26 +14,26 @@ namespace Ripple.Validation
         {
             return new List<TypeData>()
             {
-                new TypeData(RipplePrimitiveNames.Int32),
-                new TypeData(RipplePrimitiveNames.Float32),
-                new TypeData(RipplePrimitiveNames.Bool),
-                new TypeData(RipplePrimitiveNames.Void),
+                new TypeData(RipplePrimitives.Int32Name),
+                new TypeData(RipplePrimitives.Float32Name),
+                new TypeData(RipplePrimitives.BoolName),
+                new TypeData(RipplePrimitives.VoidName),
             };
         }
 
         public static List<OperatorData> GetPrimitiveOperators()
         {
-            List<OperatorData> intOperators = GenBinaries(RipplePrimitiveNames.Int32,
+            List<OperatorData> intOperators = GenBinaries(RipplePrimitives.Int32Name,
                 TokenType.Plus, TokenType.Minus, TokenType.Star, TokenType.Slash, TokenType.Mod,
                 TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan,
                 TokenType.LessThanEqual, TokenType.EqualEqual, TokenType.BangEqual, TokenType.Equal);
 
-            List<OperatorData> floatOperators = GenBinaries(RipplePrimitiveNames.Float32,
+            List<OperatorData> floatOperators = GenBinaries(RipplePrimitives.Float32Name,
                 TokenType.Plus, TokenType.Minus, TokenType.Star, TokenType.Slash,
                 TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan,
                 TokenType.LessThanEqual, TokenType.EqualEqual, TokenType.BangEqual, TokenType.Equal);
 
-            List<OperatorData> boolOperators = GenBinaries(RipplePrimitiveNames.Bool,
+            List<OperatorData> boolOperators = GenBinaries(RipplePrimitives.BoolName,
                 TokenType.EqualEqual, TokenType.BangEqual, TokenType.Equal,
                 TokenType.AmpersandAmpersand, TokenType.PipePipe);
 
@@ -42,9 +42,9 @@ namespace Ripple.Validation
             operators.AddRange(floatOperators);
             operators.AddRange(boolOperators);
 
-            operators.Add(GenUnary(TokenType.Minus, RipplePrimitiveNames.Int32));
-            operators.Add(GenUnary(TokenType.Minus, RipplePrimitiveNames.Float32));
-            operators.Add(GenUnary(TokenType.Bang, RipplePrimitiveNames.Bool));
+            operators.Add(GenUnary(TokenType.Minus, RipplePrimitives.Int32Name));
+            operators.Add(GenUnary(TokenType.Minus, RipplePrimitives.Float32Name));
+            operators.Add(GenUnary(TokenType.Bang, RipplePrimitives.BoolName));
 
             return operators;
         }
@@ -87,7 +87,7 @@ namespace Ripple.Validation
         {
             if (operatorType.IsType(TokenType.EqualEqual, TokenType.GreaterThanEqual, TokenType.BangEqual, 
                 TokenType.LessThanEqual, TokenType.GreaterThan, TokenType.LessThan))
-                return new OperatorData.Binary(operatorType, RipplePrimitiveNames.Bool, typeName, typeName);
+                return new OperatorData.Binary(operatorType, RipplePrimitives.BoolName, typeName, typeName);
 
             return new OperatorData.Binary(operatorType, typeName, typeName, typeName);
         }

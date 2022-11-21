@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
 
-namespace Ripple.Validation
+namespace Ripple.Validation.AstInfo
 {
     abstract class OperatorData
     {
