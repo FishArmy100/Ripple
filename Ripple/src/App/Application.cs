@@ -181,6 +181,19 @@ namespace Ripple.App
                         });
                     break;
                 case CompilerMode.Validating:
+                    var validationResult = Compiler.RunValidator(sourceFiles);
+                    validationResult.Match(
+                        ok =>
+                        {
+                            AstPrinter printer = new AstPrinter("   ");
+                            printer.PrintAst(ok.AST);
+                        },
+                        fail =>
+                        {
+                            foreach (CompilerError compilerError in fail)
+                                ConsoleHelper.WriteLineError(compilerError.ToString());
+                        });
+                    break;
                 case CompilerMode.Transpiling:
                     ConsoleHelper.WriteLineError("Compiler mode has not been implemented yet");
                     break;

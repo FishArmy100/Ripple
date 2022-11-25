@@ -432,6 +432,15 @@ namespace Ripple.Parsing
 
         private static Expression ParseUnaryExpr(TokenReader reader)
         {
+            if(reader.CheckSequence(TokenType.Ampersand, TokenType.Mut))
+            {
+                Token anpersand = reader.Advance();
+                Token mut = reader.Advance();
+                Expression expr = ParseUnaryExpr(reader);
+                Token refMut = new Token(anpersand.Text + mut.Text, TokenType.RefMut, anpersand.Line, anpersand.Column);
+                return new Unary(refMut, expr);
+            }
+
             if(reader.Match(TokenType.Minus, TokenType.Bang, TokenType.Star, TokenType.Ampersand))
             {
                 Token tok = reader.Previous();

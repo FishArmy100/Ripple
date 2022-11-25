@@ -67,7 +67,7 @@ grammer Ripple
 	Call = Primary "(" ExpressionList? ")";
 	Index = Expression "[" Expression "]";
 
-	Unary = ("!" | "-" | "&" | "*") Unary | (Call | Index);
+	Unary = ("!" | "-" | "&" "mut"? | "*") Unary | (Call | Index);
 
 	Factor = Unary (("*" | "/" | "%") Unary)*
 	Term = Factor (("+" | "-") Factor)*

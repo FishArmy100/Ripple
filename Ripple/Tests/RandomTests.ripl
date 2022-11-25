@@ -2,5 +2,8 @@
 
 func Test() -> void
 {
-	Add<'a, 'b>(5, 6);
+	int x = 5;
+
+	mut int a = 5;
+	mut int& r = &mut a;
 }

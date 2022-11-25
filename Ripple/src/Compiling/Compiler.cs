@@ -8,6 +8,7 @@ using Ripple.Parsing;
 using Ripple.Validation;
 using Ripple.Utils;
 using Ripple.AST;
+using Ripple.AST.Info;
 
 namespace Ripple.Compiling
 {
@@ -45,6 +46,13 @@ namespace Ripple.Compiling
         {
             return RunLexer(sourceFiles)
                 .Match(ok => Parser.Parse(ok)
+                .ConvertToCompilerResult(e => new CompilerError(e)));
+        }
+
+        public static CompilerResult<ASTInfo> RunValidator(List<SourceFile> sourceFiles)
+        {
+            return RunParser(sourceFiles)
+                .Match(ok => Validator.ValidateAst(ok)
                 .ConvertToCompilerResult(e => new CompilerError(e)));
         }
 

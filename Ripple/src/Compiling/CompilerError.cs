@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
+using Ripple.Parsing;
+using Ripple.Validation;
 
 namespace Ripple.Compiling
 {
@@ -24,13 +26,13 @@ namespace Ripple.Compiling
             Token = new Token("Unknown", TokenType.Unknown, error.Line, error.Column);
         }
 
-        public CompilerError(Parsing.ParserError error)
+        public CompilerError(ParserError error)
         {
             Message = error.Message;
             Token = error.Tok;
         }
 
-        public CompilerError(Validation.ValidationError error)
+        public CompilerError(ValidationError error)
         {
             Message = error.Message;
             Token = error.ErrorToken;

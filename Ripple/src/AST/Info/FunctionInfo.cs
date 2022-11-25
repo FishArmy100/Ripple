@@ -5,15 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
 
-namespace Ripple.Validation
+namespace Ripple.AST.Info
 {
-    class FunctionData
+    class FunctionInfo
     {
         public readonly Token Name;
-        public readonly List<(Token, Token)> Parameters;
-        public readonly Token ReturnType;
+        public readonly List<ParameterInfo> Parameters;
+        public readonly TypeInfo ReturnType;
 
-        public FunctionData(Token name, List<(Token, Token)> parameters, Token returnType)
+        public FunctionInfo(Token name, List<ParameterInfo> parameters, TypeInfo returnType)
         {
             Name = name;
             Parameters = parameters;

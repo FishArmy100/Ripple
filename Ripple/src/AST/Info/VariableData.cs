@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.AST;
 
-namespace Ripple.Validation.AstInfo
+namespace Ripple.AST.Info
 {
     class VariableData
     {
         public readonly Token Name;
-        public readonly TypeName Type;
+        public readonly TypeInfo Type;
 
-        public VariableData(Token name, TypeName type)
+        public VariableData(Token name, TypeInfo type)
         {
             Name = name;
             Type = type;

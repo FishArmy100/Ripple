@@ -5,33 +5,33 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
 
-namespace Ripple.Validation.AstInfo
+namespace Ripple.AST.Info
 {
     class OperatorList
     {
-        Dictionary<TokenType, List<OperatorData>> m_Operators = new Dictionary<TokenType, List<OperatorData>>();
+        Dictionary<TokenType, List<OperatorInfo>> m_Operators = new Dictionary<TokenType, List<OperatorInfo>>();
 
-        public bool TryAddOperator(OperatorData operatorData)
+        public bool TryAddOperator(OperatorInfo operatorData)
         {
             if (ContainsOperator(operatorData))
                 return false;
 
-            if (m_Operators.TryGetValue(operatorData.OperatorType, out List<OperatorData> overloads))
+            if (m_Operators.TryGetValue(operatorData.OperatorType, out List<OperatorInfo> overloads))
             {
                 overloads.Add(operatorData);
             }
             else
             {
-                List<OperatorData> newOverloads = new() { operatorData };
+                List<OperatorInfo> newOverloads = new() { operatorData };
                 m_Operators.Add(operatorData.OperatorType, newOverloads);
             }
 
             return true;
         }
 
-        public bool TryGetOperator<TOp>(TokenType name, List<string> parameterTypes, out TOp operatorData) where TOp : OperatorData
+        public bool TryGetOperator<TOp>(TokenType name, List<string> parameterTypes, out TOp operatorData) where TOp : OperatorInfo
         {
-            if(m_Operators.TryGetValue(name, out List<OperatorData> overloads))
+            if (m_Operators.TryGetValue(name, out List<OperatorInfo> overloads))
             {
                 operatorData = overloads
                     .FirstOrDefault(o => o.IsOperator(name, parameterTypes))
@@ -44,12 +44,12 @@ namespace Ripple.Validation.AstInfo
             return false;
         }
 
-        public bool ContainsOperator<TOp>(TokenType name, List<string> parameterTypes) where TOp : OperatorData
+        public bool ContainsOperator<TOp>(TokenType name, List<string> parameterTypes) where TOp : OperatorInfo
         {
             return TryGetOperator<TOp>(name, parameterTypes, out _);
         }
 
-        public bool ContainsOperator(OperatorData operatorData)
+        public bool ContainsOperator(OperatorInfo operatorData)
         {
             if (m_Operators.TryGetValue(operatorData.OperatorType, out var operatorOverloads))
             {

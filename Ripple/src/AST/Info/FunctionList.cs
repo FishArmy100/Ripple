@@ -5,13 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Utils.Extensions;
 
-namespace Ripple.Validation.AstInfo
+namespace Ripple.AST.Info
 {
     class FunctionList
     {
-        private readonly Dictionary<string, List<FunctionData>> m_Functions = new Dictionary<string, List<FunctionData>>();
+        private readonly Dictionary<string, List<FunctionInfo>> m_Functions = new Dictionary<string, List<FunctionInfo>>();
 
-        public bool TryAddFunction(FunctionData function)
+        public bool TryAddFunction(FunctionInfo function)
         {
             if (ContainsFunction(function))
                 return false;
@@ -23,7 +23,7 @@ namespace Ripple.Validation.AstInfo
             }
             else
             {
-                List<FunctionData> newOverloads = new List<FunctionData>() { function };
+                List<FunctionInfo> newOverloads = new List<FunctionInfo>() { function };
                 m_Functions.Add(funcName, newOverloads);
             }
 
@@ -35,7 +35,7 @@ namespace Ripple.Validation.AstInfo
             return m_Functions.ContainsKey(name);
         }
 
-        public bool TryGetFunction(string name, List<string> parameterTypes, out FunctionData function)
+        public bool TryGetFunction(string name, List<string> parameterTypes, out FunctionInfo function)
         {
             if (m_Functions.TryGetValue(name, out var functionOverloads))
             {
@@ -58,7 +58,7 @@ namespace Ripple.Validation.AstInfo
             return TryGetFunction(name, parameterTypes, out _);
         }
 
-        public bool ContainsFunction(FunctionData function)
+        public bool ContainsFunction(FunctionInfo function)
         {
             string funcName = function.Name.Text;
             if (m_Functions.TryGetValue(funcName, out var functionOverloads))

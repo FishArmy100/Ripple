@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Ripple.AST;
 using Ripple.Lexing;
 
-namespace Ripple.Validation.AstInfo
+namespace Ripple.AST.Info
 {
-    class ParameterData
+    class ParameterInfo
     {
-        readonly Token Name;
-        readonly TypeName Type;
+        public readonly Token Name;
+        public readonly TypeInfo Type;
 
-        public ParameterData(Token name, TypeName type)
+        public ParameterInfo(Token name, TypeInfo type)
         {
             Name = name;
             Type = type;
@@ -21,9 +20,9 @@ namespace Ripple.Validation.AstInfo
 
         public override bool Equals(object obj)
         {
-            return obj is ParameterData data &&
-                   EqualityComparer<Token>.Default.Equals(Name, data.Name) &&
-                   EqualityComparer<TypeName>.Default.Equals(Type, data.Type);
+            return obj is ParameterInfo info &&
+                   EqualityComparer<Token>.Default.Equals(Name, info.Name) &&
+                   EqualityComparer<TypeInfo>.Default.Equals(Type, info.Type);
         }
 
         public override int GetHashCode()

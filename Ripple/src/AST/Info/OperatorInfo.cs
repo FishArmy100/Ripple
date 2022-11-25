@@ -5,35 +5,35 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
 
-namespace Ripple.Validation.AstInfo
+namespace Ripple.AST.Info
 {
-    abstract class OperatorData
+    abstract class OperatorInfo
     {
         public readonly TokenType OperatorType;
-        public readonly string ReturnType;
+        public readonly TypeInfo ReturnType;
 
-        public abstract bool IsOperator(OperatorData other);
-        public abstract bool IsOperator(TokenType type, List<string> args);
+        public abstract bool IsOperator(OperatorInfo other);
+        public abstract bool IsOperator(TokenType type, List<TypeInfo> args);
 
-        protected OperatorData(TokenType operatorType, string returnType)
+        protected OperatorInfo(TokenType operatorType, TypeInfo returnType)
         {
             OperatorType = operatorType;
             ReturnType = returnType;
         }
 
-        public class Binary : OperatorData
+        public class Binary : OperatorInfo
         {
-            public readonly string LeftOperand;
-            public readonly string RightOperand;
+            public readonly TypeInfo LeftOperand;
+            public readonly TypeInfo RightOperand;
 
-            public Binary(TokenType operatorType, string returnType, string left, string right) : 
+            public Binary(TokenType operatorType, TypeInfo returnType, TypeInfo left, TypeInfo right) : 
                 base(operatorType, returnType)
             {
                 LeftOperand = left;
                 RightOperand = right;
             }
 
-            public override bool IsOperator(TokenType type, List<string> args)
+            public override bool IsOperator(TokenType type, List<TypeInfo> args)
             {
                 if (args.Count != 2 || type != OperatorType)
                     return false;
@@ -41,7 +41,7 @@ namespace Ripple.Validation.AstInfo
                 return args[0] == LeftOperand && args[1] == RightOperand;
             }
 
-            public override bool IsOperator(OperatorData other)
+            public override bool IsOperator(OperatorInfo other)
             {
                 if (other.OperatorType != OperatorType)
                     return false;
@@ -56,17 +56,17 @@ namespace Ripple.Validation.AstInfo
             }
         }
 
-        public class Unary : OperatorData
+        public class Unary : OperatorInfo
         {
-            public readonly string OperandType;
+            public readonly TypeInfo OperandType;
 
-            public Unary(TokenType operatorType, string returnType, string operandType) : 
+            public Unary(TokenType operatorType, TypeInfo returnType, TypeInfo operandType) : 
                 base(operatorType, returnType)
             {
                 OperandType = operandType;
             }
 
-            public override bool IsOperator(TokenType type, List<string> args)
+            public override bool IsOperator(TokenType type, List<TypeInfo> args)
             {
                 if (args.Count != 1 || type != OperatorType)
                     return false;
@@ -74,7 +74,7 @@ namespace Ripple.Validation.AstInfo
                 return args[0] == OperandType;
             }
 
-            public override bool IsOperator(OperatorData other)
+            public override bool IsOperator(OperatorInfo other)
             {
                 if (OperatorType != other.OperatorType)
                     return false;

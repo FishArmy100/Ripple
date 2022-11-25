@@ -9,4 +9,8 @@ namespace Ripple.AST
     interface IAstVisitor : IExpressionVisitor, IStatementVisitor, ITypeNameVisitor
     {
     }
+
+    interface IAstVisitor<T> : IExpressionVisitor<T>, IStatementVisitor<T> 
+    {
+    }
 }
