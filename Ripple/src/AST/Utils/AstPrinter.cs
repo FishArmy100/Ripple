@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.Utils.Extensions;
 
-namespace Ripple.AST
+namespace Ripple.AST.Utils
 {
     class AstPrinter : IStatementVisitor, IExpressionVisitor
     {

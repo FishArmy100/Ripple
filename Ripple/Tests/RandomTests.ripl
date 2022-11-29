@@ -2,8 +2,7 @@
 
 func Test() -> void
 {
-	int x = 5;
+	unsafe int* x = &5;
 
-	mut int a = 5;
-	mut int& r = &mut a;
+	int v = *x;
 }

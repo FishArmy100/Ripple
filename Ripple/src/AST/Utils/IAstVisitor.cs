@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple.AST
+namespace Ripple.AST.Utils
 {
     interface IAstVisitor : IExpressionVisitor, IStatementVisitor, ITypeNameVisitor
     {

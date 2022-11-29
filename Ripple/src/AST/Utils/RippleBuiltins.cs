@@ -23,33 +23,33 @@ namespace Ripple.AST.Utils
             };
         }
 
-        public static List<OperatorInfo> GetPrimitiveOperators()
-        {
-            List<OperatorInfo> intOperators = GenBinaries(RipplePrimitives.Int32Name,
-                TokenType.Plus, TokenType.Minus, TokenType.Star, TokenType.Slash, TokenType.Mod,
-                TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan,
-                TokenType.LessThanEqual, TokenType.EqualEqual, TokenType.BangEqual, TokenType.Equal);
+        //public static List<OperatorInfo> GetPrimitiveOperators()
+        //{
+        //    List<OperatorInfo> intOperators = GenBinaries(RipplePrimitives.Int32Name,
+        //        TokenType.Plus, TokenType.Minus, TokenType.Star, TokenType.Slash, TokenType.Mod,
+        //        TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan,
+        //        TokenType.LessThanEqual, TokenType.EqualEqual, TokenType.BangEqual, TokenType.Equal);
 
-            List<OperatorInfo> floatOperators = GenBinaries(RipplePrimitives.Float32Name,
-                TokenType.Plus, TokenType.Minus, TokenType.Star, TokenType.Slash,
-                TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan,
-                TokenType.LessThanEqual, TokenType.EqualEqual, TokenType.BangEqual, TokenType.Equal);
+        //    List<OperatorInfo> floatOperators = GenBinaries(RipplePrimitives.Float32Name,
+        //        TokenType.Plus, TokenType.Minus, TokenType.Star, TokenType.Slash,
+        //        TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan,
+        //        TokenType.LessThanEqual, TokenType.EqualEqual, TokenType.BangEqual, TokenType.Equal);
 
-            List<OperatorInfo> boolOperators = GenBinaries(RipplePrimitives.BoolName,
-                TokenType.EqualEqual, TokenType.BangEqual, TokenType.Equal,
-                TokenType.AmpersandAmpersand, TokenType.PipePipe);
+        //    List<OperatorInfo> boolOperators = GenBinaries(RipplePrimitives.BoolName,
+        //        TokenType.EqualEqual, TokenType.BangEqual, TokenType.Equal,
+        //        TokenType.AmpersandAmpersand, TokenType.PipePipe);
 
-            List<OperatorInfo> operators = new List<OperatorInfo>();
-            operators.AddRange(intOperators);
-            operators.AddRange(floatOperators);
-            operators.AddRange(boolOperators);
+        //    List<OperatorInfo> operators = new List<OperatorInfo>();
+        //    operators.AddRange(intOperators);
+        //    operators.AddRange(floatOperators);
+        //    operators.AddRange(boolOperators);
 
-            operators.Add(GenUnary(TokenType.Minus, RipplePrimitives.Int32Name));
-            operators.Add(GenUnary(TokenType.Minus, RipplePrimitives.Float32Name));
-            operators.Add(GenUnary(TokenType.Bang, RipplePrimitives.BoolName));
+        //    operators.Add(GenUnary(TokenType.Minus, RipplePrimitives.Int32Name));
+        //    operators.Add(GenUnary(TokenType.Minus, RipplePrimitives.Float32Name));
+        //    operators.Add(GenUnary(TokenType.Bang, RipplePrimitives.BoolName));
 
-            return operators;
-        }
+        //    return operators;
+        //}
 
         public static List<FunctionInfo> GetBuiltInFunctions()
         {
@@ -76,28 +76,28 @@ namespace Ripple.AST.Utils
             return new FunctionInfo(funcName, parameterInfos, returnType);
         }
 
-        private static List<OperatorInfo> GenBinaries(string typeName, params TokenType[] operatorTypes)
-        {
-            List<OperatorInfo> operatorDatas = new List<OperatorInfo>();
-            foreach (TokenType operatorType in operatorTypes)
-                operatorDatas.Add(GenBinary(operatorType, typeName));
+        //private static List<OperatorInfo> GenBinaries(string typeName, params TokenType[] operatorTypes)
+        //{
+        //    List<OperatorInfo> operatorDatas = new List<OperatorInfo>();
+        //    foreach (TokenType operatorType in operatorTypes)
+        //        operatorDatas.Add(GenBinary(operatorType, typeName));
 
-            return operatorDatas;
-        }
+        //    return operatorDatas;
+        //}
 
-        private static OperatorInfo GenBinary(TokenType operatorType, string typeName)
-        {
-            if (operatorType.IsType(TokenType.EqualEqual, TokenType.GreaterThanEqual, TokenType.BangEqual, 
-                TokenType.LessThanEqual, TokenType.GreaterThan, TokenType.LessThan))
-                return new OperatorInfo.Binary(operatorType, GenBasicType(RipplePrimitives.BoolName), GenBasicType(typeName), GenBasicType(typeName));
+        //private static OperatorInfo GenBinary(TokenType operatorType, string typeName)
+        //{
+        //    if (operatorType.IsType(TokenType.EqualEqual, TokenType.GreaterThanEqual, TokenType.BangEqual, 
+        //        TokenType.LessThanEqual, TokenType.GreaterThan, TokenType.LessThan))
+        //        return new OperatorInfo.Binary(operatorType, GenBasicType(RipplePrimitives.BoolName), GenBasicType(typeName), GenBasicType(typeName));
 
-            return new OperatorInfo.Binary(operatorType, GenBasicType(typeName), GenBasicType(typeName), GenBasicType(typeName));
-        }
+        //    return new OperatorInfo.Binary(operatorType, GenBasicType(typeName), GenBasicType(typeName), GenBasicType(typeName));
+        //}
 
-        private static OperatorInfo GenUnary(TokenType operatorType, string typeName)
-        {
-            return new OperatorInfo.Unary(operatorType, GenBasicType(typeName), GenBasicType(typeName));
-        }
+        //private static OperatorInfo GenUnary(TokenType operatorType, string typeName)
+        //{
+        //    return new OperatorInfo.Unary(operatorType, GenBasicType(typeName), GenBasicType(typeName));
+        //}
 
         private static PrimaryTypeInfo GenPrimative(string name)
         {

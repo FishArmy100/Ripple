@@ -16,18 +16,35 @@ namespace Ripple.Validation
     {
         public static Result<ASTInfo, List<ValidationError>> ValidateAst(ProgramStmt programStmt)
         {
-            List<PrimaryTypeInfo> builtInTypes = RippleBuiltins.GetPrimitives();
-            ASTInfo info = new ASTInfo(programStmt, builtInTypes);
+            ASTInfo info = GenASTInfo(programStmt);
+            List<ValidationError> errors = GetASTInfoErrors(info);
 
-            if(info.Errors.Count > 0)
-            {
-                return new Result<ASTInfo, List<ValidationError>>.Fail(info.Errors
-                    .AsEnumerable()
-                    .ToList()
-                    .ConvertAll(e => new ValidationError(e.Message, e.Token)));
-            }
+            UnsafeCheck(ref errors, info);
+
+            if (errors.Count > 0)
+                return new Result<ASTInfo, List<ValidationError>>.Fail(errors);
 
             return new Result<ASTInfo, List<ValidationError>>.Ok(info);
+        }
+
+        private static List<ValidationError> GetASTInfoErrors(ASTInfo info)
+        {
+            List<ValidationError> errors = new List<ValidationError>();
+            errors.AddRange(info.Errors.ConvertAll(e => new ValidationError(e.Message, e.Token)));
+            return errors;
+        }
+
+        private static ASTInfo GenASTInfo(ProgramStmt programStmt)
+        {
+            List<PrimaryTypeInfo> builtInTypes = RippleBuiltins.GetPrimitives();
+            ASTInfo info = new ASTInfo(programStmt, builtInTypes);
+            return info;
+        }
+
+        private static void UnsafeCheck(ref List<ValidationError> errors, ASTInfo info)
+        {
+            UnsafeCheckStep step = new UnsafeCheckStep(info);
+            errors.AddRange(step.Errors);
         }
     }
 }

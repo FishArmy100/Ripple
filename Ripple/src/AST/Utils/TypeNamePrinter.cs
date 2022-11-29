@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Ripple.Utils.Extensions;
 using Ripple.Lexing;
 
-namespace Ripple.AST
+namespace Ripple.AST.Utils
 {
     static class TypeNamePrinter
     {

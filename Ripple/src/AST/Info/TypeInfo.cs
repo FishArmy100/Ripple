@@ -15,39 +15,13 @@ namespace Ripple.AST.Info
             Mutable = mutable;
         }
 
+        public abstract bool IsUnsafe();
+        public abstract List<PrimaryTypeInfo> GetPrimaries();
+
         public static TypeInfo FromASTType(TypeName type)
         {
             TypeInfoHelperVisitor visitor = new TypeInfoHelperVisitor();
             return visitor.VisitTypeName(type);
-        }
-
-        public List<PrimaryTypeInfo> GetPrimaryTypes()
-        {
-            List<PrimaryTypeInfo> primaries = new List<PrimaryTypeInfo>();
-            switch (this)
-            {
-                case Basic b:
-                    primaries.Add(b.NameType);
-                    break;
-                case Pointer p:
-                    primaries.AddRange(p.Contained.GetPrimaryTypes());
-                    break;
-                case Reference r:
-                    primaries.AddRange(r.Contained.GetPrimaryTypes());
-                    break;
-                case Array a:
-                    primaries.AddRange(a.Type.GetPrimaryTypes());
-                    break;
-                case FunctionPointer fp:
-                    foreach (TypeInfo info in fp.Parameters)
-                        primaries.AddRange(info.GetPrimaryTypes());
-                    primaries.AddRange(fp.Returned.GetPrimaryTypes());
-                    break;
-                default:
-                    throw new Exception("Unknown type used");
-            }
-
-            return primaries;
         }
 
         public class Basic : TypeInfo
@@ -71,6 +45,16 @@ namespace Ripple.AST.Info
             {
                 return HashCode.Combine(Mutable, NameType);
             }
+
+            public override bool IsUnsafe()
+            {
+                return false;
+            }
+
+            public override List<PrimaryTypeInfo> GetPrimaries()
+            {
+                return new List<PrimaryTypeInfo> { NameType };
+            }
         }
 
         public class Pointer : TypeInfo
@@ -93,6 +77,13 @@ namespace Ripple.AST.Info
             {
                 return HashCode.Combine(Mutable, Contained, GetType());
             }
+
+            public override List<PrimaryTypeInfo> GetPrimaries()
+            {
+                return Contained.GetPrimaries();
+            }
+
+            public override bool IsUnsafe() => true; 
         }
 
         public class Reference : TypeInfo
@@ -115,6 +106,13 @@ namespace Ripple.AST.Info
             {
                 return HashCode.Combine(Mutable, Contained, GetType());
             }
+
+            public override List<PrimaryTypeInfo> GetPrimaries()
+            {
+                throw new NotImplementedException();
+            }
+
+            public override bool IsUnsafe() => Contained.IsUnsafe();
         }
 
         public class FunctionPointer : TypeInfo
@@ -140,6 +138,15 @@ namespace Ripple.AST.Info
             {
                 return HashCode.Combine(Mutable, Parameters, Returned, GetType());
             }
+
+            public override List<PrimaryTypeInfo> GetPrimaries()
+            {
+                List<PrimaryTypeInfo> primaries = Parameters.SelectMany(p => p.GetPrimaries()).ToList();
+                primaries.AddRange(Returned.GetPrimaries());
+                return primaries;
+            }
+
+            public override bool IsUnsafe() => Parameters.Any(t => t.IsUnsafe()) || Returned.IsUnsafe();
         }
 
         public class Array : TypeInfo
@@ -165,6 +172,16 @@ namespace Ripple.AST.Info
             public override int GetHashCode()
             {
                 return HashCode.Combine(Mutable, Type, SizeToken, GetType());
+            }
+
+            public override bool IsUnsafe()
+            {
+                return Type.IsUnsafe();
+            }
+
+            public override List<PrimaryTypeInfo> GetPrimaries()
+            {
+                return Type.GetPrimaries();
             }
         }
     }

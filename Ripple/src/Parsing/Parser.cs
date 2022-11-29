@@ -332,9 +332,9 @@ namespace Ripple.Parsing
 
         private static bool IsVarDecl(TokenReader reader, int beginOffset = 0)
         {
-            if(IsTypeName(ref reader, out int offset, beginOffset))
+            if(IsTypeName(ref reader, out int length, beginOffset))
             {
-                return reader.Peek(offset) is Token t && 
+                return reader.Peek(length + beginOffset) is Token t && 
                        t.Type.IsIdentifier();
             }
 

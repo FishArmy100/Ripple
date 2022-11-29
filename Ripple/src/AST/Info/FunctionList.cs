@@ -16,7 +16,7 @@ namespace Ripple.AST.Info
             if (ContainsFunction(function))
                 return false;
 
-            string funcName = function.Name.Text;
+            string funcName = function.NameToken.Text;
             if (m_Functions.TryGetValue(funcName, out var functionOverloads))
             {
                 functionOverloads.Add(function);
@@ -35,14 +35,14 @@ namespace Ripple.AST.Info
             return m_Functions.ContainsKey(name);
         }
 
-        public bool TryGetFunction(string name, List<string> parameterTypes, out FunctionInfo function)
+        public bool TryGetFunction(string name, List<TypeInfo> parameterTypes, out FunctionInfo function)
         {
             if (m_Functions.TryGetValue(name, out var functionOverloads))
             {
                 function = functionOverloads.FirstOrDefault(fn =>
                 {
                     return fn.Parameters
-                    .ConvertAll(p => p.Item1.Text)
+                    .ConvertAll(p => p.Type)
                     .SequenceEqual(parameterTypes);
                 });
 
@@ -53,21 +53,18 @@ namespace Ripple.AST.Info
             return false;
         }
 
-        public bool ContainsFunction(string name, List<string> parameterTypes)
+        public bool ContainsFunction(string name, List<TypeInfo> parameterTypes)
         {
             return TryGetFunction(name, parameterTypes, out _);
         }
 
         public bool ContainsFunction(FunctionInfo function)
         {
-            string funcName = function.Name.Text;
+            string funcName = function.Name;
             if (m_Functions.TryGetValue(funcName, out var functionOverloads))
             {
                 return functionOverloads
-                    .Any(fn => fn.Parameters.SequenceEquals(function.Parameters, (a, b) =>
-                    {
-                        return a.Item1.Text == b.Item1.Text;
-                    }));
+                    .Any(f => f.Parameters.SequenceEqual(function.Parameters));
             }
 
             return false;

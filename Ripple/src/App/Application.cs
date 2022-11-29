@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Ripple.Compiling;
-using Ripple.Parsing;
-using Ripple.AST;
 using System.IO;
 using Ripple.Utils;
-using Ripple.Utils.Extensions;
 using Ripple.Lexing;
 using Sharprompt;
+using Ripple.AST.Utils;
 
 namespace Ripple.App
 {
