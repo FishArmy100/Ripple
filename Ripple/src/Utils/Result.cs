@@ -19,5 +19,13 @@ namespace Ripple.Utils
             public TError Error { get; }
             public Fail(TError error) => Error = error;
         }
+
+        public void Match(Action<TSuccess> okFunc, Action<TError> failFunc)
+        {
+            if (this is Ok ok)
+                okFunc(ok.Data);
+            else if (this is Fail fail)
+                failFunc(fail.Error);
+        }
     }
 }

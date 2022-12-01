@@ -23,42 +23,71 @@ namespace Ripple.AST.Utils
             };
         }
 
-        //public static List<OperatorInfo> GetPrimitiveOperators()
-        //{
-        //    List<OperatorInfo> intOperators = GenBinaries(RipplePrimitives.Int32Name,
-        //        TokenType.Plus, TokenType.Minus, TokenType.Star, TokenType.Slash, TokenType.Mod,
-        //        TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan,
-        //        TokenType.LessThanEqual, TokenType.EqualEqual, TokenType.BangEqual, TokenType.Equal);
-
-        //    List<OperatorInfo> floatOperators = GenBinaries(RipplePrimitives.Float32Name,
-        //        TokenType.Plus, TokenType.Minus, TokenType.Star, TokenType.Slash,
-        //        TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan,
-        //        TokenType.LessThanEqual, TokenType.EqualEqual, TokenType.BangEqual, TokenType.Equal);
-
-        //    List<OperatorInfo> boolOperators = GenBinaries(RipplePrimitives.BoolName,
-        //        TokenType.EqualEqual, TokenType.BangEqual, TokenType.Equal,
-        //        TokenType.AmpersandAmpersand, TokenType.PipePipe);
-
-        //    List<OperatorInfo> operators = new List<OperatorInfo>();
-        //    operators.AddRange(intOperators);
-        //    operators.AddRange(floatOperators);
-        //    operators.AddRange(boolOperators);
-
-        //    operators.Add(GenUnary(TokenType.Minus, RipplePrimitives.Int32Name));
-        //    operators.Add(GenUnary(TokenType.Minus, RipplePrimitives.Float32Name));
-        //    operators.Add(GenUnary(TokenType.Bang, RipplePrimitives.BoolName));
-
-        //    return operators;
-        //}
-
-        public static List<FunctionInfo> GetBuiltInFunctions()
+        public static OperatorLibrary GetPrimitiveOperators()
         {
-            return new List<FunctionInfo>()
+            OperatorLibrary library = new OperatorLibrary();
+            AppendBinaryOperators(ref library);
+            AppendUnaryOperators(ref library);
+            AppendCastOperators(ref library);
+
+            return library;
+        }
+
+        private static void AppendBinaryOperators(ref OperatorLibrary library)
+        {
+            List<OperatorInfo.Binary> intOperators = GenBinaries(RipplePrimitives.Int32Name,
+                TokenType.Plus, TokenType.Minus, TokenType.Star, TokenType.Slash, TokenType.Mod,
+                TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan,
+                TokenType.LessThanEqual, TokenType.EqualEqual, TokenType.BangEqual);
+
+            List<OperatorInfo.Binary> floatOperators = GenBinaries(RipplePrimitives.Float32Name,
+                TokenType.Plus, TokenType.Minus, TokenType.Star, TokenType.Slash,
+                TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan,
+                TokenType.LessThanEqual, TokenType.EqualEqual, TokenType.BangEqual);
+
+            List<OperatorInfo.Binary> boolOperators = GenBinaries(RipplePrimitives.BoolName,
+                TokenType.EqualEqual, TokenType.BangEqual,
+                TokenType.AmpersandAmpersand, TokenType.PipePipe);
+
+            List<OperatorInfo.Binary> operators = new List<OperatorInfo.Binary>();
+            operators.AddRange(intOperators);
+            operators.AddRange(floatOperators);
+            operators.AddRange(boolOperators);
+
+            foreach (var op in operators)
+                _ = library.BinaryOperators.TryAdd(op);
+        }
+
+        private static void AppendUnaryOperators(ref OperatorLibrary library)
+        {
+            library.UnaryOperators.TryAdd(GenUnary(TokenType.Minus, RipplePrimitives.Int32Name));
+            library.UnaryOperators.TryAdd(GenUnary(TokenType.Minus, RipplePrimitives.Float32Name));
+            library.UnaryOperators.TryAdd(GenUnary(TokenType.Bang, RipplePrimitives.BoolName));
+        }
+
+        private static void AppendCastOperators(ref OperatorLibrary operatorLibrary)
+        {
+            OperatorInfo.Cast intToFloat = new OperatorInfo.Cast(RipplePrimitives.Int32, RipplePrimitives.Float32);
+            OperatorInfo.Cast floatToInt = new OperatorInfo.Cast(RipplePrimitives.Float32, RipplePrimitives.Int32);
+            operatorLibrary.CastOperators.TryAdd(floatToInt);
+            operatorLibrary.CastOperators.TryAdd(intToFloat);
+        }
+
+        public static FunctionList GetBuiltInFunctions()
+        {
+            var infos = new List<FunctionInfo>()
             {
-                GenFunctionData("print", new (){("int", "value")}, "void"),
-                GenFunctionData("print", new (){("float", "value")}, "void"),
-                GenFunctionData("print", new (){("bool", "value")}, "void"),
+                GenFunctionData("print", new (){(RipplePrimitives.Int32Name,    "value")}, RipplePrimitives.VoidName),
+                GenFunctionData("print", new (){(RipplePrimitives.Float32Name,  "value")}, RipplePrimitives.VoidName),
+                GenFunctionData("print", new (){(RipplePrimitives.BoolName,     "value")}, RipplePrimitives.VoidName),
             };
+
+            FunctionList list = new FunctionList();
+
+            foreach (FunctionInfo info in infos)
+                list.TryAddFunction(info);
+
+            return list;
         }
 
         private static Token GenIdTok(string name)
@@ -73,31 +102,31 @@ namespace Ripple.AST.Utils
             List<ParameterInfo> parameterInfos = paramaters
                 .ConvertAll(p => new ParameterInfo(GenIdTok(p.Item2), GenBasicType(p.Item1)));
 
-            return new FunctionInfo(funcName, parameterInfos, returnType);
+            return new FunctionInfo(false, funcName, parameterInfos, returnType);
         }
 
-        //private static List<OperatorInfo> GenBinaries(string typeName, params TokenType[] operatorTypes)
-        //{
-        //    List<OperatorInfo> operatorDatas = new List<OperatorInfo>();
-        //    foreach (TokenType operatorType in operatorTypes)
-        //        operatorDatas.Add(GenBinary(operatorType, typeName));
+        private static List<OperatorInfo.Binary> GenBinaries(string typeName, params TokenType[] operatorTypes)
+        {
+            List<OperatorInfo.Binary> operatorDatas = new List<OperatorInfo.Binary>();
+            foreach (TokenType operatorType in operatorTypes)
+                operatorDatas.Add(GenBinary(operatorType, typeName));
 
-        //    return operatorDatas;
-        //}
+            return operatorDatas;
+        }
 
-        //private static OperatorInfo GenBinary(TokenType operatorType, string typeName)
-        //{
-        //    if (operatorType.IsType(TokenType.EqualEqual, TokenType.GreaterThanEqual, TokenType.BangEqual, 
-        //        TokenType.LessThanEqual, TokenType.GreaterThan, TokenType.LessThan))
-        //        return new OperatorInfo.Binary(operatorType, GenBasicType(RipplePrimitives.BoolName), GenBasicType(typeName), GenBasicType(typeName));
+        private static OperatorInfo.Binary GenBinary(TokenType operatorType, string typeName)
+        {
+            if (operatorType.IsType(TokenType.EqualEqual, TokenType.GreaterThanEqual, TokenType.BangEqual, 
+                TokenType.LessThanEqual, TokenType.GreaterThan, TokenType.LessThan))
+                return new OperatorInfo.Binary(GenBasicType(typeName), GenBasicType(typeName), operatorType, RipplePrimitives.Bool);
 
-        //    return new OperatorInfo.Binary(operatorType, GenBasicType(typeName), GenBasicType(typeName), GenBasicType(typeName));
-        //}
+            return new OperatorInfo.Binary(GenBasicType(typeName), GenBasicType(typeName), operatorType, GenBasicType(typeName));
+        }
 
-        //private static OperatorInfo GenUnary(TokenType operatorType, string typeName)
-        //{
-        //    return new OperatorInfo.Unary(operatorType, GenBasicType(typeName), GenBasicType(typeName));
-        //}
+        private static OperatorInfo.Unary GenUnary(TokenType operatorType, string typeName)
+        {
+            return new OperatorInfo.Unary(GenBasicType(typeName), operatorType, GenBasicType(typeName));
+        }
 
         private static PrimaryTypeInfo GenPrimative(string name)
         {

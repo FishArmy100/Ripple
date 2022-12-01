@@ -16,7 +16,7 @@ namespace Ripple.Validation
         private bool m_IsInUnsafe = false;
 
         private readonly ASTInfo m_AST;
-        LocalVariableStack m_VariableStack = new LocalVariableStack();
+        private readonly LocalVariableStack m_VariableStack = new LocalVariableStack();
 
         public UnsafeCheckStep(ASTInfo astInfo)
         {
@@ -30,6 +30,9 @@ namespace Ripple.Validation
             {
                 CheckType(varDecl.Type);
                 base.VisitVarDecl(varDecl);
+
+                foreach (VariableInfo variableInfo in VariableInfo.FromVarDecl(varDecl))
+                    m_VariableStack.AddVariable(variableInfo);
             });
         }
 
@@ -38,7 +41,14 @@ namespace Ripple.Validation
             UpdateUnsafe(funcDecl.UnsafeToken.HasValue, () =>
             {
                 CheckType(funcDecl.ReturnType);
+
+                m_VariableStack.PushScope();
+                foreach ((TypeName type, Token name) in funcDecl.Param.ParamList)
+                    m_VariableStack.AddVariable(new VariableInfo(name, TypeInfo.FromASTType(type), false));
+
                 base.VisitFuncDecl(funcDecl);
+
+                m_VariableStack.PopScope();
             });
         }
 
@@ -102,7 +112,7 @@ namespace Ripple.Validation
             m_VariableStack.PopScope();
 
             m_VariableStack.PushScope();
-            ifStmt.ElseBody.Accept(this);
+            ifStmt.ElseBody.Match(body => body.Accept(this));
             m_VariableStack.PopScope();
         }
 
@@ -125,7 +135,27 @@ namespace Ripple.Validation
                 string name = id.Name.Text;
                 if(!m_VariableStack.ContainsVariable(name) && !m_AST.GlobalVariables.ContainsKey(name))
                 {
-                    //if(m_AST.Functions.TryGetFunction(name, call.))
+                    List<TypeInfo> args = new List<TypeInfo>();
+                    foreach(Expression arg in call.Args)
+                    {
+                        bool failed = false;
+
+                        TypeInfoHelper.GetTypeOfExpression(m_AST, m_VariableStack, arg).Match(
+                            ok => args.Add(ok),
+                            fail => failed = true);
+
+                        if (failed)
+                        {
+                            base.VisitCall(call);
+                            return;
+                        }
+                    }
+
+                    if (m_AST.Functions.TryGetFunction(name, args, out FunctionInfo info))
+                    {
+                        if (!m_IsInUnsafe && info.IsUnsafe)
+                            AddError(id.Name, "Use of unsafe funciton: " + name + " in a safe context.");
+                    }
                 }
             }
 
@@ -138,12 +168,12 @@ namespace Ripple.Validation
             if(m_VariableStack.TryGetVariable(name, out VariableInfo info))
             {
                 if (!m_IsInUnsafe && info.IsUnsafe)
-                    AddError(info.NameToken, "Cannot refer to a unsafe variable in a safe context.");
+                    AddError(info.NameToken, "Cannot refer to unsafe variable: " + name + " in a safe context.");
             }
             else if(m_AST.GlobalVariables.TryGetValue(name, out info))
             {
                 if (!m_IsInUnsafe && info.IsUnsafe)
-                    AddError(info.NameToken, "Cannot refer to a unsafe variable in a safe context.");
+                    AddError(info.NameToken, "Cannot refer to unsafe variable: " + name + " in a safe context.");
             }
         }
 

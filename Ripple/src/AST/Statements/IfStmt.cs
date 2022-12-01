@@ -15,9 +15,9 @@ namespace Ripple.AST
 		public readonly Token CloseParen;
 		public readonly Statement Body;
 		public readonly Token? ElseToken;
-		public readonly Statement ElseBody;
+		public readonly Option<Statement> ElseBody;
 
-		public IfStmt(Token ifTok, Token openParen, Expression expr, Token closeParen, Statement body, Token? elseToken, Statement elseBody)
+		public IfStmt(Token ifTok, Token openParen, Expression expr, Token closeParen, Statement body, Token? elseToken, Option<Statement> elseBody)
 		{
 			this.IfTok = ifTok;
 			this.OpenParen = openParen;

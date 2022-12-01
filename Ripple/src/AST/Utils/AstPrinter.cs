@@ -66,7 +66,7 @@ namespace Ripple.AST.Utils
             {
                 Print("Else Branch");
                 TabRight();
-                ifStmt.ElseBody.Accept(this);
+                ifStmt.ElseBody.Match(body => body.Accept(this));
                 TabLeft();
             }
 

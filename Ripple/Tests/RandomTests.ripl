@@ -1,8 +1,10 @@
 ﻿
+func Add(int a, int b) -> int { return a + b; }
+func Add(float a, float b) -> int { return a + b; }
 
-func Test() -> void
+
+func Main() -> void
 {
-	unsafe int* x = &5;
-
-	int v = *x;
+	(int, int)->int add = Add as (int, int)->int;
+	add(5, 6);
 }

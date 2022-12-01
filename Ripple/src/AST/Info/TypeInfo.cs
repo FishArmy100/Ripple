@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
+using Ripple.Utils.Extensions;
 
 namespace Ripple.AST.Info
 {
@@ -17,12 +18,18 @@ namespace Ripple.AST.Info
 
         public abstract bool IsUnsafe();
         public abstract List<PrimaryTypeInfo> GetPrimaries();
+        public abstract TypeInfo ChangeMutable(bool isMutable);
+
+        public abstract string ToPrettyString();
 
         public static TypeInfo FromASTType(TypeName type)
         {
             TypeInfoHelperVisitor visitor = new TypeInfoHelperVisitor();
             return visitor.VisitTypeName(type);
         }
+
+        protected string GetMutStrAfter() => (Mutable ? " mut" : "");
+        protected string GetMutStrBefore() => (Mutable ? "mut " : "");
 
         public class Basic : TypeInfo
         {
@@ -55,6 +62,16 @@ namespace Ripple.AST.Info
             {
                 return new List<PrimaryTypeInfo> { NameType };
             }
+
+            public override TypeInfo ChangeMutable(bool isMutable)
+            {
+                return new Basic(isMutable, NameType);
+            }
+
+            public override string ToPrettyString()
+            {
+                return GetMutStrBefore() + Name;
+            }
         }
 
         public class Pointer : TypeInfo
@@ -64,6 +81,11 @@ namespace Ripple.AST.Info
             public Pointer(bool mutable, TypeInfo contained) : base(mutable)
             {
                 Contained = contained;
+            }
+
+            public override TypeInfo ChangeMutable(bool isMutable)
+            {
+                return new Pointer(isMutable, Contained);
             }
 
             public override bool Equals(object obj)
@@ -83,7 +105,19 @@ namespace Ripple.AST.Info
                 return Contained.GetPrimaries();
             }
 
-            public override bool IsUnsafe() => true; 
+            public override bool IsUnsafe() => true;
+
+            public override string ToPrettyString()
+            {
+                if(Contained is FunctionPointer)
+                {
+                    return "(" + Contained.ToPrettyString() + ")" + GetMutStrAfter() + "*";
+                }
+                else
+                {
+                    return Contained.ToPrettyString() + GetMutStrAfter() + "*";
+                }
+            }
         }
 
         public class Reference : TypeInfo
@@ -93,6 +127,11 @@ namespace Ripple.AST.Info
             public Reference(bool mutable, TypeInfo contained) : base(mutable)
             {
                 Contained = contained;
+            }
+
+            public override TypeInfo ChangeMutable(bool isMutable)
+            {
+                return new Pointer(isMutable, Contained);
             }
 
             public override bool Equals(object obj)
@@ -112,25 +151,48 @@ namespace Ripple.AST.Info
                 throw new NotImplementedException();
             }
 
+            public override string ToPrettyString()
+            {
+                if (Contained is FunctionPointer)
+                {
+                    return "(" + Contained.ToPrettyString() + ")" + GetMutStrAfter() + "&";
+                }
+                else
+                {
+                    return Contained.ToPrettyString() + GetMutStrAfter() + "&";
+                }
+            }
+
             public override bool IsUnsafe() => Contained.IsUnsafe();
         }
 
         public class FunctionPointer : TypeInfo
         {
-            public readonly IReadOnlyList<TypeInfo> Parameters;
+            public readonly List<TypeInfo> Parameters;
             public readonly TypeInfo Returned;
 
-            public FunctionPointer(bool mutable, IReadOnlyList<TypeInfo> parameters, TypeInfo returned) : base(mutable)
+            public FunctionPointer(bool mutable, List<TypeInfo> parameters, TypeInfo returned) : base(mutable)
             {
                 Parameters = parameters;
                 Returned = returned;
+            }
+
+            public FunctionPointer(FunctionInfo info) : base(false)
+            {
+                Parameters = info.Parameters.ConvertAll(p => p.Type);
+                Returned = info.ReturnType;
+            }
+
+            public override TypeInfo ChangeMutable(bool isMutable)
+            {
+                return new FunctionPointer(isMutable, Parameters, Returned);
             }
 
             public override bool Equals(object obj)
             {
                 return obj is FunctionPointer pointer &&
                        Mutable == pointer.Mutable &&
-                       EqualityComparer<IReadOnlyList<TypeInfo>>.Default.Equals(Parameters, pointer.Parameters) &&
+                       Parameters.SequenceEqual(pointer.Parameters) &&
                        EqualityComparer<TypeInfo>.Default.Equals(Returned, pointer.Returned);
             }
 
@@ -147,6 +209,12 @@ namespace Ripple.AST.Info
             }
 
             public override bool IsUnsafe() => Parameters.Any(t => t.IsUnsafe()) || Returned.IsUnsafe();
+
+            public override string ToPrettyString()
+            {
+                return GetMutStrBefore() + "(" + Parameters.ToList().ConvertAll(p => p.ToPrettyString()).Concat(", ") + 
+                    ")->" + Returned.ToPrettyString();
+            }
         }
 
         public class Array : TypeInfo
@@ -182,6 +250,16 @@ namespace Ripple.AST.Info
             public override List<PrimaryTypeInfo> GetPrimaries()
             {
                 return Type.GetPrimaries();
+            }
+
+            public override TypeInfo ChangeMutable(bool isMutable)
+            {
+                return new Array(isMutable, Type, SizeToken);
+            }
+
+            public override string ToPrettyString()
+            {
+                return Type.ToPrettyString() + GetMutStrAfter() + "[" + Size.ToString() + "]";
             }
         }
     }

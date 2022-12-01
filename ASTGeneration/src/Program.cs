@@ -46,7 +46,7 @@ namespace ASTGeneration
             {
                 "ExprStmt : Expression Expr; Token SemiColin",
                 "BlockStmt : Token OpenBrace; List<Statement> Statements; Token CloseBrace",
-                "IfStmt : Token IfTok; Token OpenParen; Expression Expr; Token CloseParen; Statement Body; Token? ElseToken; Statement ElseBody",
+                "IfStmt : Token IfTok; Token OpenParen; Expression Expr; Token CloseParen; Statement Body; Token? ElseToken; Option<Statement> ElseBody",
                 "ForStmt : Token ForTok; Token OpenParen; Option<Statement> Init; Option<Expression> Condition; Option<Expression> Iter; Token CloseParen; Statement Body",
                 "WhileStmt : Token WhileToken; Token OpenParen; Expression Condition; Token CloseParen; Statement Body",
                 "VarDecl : Token? UnsafeToken; TypeName Type; List<Token> VarNames; Token Equels; Expression Expr; Token SemiColin",

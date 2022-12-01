@@ -53,6 +53,11 @@ namespace Ripple.AST.Info
             return false;
         }
 
+        public List<FunctionInfo> GetOverloadsWithName(string name)
+        {
+            return m_Functions.GetOrCreate(name);
+        }
+
         public bool ContainsFunction(string name, List<TypeInfo> parameterTypes)
         {
             return TryGetFunction(name, parameterTypes, out _);

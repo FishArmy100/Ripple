@@ -17,18 +17,21 @@ namespace Ripple.AST.Info
         public readonly List<ASTInfoError> Errors;
         public readonly FunctionList Functions;
         public readonly Dictionary<string, VariableInfo> GlobalVariables;
+        public readonly OperatorLibrary OperatorLibrary;
 
         public readonly ProgramStmt AST;
 
-        public ASTInfo(ProgramStmt ast, List<PrimaryTypeInfo> additionalTypes)
+        public ASTInfo(ProgramStmt ast, List<PrimaryTypeInfo> primaryTypes, FunctionList additionalFunctions, OperatorLibrary operatorLibrary)
         {
-            PrimaryTypes = additionalTypes;
+            PrimaryTypes = primaryTypes;
 
-            ASTInfoGenerationHelper helper = new ASTInfoGenerationHelper(ast, PrimaryTypes);
+            ASTInfoGenerationHelper helper = new ASTInfoGenerationHelper(ast, PrimaryTypes, additionalFunctions);
             CompositTypes = helper.CompositTypes;
             Errors = helper.Errors;
             Functions = helper.Functions;
             GlobalVariables = helper.GlobalVariables;
+
+            OperatorLibrary = operatorLibrary;
 
             AST = ast;
         }
@@ -38,13 +41,14 @@ namespace Ripple.AST.Info
             private readonly List<PrimaryTypeInfo> m_Primaries;
             public List<TypeInfo> CompositTypes { get; private set; } = new List<TypeInfo>();
             public List<ASTInfoError> Errors { get; private set; } = new List<ASTInfoError>();
-            public FunctionList Functions { get; private set; } = new FunctionList();
+            public FunctionList Functions { get; private set; }
             public Dictionary<string, VariableInfo> GlobalVariables { get; private set; } = new Dictionary<string, VariableInfo>();
 
             private bool m_IsInGlobalScope = true;
 
-            public ASTInfoGenerationHelper(ProgramStmt ast, List<PrimaryTypeInfo> primaries)
+            public ASTInfoGenerationHelper(ProgramStmt ast, List<PrimaryTypeInfo> primaries, FunctionList additionalFunctions)
             {
+                Functions = additionalFunctions;
                 m_Primaries = primaries;
                 ast.Accept(this);
             }

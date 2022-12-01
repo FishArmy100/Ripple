@@ -30,7 +30,7 @@ namespace Ripple.Utils
         {
             get
             {
-                if (m_Value == null)
+                if (HasValue())
                     return m_Value;
                 else
                     throw new NullOptionExeption();

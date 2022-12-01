@@ -186,9 +186,13 @@ namespace Ripple.Parsing
         {
             if (TryParseIf(ref reader, ref errors, out Statement statement))
                 return statement;
+            else if (TryParseContinueAndBreak(ref reader, out statement))
+                return statement;
             else if (TryParseBlock(ref reader, ref errors, out BlockStmt block))
                 return block;
             else if (TryParseFor(ref reader, ref errors, out statement))
+                return statement;
+            else if (TryParseWhile(ref reader, ref errors, out statement))
                 return statement;
             else if (TryParseReturn(ref reader, out statement))
                 return statement;
@@ -198,6 +202,18 @@ namespace Ripple.Parsing
                 return unsafeBlock;
             else
                 return ParseExpressionStatement(ref reader);
+        }
+
+        private static bool TryParseContinueAndBreak(ref TokenReader reader, out Statement statement)
+        {
+            statement = null;
+
+            if (reader.Match(TokenType.Break))
+                statement = new BreakStmt(reader.Previous(), reader.Consume(TokenType.SemiColon, "Expected a ';'."));
+            else if (reader.Match(TokenType.Continue))
+                statement = new ContinueStmt(reader.Previous(), reader.Consume(TokenType.SemiColon, "Expected a ';'."));
+
+            return statement != null;
         }
 
         private static bool TryParseIf(ref TokenReader reader, ref List<ParserError> errors, out Statement statement)
@@ -250,6 +266,23 @@ namespace Ripple.Parsing
             Statement body = ParseStatement(ref reader, ref errors);
 
             statement = new ForStmt(forToken, openParen, init, condition, itr, closeParen, body);
+            return true;
+        }
+
+        private static bool TryParseWhile(ref TokenReader reader, ref List<ParserError> parserErrors, out Statement statement)
+        {
+            statement = null;
+            if (!reader.Match(TokenType.While))
+                return false;
+
+            Token whileToken = reader.Previous();
+            Token openParen = reader.Consume(TokenType.OpenParen, "Expected a '('.");
+            Expression condition = ParseExpression(ref reader);
+            Token closeParen = reader.Consume(TokenType.CloseParen, "Expected a ')'.");
+
+            Statement body = ParseStatement(ref reader, ref parserErrors);
+
+            statement = new WhileStmt(whileToken, openParen, condition, closeParen, body);
             return true;
         }
 
@@ -492,7 +525,7 @@ namespace Ripple.Parsing
 
         private static Expression ParsePrimary(TokenReader reader)
         {
-            if (reader.Match(TokenType.IntagerLiteral, TokenType.FloatLiteral, TokenType.True, TokenType.False, TokenType.StringLiteral, TokenType.CharactorLiteral))
+            if (reader.Match(TokenType.IntagerLiteral, TokenType.FloatLiteral, TokenType.True, TokenType.False, TokenType.StringLiteral, TokenType.CharactorLiteral, TokenType.Nullptr))
                 return new Literal(reader.Previous());
             if (TryParseTypeExpression(ref reader, out TypeExpression typeExpression))
                 return typeExpression;
