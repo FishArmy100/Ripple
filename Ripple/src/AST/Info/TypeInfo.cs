@@ -19,6 +19,7 @@ namespace Ripple.AST.Info
         public abstract bool IsUnsafe();
         public abstract List<PrimaryTypeInfo> GetPrimaries();
         public abstract TypeInfo ChangeMutable(bool isMutable);
+        public abstract bool HasNonPointerVoid();
 
         public abstract string ToPrettyString();
 
@@ -72,6 +73,11 @@ namespace Ripple.AST.Info
             {
                 return GetMutStrBefore() + Name;
             }
+
+            public override bool HasNonPointerVoid()
+            {
+                return Name == Utils.RipplePrimitives.VoidName;
+            }
         }
 
         public class Pointer : TypeInfo
@@ -105,6 +111,14 @@ namespace Ripple.AST.Info
                 return Contained.GetPrimaries();
             }
 
+            public override bool HasNonPointerVoid()
+            {
+                if (Contained is Basic)
+                    return false;
+                else
+                    return Contained.HasNonPointerVoid();
+            }
+
             public override bool IsUnsafe() => true;
 
             public override string ToPrettyString()
@@ -131,7 +145,7 @@ namespace Ripple.AST.Info
 
             public override TypeInfo ChangeMutable(bool isMutable)
             {
-                return new Pointer(isMutable, Contained);
+                return new Reference(isMutable, Contained);
             }
 
             public override bool Equals(object obj)
@@ -148,7 +162,7 @@ namespace Ripple.AST.Info
 
             public override List<PrimaryTypeInfo> GetPrimaries()
             {
-                throw new NotImplementedException();
+                return Contained.GetPrimaries();
             }
 
             public override string ToPrettyString()
@@ -164,6 +178,11 @@ namespace Ripple.AST.Info
             }
 
             public override bool IsUnsafe() => Contained.IsUnsafe();
+
+            public override bool HasNonPointerVoid()
+            {
+                return Contained.HasNonPointerVoid();
+            }
         }
 
         public class FunctionPointer : TypeInfo
@@ -215,6 +234,17 @@ namespace Ripple.AST.Info
                 return GetMutStrBefore() + "(" + Parameters.ToList().ConvertAll(p => p.ToPrettyString()).Concat(", ") + 
                     ")->" + Returned.ToPrettyString();
             }
+
+            public override bool HasNonPointerVoid()
+            {
+                foreach(TypeInfo info in Parameters)
+                {
+                    if (info.HasNonPointerVoid())
+                        return true;
+                }
+
+                return Returned.HasNonPointerVoid();
+            }
         }
 
         public class Array : TypeInfo
@@ -260,6 +290,11 @@ namespace Ripple.AST.Info
             public override string ToPrettyString()
             {
                 return Type.ToPrettyString() + GetMutStrAfter() + "[" + Size.ToString() + "]";
+            }
+
+            public override bool HasNonPointerVoid()
+            {
+                return Type.HasNonPointerVoid();
             }
         }
     }

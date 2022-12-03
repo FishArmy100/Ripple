@@ -21,6 +21,7 @@ namespace Ripple.AST.Utils
         public static readonly TypeInfo Float32 = GenPrimative(Float32Name);
         public static readonly TypeInfo Bool = GenPrimative(BoolName);
         public static readonly TypeInfo Char = GenPrimative(CharName);
+        public static readonly TypeInfo Void = GenPrimative(VoidName);
 
         private static TypeInfo GenPrimative(string name)
         {

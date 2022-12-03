@@ -8,12 +8,23 @@ namespace Ripple.Utils
 {
     class NullOptionExeption : Exception { }
 
-    public struct Option<T> where T : class
+    public struct Option<T>
     {
         private readonly T m_Value;
+        private readonly bool m_HasValue;
+
         public Option(T value)
         {
-            m_Value = value;
+            if(value.GetType().IsValueType)
+            {
+                m_Value = value;
+                m_HasValue = true;
+            }
+            else
+            {
+                m_Value = value;
+                m_HasValue = value != null;
+            }
         }
 
         public static implicit operator Option<T>(T value)
@@ -37,7 +48,7 @@ namespace Ripple.Utils
             }
         }
 
-        public bool HasValue() => m_Value != null;
+        public bool HasValue() => m_HasValue;
 
         public void Match(Action<T> okFunc, Action failFunc)
         {
@@ -51,6 +62,14 @@ namespace Ripple.Utils
         {
             if (HasValue())
                 okFunc(Value);
+        }
+
+        public TReturn Match<TReturn>(Func<T, TReturn> okFunc, Func<TReturn> failFunc)
+        {
+            if (HasValue())
+                return okFunc(Value);
+            else
+                return failFunc();
         }
     }
 }

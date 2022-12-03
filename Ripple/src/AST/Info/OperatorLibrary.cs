@@ -58,14 +58,25 @@ namespace Ripple.AST.Info
                 return new OperatorInfo.Cast(arg, typeToCastTo);
             else if (typeToCastTo.Equals(arg.ChangeMutable(false)))
                 return new OperatorInfo.Cast(arg, typeToCastTo);
-            else if (typeToCastTo is TypeInfo.Pointer && arg is TypeInfo.Reference)
+            else if (typeToCastTo is TypeInfo.Pointer p1 && arg is TypeInfo.Reference r1)
             {
-                if (!(typeToCastTo.Mutable && !arg.Mutable))
+                if (!(p1.Contained.Mutable && !r1.Contained.Mutable) && 
+                    r1.Contained.ChangeMutable(false).Equals(p1.Contained.ChangeMutable(false)))
+                {
                     return new OperatorInfo.Cast(arg, typeToCastTo);
+                }
             }
-            else if (typeToCastTo is TypeInfo.Reference && arg is TypeInfo.Pointer)
+            else if (typeToCastTo is TypeInfo.Reference r2 && arg is TypeInfo.Pointer p2)
             {
-                if (!(typeToCastTo.Mutable && !arg.Mutable))
+                if (!(r2.Contained.Mutable && !p2.Contained.Mutable) &&
+                    p2.Contained.ChangeMutable(false).Equals(r2.Contained.ChangeMutable(false)))
+                {
+                    return new OperatorInfo.Cast(arg, typeToCastTo);
+                }
+            }
+            else if(typeToCastTo is TypeInfo.Pointer pointer && arg is TypeInfo.Pointer castedPointer)
+            {
+                if (!(pointer.Contained.Mutable && !castedPointer.Contained.Mutable))
                     return new OperatorInfo.Cast(arg, typeToCastTo);
             }
 
@@ -101,7 +112,7 @@ namespace Ripple.AST.Info
             }
             else if(operatorType == TokenType.RefMut && arg.Mutable)
             {
-                return new OperatorInfo.Unary(arg, operatorType, new TypeInfo.Reference(false, arg));
+                return new OperatorInfo.Unary(arg, operatorType, new TypeInfo.Reference(true, arg));
             }
             else if(operatorType == TokenType.Star && arg is TypeInfo.Pointer p)
             {

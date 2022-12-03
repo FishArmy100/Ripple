@@ -10,10 +10,11 @@ using Ripple.Lexing;
 
 namespace Ripple.Validation
 {
-    class UnsafeCheckStep : AstWalkerBase
+    class UnsafeCheckStep : ASTWalkerBase
     {
         public readonly List<ValidationError> Errors = new List<ValidationError>();
         private bool m_IsInUnsafe = false;
+        private bool m_IsInFunction = false;
 
         private readonly ASTInfo m_AST;
         private readonly LocalVariableStack m_VariableStack = new LocalVariableStack();
@@ -31,13 +32,17 @@ namespace Ripple.Validation
                 CheckType(varDecl.Type);
                 base.VisitVarDecl(varDecl);
 
-                foreach (VariableInfo variableInfo in VariableInfo.FromVarDecl(varDecl))
-                    m_VariableStack.AddVariable(variableInfo);
+                if(m_IsInFunction)
+                {
+                    foreach (VariableInfo variableInfo in VariableInfo.FromVarDecl(varDecl))
+                        m_VariableStack.AddVariable(variableInfo);
+                }
             });
         }
 
         public override void VisitFuncDecl(FuncDecl funcDecl)
         {
+            m_IsInFunction = true;
             UpdateUnsafe(funcDecl.UnsafeToken.HasValue, () =>
             {
                 CheckType(funcDecl.ReturnType);
@@ -50,6 +55,7 @@ namespace Ripple.Validation
 
                 m_VariableStack.PopScope();
             });
+            m_IsInFunction = false;
         }
 
         public override void VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl)

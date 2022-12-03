@@ -21,6 +21,7 @@ namespace Ripple.Validation
 
             UnsafeCheck(ref errors, info);
             BasicCheck(ref errors, info);
+            CheckFunctionReturn(ref errors, info);
 
             if (errors.Count > 0)
                 return new Result<ASTInfo, List<ValidationError>>.Fail(errors);
@@ -43,6 +44,12 @@ namespace Ripple.Validation
 
             ASTInfo info = new ASTInfo(programStmt, builtInTypes, builtInFunctions, operatorLibrary);
             return info;
+        }
+
+        private static void CheckFunctionReturn(ref List<ValidationError> errors, ASTInfo info)
+        {
+            FunctionReturnCheckStep step = new FunctionReturnCheckStep(info);
+            errors.AddRange(step.Errors);
         }
 
         private static void BasicCheck(ref List<ValidationError> errors, ASTInfo info)

@@ -19,7 +19,6 @@ namespace Ripple.Validation
 
         private int m_LoopCount = 0;
         private FuncDecl m_CurrentFunc = null;
-        private bool m_DoesFunctionReturn = false;
 
         public BasicTypeCheckStep(ASTInfo astInfo)
         {
@@ -124,7 +123,34 @@ namespace Ripple.Validation
 
         public void VisitReturnStmt(ReturnStmt returnStmt)
         {
-            
+            TypeInfo returnTypeInfo = TypeInfo.FromASTType(m_CurrentFunc.ReturnType);
+            if (returnTypeInfo.Equals(RipplePrimitives.Void))
+            {
+                returnStmt.Expr.Match(ok =>
+                {
+                    AddError("Cannot return a value from a void function.", returnStmt.ReturnTok);
+                });
+            }
+            else
+            {
+                returnStmt.Expr.Match(expr =>
+                {
+                    CheckExpression(expr).Match(returned =>
+                    {
+                        if (!returned.Equals(returnTypeInfo))
+                        {
+                            AddError("Cannot return value of type: " +
+                                returned.ToPrettyString() +
+                                " from function with return type: " +
+                                returnTypeInfo.ToPrettyString(), returnStmt.ReturnTok);
+                        }
+                    });
+                },
+                () =>
+                {
+                    AddError("Return statement must return a value.", returnStmt.ReturnTok);
+                });
+            }
         }
 
         public void VisitUnsafeBlock(UnsafeBlock unsafeBlock)
@@ -137,6 +163,40 @@ namespace Ripple.Validation
         {
             TypeInfo varType = TypeInfo.FromASTType(varDecl.Type);
             TypeInfo varTypeChecker = varType.ChangeMutable(false);
+
+            if(varDecl.Expr is InitializerList list && varType is TypeInfo.Array arr)
+            {
+                TypeInfo arrayType = arr.Type.ChangeMutable(false);
+                bool typeChecked = true;
+                foreach(Expression expression in list.Expressions)
+                {
+                    typeChecked = CheckExpression(expression).Match(ok =>
+                    {
+                        return arrayType.Equals(ok.ChangeMutable(false));
+                    },
+                    () => { return false; });
+
+                    if (!typeChecked)
+                        break;
+                }
+
+                if(!typeChecked || list.Expressions.Count > arr.Size)
+                {
+                    AddError("Cannot assign value of the initializer list the given array.", varDecl.Equels);
+                    return;
+                }
+                else 
+                {
+                    if(m_CurrentFunc != null)
+                    {
+                        foreach (var info in VariableInfo.FromVarDecl(varDecl))
+                            m_LocalVariables.AddVariable(info);
+                    }
+
+                    return; // so it doesnt check the expression to the initalizer list
+                }
+            }
+
             CheckExpression(varDecl.Expr).Match(ok =>
             {
                 if (!varTypeChecker.Equals(ok.ChangeMutable(false)))
@@ -147,10 +207,21 @@ namespace Ripple.Validation
                 }
                 else
                 {
-                    foreach (var info in VariableInfo.FromVarDecl(varDecl))
-                        m_LocalVariables.AddVariable(info);
+                    AddVeriables(varDecl);
                 }
             });
+        }
+
+        private void AddVeriables(VarDecl varDecl)
+        {
+            if (m_CurrentFunc != null)
+            {
+                foreach (var info in VariableInfo.FromVarDecl(varDecl))
+                {
+                    if (!m_LocalVariables.AddVariable(info))
+                        AddError("Variable: " + info.Name + " Is already defined.", info.NameToken);
+                }
+            }
         }
 
         public void VisitWhereClause(WhereClause whereClause)
@@ -181,16 +252,6 @@ namespace Ripple.Validation
         private void AddError(string message, Token token)
         {
             Errors.Add(new ValidationError(message, token));
-        }
-
-        private bool TryGetVariable(string name, out VariableInfo info)
-        {
-            if (m_LocalVariables.TryGetVariable(name, out info))
-                return true;
-            else if (m_ASTInfo.GlobalVariables.TryGetValue(name, out info))
-                return true;
-
-            return false;
         }
     }
 }

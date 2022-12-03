@@ -36,7 +36,7 @@ namespace Ripple.AST.Info
             AST = ast;
         }
 
-        private class ASTInfoGenerationHelper : AstWalkerBase
+        private class ASTInfoGenerationHelper : ASTWalkerBase
         {
             private readonly List<PrimaryTypeInfo> m_Primaries;
             public List<TypeInfo> CompositTypes { get; private set; } = new List<TypeInfo>();
@@ -53,7 +53,7 @@ namespace Ripple.AST.Info
                 ast.Accept(this);
             }
 
-            private Option<TypeInfo> CheckType(TypeName typeName)
+            private Option<TypeInfo> CheckType(TypeName typeName, bool isReturnType)
             {
                 TypeInfo info = TypeInfo.FromASTType(typeName);
                 List<PrimaryTypeInfo> primaries = info.GetPrimaries();
@@ -68,6 +68,12 @@ namespace Ripple.AST.Info
                     }
                 }
 
+                if(!isReturnType && info.HasNonPointerVoid())
+                {
+                    isValidType = false;
+                    AddError("'void' type can only be used as a return type, otherwise, must be a pointer.", primaries[0].Name);
+                }
+
                 if (isValidType && !CompositTypes.Contains(info))
                 {
                     CompositTypes.Add(info);
@@ -79,9 +85,9 @@ namespace Ripple.AST.Info
 
             public override void VisitFuncDecl(FuncDecl funcDecl)
             {
-                CheckType(funcDecl.ReturnType);
+                CheckType(funcDecl.ReturnType, true);
                 foreach (TypeName typeName in funcDecl.Param.ParamList.ConvertAll(p => p.Item1))
-                    CheckType(typeName);
+                    CheckType(typeName, false);
 
                 FunctionInfo info = new FunctionInfo(funcDecl);
                 if (GlobalVariables.ContainsKey(info.Name))
@@ -100,9 +106,9 @@ namespace Ripple.AST.Info
 
             public override void VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl)
             {
-                CheckType(externalFuncDecl.ReturnType);
+                CheckType(externalFuncDecl.ReturnType, true);
                 foreach (TypeName typeName in externalFuncDecl.Parameters.ParamList.ConvertAll(p => p.Item1))
-                    CheckType(typeName);
+                    CheckType(typeName, false);
 
                 FunctionInfo info = new FunctionInfo(externalFuncDecl);
                 if (GlobalVariables.ContainsKey(info.Name))
@@ -119,7 +125,7 @@ namespace Ripple.AST.Info
 
             public override void VisitVarDecl(VarDecl varDecl)
             {
-                CheckType(varDecl.Type);
+                CheckType(varDecl.Type, false);
                 if(m_IsInGlobalScope)
                 {
                     List<VariableInfo> variables = VariableInfo.FromVarDecl(varDecl);

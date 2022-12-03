@@ -1,10 +1,11 @@
 ﻿
-func Add(int a, int b) -> int { return a + b; }
-func Add(float a, float b) -> int { return a + b; }
 
+mut int[4] Array = {5, 6, 7};
 
-func Main() -> void
+func Test() -> void
 {
-	(int, int)->int add = Add as (int, int)->int;
-	add(5, 6);
+	mut int[4] arr = Array;
+
+	mut int i = 2;
+	mut int& v = &arr[i];
 }
