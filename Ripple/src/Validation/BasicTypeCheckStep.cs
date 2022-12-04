@@ -219,7 +219,7 @@ namespace Ripple.Validation
                 foreach (var info in VariableInfo.FromVarDecl(varDecl))
                 {
                     if (!m_LocalVariables.AddVariable(info))
-                        AddError("Variable: " + info.Name + " Is already defined.", info.NameToken);
+                        AddError("Variable: " + info.Name + " Is already defined.", info.NameToken); 
                 }
             }
         }

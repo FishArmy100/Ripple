@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ripple.AST.Info;
+using Ripple.AST;
+using Ripple.Lexing;
 
 namespace Ripple.Validation
 {
@@ -24,6 +26,27 @@ namespace Ripple.Validation
         public bool AddVariable(VariableInfo info)
         {
             return m_VariableStack.Peek().TryAdd(info.Name, info);
+        }
+
+        public void AddVariable(VarDecl varDecl, Action<VariableInfo> onFailed)
+        {
+            TypeInfo type = TypeInfo.FromASTType(varDecl.Type);
+            foreach (Token name in varDecl.VarNames)
+            {
+                VariableInfo info = new VariableInfo(name, type, varDecl.UnsafeToken.HasValue);
+                if (!AddVariable(info))
+                    onFailed(info);
+            }
+        }
+
+        public void AddVariable(VarDecl varDecl)
+        {
+            TypeInfo type = TypeInfo.FromASTType(varDecl.Type);
+            foreach (Token name in varDecl.VarNames)
+            {
+                VariableInfo info = new VariableInfo(name, type, varDecl.UnsafeToken.HasValue);
+                AddVariable(info);
+            }
         }
 
         public bool ContainsVariable(string name) => TryGetVariable(name, out _);
