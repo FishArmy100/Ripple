@@ -102,7 +102,7 @@ namespace Ripple.AST.Utils
             List<ParameterInfo> parameterInfos = paramaters
                 .ConvertAll(p => new ParameterInfo(GenIdTok(p.Item2), GenBasicType(p.Item1)));
 
-            return new FunctionInfo(false, funcName, parameterInfos, returnType);
+            return new FunctionInfo(false, funcName, new List<LifetimeInfo>(), parameterInfos, returnType);
         }
 
         private static List<OperatorInfo.Binary> GenBinaries(string typeName, params TokenType[] operatorTypes)

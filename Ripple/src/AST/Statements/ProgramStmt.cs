@@ -26,6 +26,11 @@ namespace Ripple.AST
 			return visitor.VisitProgramStmt(this);
 		}
 
+		public override TReturn Accept<TReturn, TArg>(IStatementVisitor<TReturn, TArg> visitor, TArg arg)
+		{
+			return visitor.VisitProgramStmt(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is ProgramStmt programStmt)

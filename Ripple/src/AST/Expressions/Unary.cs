@@ -28,6 +28,11 @@ namespace Ripple.AST
 			return visitor.VisitUnary(this);
 		}
 
+		public override TReturn Accept<TReturn, TArg>(IExpressionVisitor<TReturn, TArg> visitor, TArg arg)
+		{
+			return visitor.VisitUnary(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is Unary unary)

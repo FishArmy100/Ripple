@@ -58,12 +58,9 @@ namespace Ripple.Compiling
 
         private static CompilerResult<TSuccess> ConvertToCompilerResult<TSuccess, TError>(this Result<TSuccess, List<TError>> self, Converter<TError, CompilerError> converter)
         {
-            return self switch
-            {
-                Result<TSuccess, List<TError>>.Ok ok => new CompilerResult<TSuccess>.Ok(ok.Data),
-                Result<TSuccess, List<TError>>.Fail fail => new CompilerResult<TSuccess>.Fail(fail.Error.ConvertAll(converter)),
-                _ => throw new ArgumentException("Result has a different result than ok, or fail")
-            };
+            return self.Match(
+                ok   => (CompilerResult<TSuccess>)new CompilerResult<TSuccess>.Ok(ok),
+                fail => (CompilerResult<TSuccess>)new CompilerResult<TSuccess>.Fail(fail.ConvertAll(converter)));
         }
     }
 }

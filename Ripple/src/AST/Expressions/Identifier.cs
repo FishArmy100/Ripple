@@ -26,6 +26,11 @@ namespace Ripple.AST
 			return visitor.VisitIdentifier(this);
 		}
 
+		public override TReturn Accept<TReturn, TArg>(IExpressionVisitor<TReturn, TArg> visitor, TArg arg)
+		{
+			return visitor.VisitIdentifier(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is Identifier identifier)

@@ -32,4 +32,19 @@ namespace Ripple.AST
 		public abstract T VisitInitializerList(InitializerList initializerList);
 		public abstract T VisitSizeOf(SizeOf sizeOf);
 	}
+
+	interface IExpressionVisitor<TReturn, TArg>
+	{
+		public abstract TReturn VisitLiteral(Literal literal, TArg arg);
+		public abstract TReturn VisitGrouping(Grouping grouping, TArg arg);
+		public abstract TReturn VisitCall(Call call, TArg arg);
+		public abstract TReturn VisitIndex(Index index, TArg arg);
+		public abstract TReturn VisitCast(Cast cast, TArg arg);
+		public abstract TReturn VisitUnary(Unary unary, TArg arg);
+		public abstract TReturn VisitBinary(Binary binary, TArg arg);
+		public abstract TReturn VisitIdentifier(Identifier identifier, TArg arg);
+		public abstract TReturn VisitTypeExpression(TypeExpression typeExpression, TArg arg);
+		public abstract TReturn VisitInitializerList(InitializerList initializerList, TArg arg);
+		public abstract TReturn VisitSizeOf(SizeOf sizeOf, TArg arg);
+	}
 }

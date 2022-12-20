@@ -30,6 +30,11 @@ namespace Ripple.AST
 			return visitor.VisitGroupedType(this);
 		}
 
+		public override TReturn Accept<TReturn, TArg>(ITypeNameVisitor<TReturn, TArg> visitor, TArg arg)
+		{
+			return visitor.VisitGroupedType(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is GroupedType groupedType)

@@ -41,9 +41,9 @@ namespace Ripple.Parsing
             }
 
             if (errors.Count > 0)
-                return new Result<ProgramStmt, List<ParserError>>.Fail(errors);
+                return errors;
 
-            return new Result<ProgramStmt, List<ParserError>>.Ok(new ProgramStmt(files));
+            return new ProgramStmt(files);
         }
 
         private static FileStmt ParseFile(ref TokenReader reader, ref List<ParserError> errors)

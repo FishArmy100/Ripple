@@ -32,6 +32,11 @@ namespace Ripple.AST
 			return visitor.VisitIndex(this);
 		}
 
+		public override TReturn Accept<TReturn, TArg>(IExpressionVisitor<TReturn, TArg> visitor, TArg arg)
+		{
+			return visitor.VisitIndex(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is Index index)

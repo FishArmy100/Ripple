@@ -30,6 +30,11 @@ namespace Ripple.AST
 			return visitor.VisitGenericParameters(this);
 		}
 
+		public override TReturn Accept<TReturn, TArg>(IStatementVisitor<TReturn, TArg> visitor, TArg arg)
+		{
+			return visitor.VisitGenericParameters(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is GenericParameters genericParameters)

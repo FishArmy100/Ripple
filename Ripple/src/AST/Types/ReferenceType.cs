@@ -32,6 +32,11 @@ namespace Ripple.AST
 			return visitor.VisitReferenceType(this);
 		}
 
+		public override TReturn Accept<TReturn, TArg>(ITypeNameVisitor<TReturn, TArg> visitor, TArg arg)
+		{
+			return visitor.VisitReferenceType(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is ReferenceType referenceType)

@@ -1,11 +1,25 @@
 ﻿
-
-mut int[4] Array = {5, 6, 7};
-
-func Test() -> void
+func DoStuff<'a>(int&'a value) -> int&'a
 {
-	mut int[4] arr = Array;
+	int&'a &'1 r1 = &value;
+	int number = 5;
+	{
+		int&'1 r2 = &number;
 
-	mut int i = 2;
-	mut int& v = &arr[i];
+		int&'2 &'2 r3 = &(*r1 as int&'2);
+	}
+
+	return *r1
+}
+
+func Problem() -> void
+{
+	int& i = &5;
+	int mut& c = &0;
+	{
+		c = i; // fine
+
+		int& temp = i; // wouldent be fine
+		c = temp;
+	}
 }

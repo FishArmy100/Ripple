@@ -22,11 +22,12 @@ namespace Ripple.Validation
             UnsafeCheck(ref errors, info);
             BasicCheck(ref errors, info);
             CheckFunctionReturn(ref errors, info);
+            LifetimeCheck(ref errors, info);
 
             if (errors.Count > 0)
-                return new Result<ASTInfo, List<ValidationError>>.Fail(errors);
+                return errors;
 
-            return new Result<ASTInfo, List<ValidationError>>.Ok(info);
+            return info;
         }
 
         private static List<ValidationError> GetASTInfoErrors(ASTInfo info)
@@ -61,6 +62,12 @@ namespace Ripple.Validation
         private static void UnsafeCheck(ref List<ValidationError> errors, ASTInfo info)
         {
             UnsafeCheckStep step = new UnsafeCheckStep(info);
+            errors.AddRange(step.Errors);
+        }
+
+        private static void LifetimeCheck(ref List<ValidationError> errors, ASTInfo info)
+        {
+            LifetimeCheckStep step = new LifetimeCheckStep(info);
             errors.AddRange(step.Errors);
         }
     }

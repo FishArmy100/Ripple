@@ -30,6 +30,11 @@ namespace Ripple.AST
 			return visitor.VisitInitializerList(this);
 		}
 
+		public override TReturn Accept<TReturn, TArg>(IExpressionVisitor<TReturn, TArg> visitor, TArg arg)
+		{
+			return visitor.VisitInitializerList(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is InitializerList initializerList)

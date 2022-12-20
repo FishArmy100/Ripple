@@ -332,9 +332,9 @@ namespace Ripple.AST.Utils
         public void VisitCast(Cast cast)
         {
             Print("Cast: " + TypeNamePrinter.PrintType(cast.TypeToCastTo));
-            TabLeft();
-            cast.Castee.Accept(this);
             TabRight();
+            cast.Castee.Accept(this);
+            TabLeft();
         }
 
         public void VisitInitializerList(InitializerList initializerList)

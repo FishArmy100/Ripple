@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.Utils.Extensions;
+using Ripple.Utils;
+using Ripple.AST.Utils;
 
 namespace Ripple.AST.Info
 {
@@ -20,12 +22,16 @@ namespace Ripple.AST.Info
         public abstract List<PrimaryTypeInfo> GetPrimaries();
         public abstract TypeInfo ChangeMutable(bool isMutable);
         public abstract bool HasNonPointerVoid();
+        public abstract void Walk(Action<TypeInfo> walker);
 
-        public abstract string ToPrettyString();
+        public bool EqualsWithoutFirstMutable(TypeInfo other)
+        {
+            return this.ChangeMutable(false).Equals(other.ChangeMutable(false));
+        }
 
         public static TypeInfo FromASTType(TypeName type)
         {
-            TypeInfoHelperVisitor visitor = new TypeInfoHelperVisitor();
+            TypeInfoGeneratorVisitor visitor = new TypeInfoGeneratorVisitor();
             return visitor.VisitTypeName(type);
         }
 
@@ -69,7 +75,7 @@ namespace Ripple.AST.Info
                 return new Basic(isMutable, NameType);
             }
 
-            public override string ToPrettyString()
+            public override string ToString()
             {
                 return GetMutStrBefore() + Name;
             }
@@ -77,6 +83,11 @@ namespace Ripple.AST.Info
             public override bool HasNonPointerVoid()
             {
                 return Name == Utils.RipplePrimitives.VoidName;
+            }
+
+            public override void Walk(Action<TypeInfo> walker)
+            {
+                walker(this);
             }
         }
 
@@ -121,43 +132,39 @@ namespace Ripple.AST.Info
 
             public override bool IsUnsafe() => true;
 
-            public override string ToPrettyString()
+            public override string ToString()
             {
                 if(Contained is FunctionPointer)
                 {
-                    return "(" + Contained.ToPrettyString() + ")" + GetMutStrAfter() + "*";
+                    return "(" + Contained + ")" + GetMutStrAfter() + "*";
                 }
                 else
                 {
-                    return Contained.ToPrettyString() + GetMutStrAfter() + "*";
+                    return Contained + GetMutStrAfter() + "*";
                 }
+            }
+
+            public override void Walk(Action<TypeInfo> walker)
+            {
+                walker(this);
+                Contained.Walk(walker);
             }
         }
 
         public class Reference : TypeInfo
         {
             public readonly TypeInfo Contained;
+            public readonly Option<LifetimeInfo> Lifetime;
 
-            public Reference(bool mutable, TypeInfo contained) : base(mutable)
+            public Reference(bool isMutable, TypeInfo contained, Option<LifetimeInfo> lifetime) : base(isMutable)
             {
                 Contained = contained;
+                Lifetime = lifetime;
             }
 
             public override TypeInfo ChangeMutable(bool isMutable)
             {
-                return new Reference(isMutable, Contained);
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj is Reference reference &&
-                       Mutable == reference.Mutable &&
-                       EqualityComparer<TypeInfo>.Default.Equals(Contained, reference.Contained);
-            }
-
-            public override int GetHashCode()
-            {
-                return HashCode.Combine(Mutable, Contained, GetType());
+                return new Reference(isMutable, Contained, Lifetime);
             }
 
             public override List<PrimaryTypeInfo> GetPrimaries()
@@ -165,15 +172,15 @@ namespace Ripple.AST.Info
                 return Contained.GetPrimaries();
             }
 
-            public override string ToPrettyString()
+            public override string ToString()
             {
                 if (Contained is FunctionPointer)
                 {
-                    return "(" + Contained.ToPrettyString() + ")" + GetMutStrAfter() + "&";
+                    return "(" + Contained + ")" + GetMutStrAfter() + "&";
                 }
                 else
                 {
-                    return Contained.ToPrettyString() + GetMutStrAfter() + "&";
+                    return Contained + GetMutStrAfter() + "&";
                 }
             }
 
@@ -182,6 +189,25 @@ namespace Ripple.AST.Info
             public override bool HasNonPointerVoid()
             {
                 return Contained.HasNonPointerVoid();
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(Mutable, Contained, Lifetime);
+            }
+
+            public override void Walk(Action<TypeInfo> walker)
+            {
+                walker(this);
+                Contained.Walk(walker);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is Reference reference &&
+                       Mutable == reference.Mutable &&
+                       EqualityComparer<TypeInfo>.Default.Equals(Contained, reference.Contained) &&
+                       EqualityComparer<Option<LifetimeInfo>>.Default.Equals(Lifetime, reference.Lifetime);
             }
         }
 
@@ -229,10 +255,10 @@ namespace Ripple.AST.Info
 
             public override bool IsUnsafe() => Parameters.Any(t => t.IsUnsafe()) || Returned.IsUnsafe();
 
-            public override string ToPrettyString()
+            public override string ToString()
             {
-                return GetMutStrBefore() + "(" + Parameters.ToList().ConvertAll(p => p.ToPrettyString()).Concat(", ") + 
-                    ")->" + Returned.ToPrettyString();
+                return GetMutStrBefore() + "(" + Parameters.ToList().ConvertAll(p => p.ToString()).Concat(", ") + 
+                    ")->" + Returned;
             }
 
             public override bool HasNonPointerVoid()
@@ -244,6 +270,15 @@ namespace Ripple.AST.Info
                 }
 
                 return Returned.HasNonPointerVoid();
+            }
+
+            public override void Walk(Action<TypeInfo> walker)
+            {
+                walker(this);
+                foreach (TypeInfo type in Parameters)
+                    type.Walk(walker);
+
+                Returned.Walk(walker);
             }
         }
 
@@ -287,14 +322,20 @@ namespace Ripple.AST.Info
                 return new Array(isMutable, Type, SizeToken);
             }
 
-            public override string ToPrettyString()
+            public override string ToString()
             {
-                return Type.ToPrettyString() + GetMutStrAfter() + "[" + Size.ToString() + "]";
+                return Type + GetMutStrAfter() + "[" + Size + "]";
             }
 
             public override bool HasNonPointerVoid()
             {
                 return Type.HasNonPointerVoid();
+            }
+
+            public override void Walk(Action<TypeInfo> walker)
+            {
+                walker(this);
+                Type.Walk(walker);
             }
         }
     }

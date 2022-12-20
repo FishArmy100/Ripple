@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ripple.AST.Utils;
+using Ripple.Utils;
+using Ripple.Lexing;
 
 namespace Ripple.AST.Info
 {
-    class TypeInfoHelperVisitor : ITypeNameVisitor<TypeInfo>
+    class TypeInfoGeneratorVisitor : ITypeNameVisitor<TypeInfo>
     {
         public TypeInfo VisitTypeName(TypeName type)
         {
@@ -51,7 +53,9 @@ namespace Ripple.AST.Info
         {
             TypeInfo baseType = referenceType.BaseType.Accept(this);
             bool mutable = referenceType.MutToken.HasValue;
-            return new TypeInfo.Reference(mutable, baseType);
+            Option<Token> lifetime = referenceType.Lifetime.HasValue ? referenceType.Lifetime.Value : new Option<Token>();
+            
+            return new TypeInfo.Reference(mutable, baseType, lifetime);
         }
     }
 }

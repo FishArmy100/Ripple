@@ -6,26 +6,44 @@ using System.Threading.Tasks;
 
 namespace Ripple.Utils
 {
-    public abstract class Result<TSuccess, TError>
+    public class Result<TSuccess, TError>
     {
-        public class Ok : Result<TSuccess, TError>
+        private readonly Either<TSuccess, TError> m_Value;
+
+        public bool IsError() => m_Value.IsOptionB;
+        public bool IsOk() => m_Value.IsOptionA;
+
+        public TSuccess Value => m_Value.AValue;
+        public TError Error => m_Value.BValue;
+
+        public Result(TSuccess success)
         {
-            public TSuccess Data { get; }
-            public Ok(TSuccess data) => Data = data;
+            m_Value = success;
         }
 
-        public class Fail : Result<TSuccess, TError>
+        public Result(TError error)
         {
-            public TError Error { get; }
-            public Fail(TError error) => Error = error;
+            m_Value = error;
+        }
+
+        public static implicit operator Result<TSuccess, TError>(TSuccess success)
+        {
+            return new Result<TSuccess, TError>(success);
+        }
+
+        public static implicit operator Result<TSuccess, TError>(TError error)
+        {
+            return new Result<TSuccess, TError>(error);
         }
 
         public void Match(Action<TSuccess> okFunc, Action<TError> failFunc)
         {
-            if (this is Ok ok)
-                okFunc(ok.Data);
-            else if (this is Fail fail)
-                failFunc(fail.Error);
+            m_Value.Match(okFunc, failFunc);
+        }
+
+        public TReturn Match<TReturn>(Func<TSuccess, TReturn> okFunc, Func<TError, TReturn> failFunc)
+        {
+            return m_Value.Match(okFunc, failFunc);
         }
     }
 }

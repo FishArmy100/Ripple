@@ -3,6 +3,7 @@ using Core.Containers;
 using Core.Option.*;
 using Core.Ref;
 using Core.Windows.Input;
+using Core.Random;
 
 module MineSweeper
 {
@@ -39,6 +40,7 @@ module MineSweeper
     public class Board
     {
         private Array<Tile, 20, 20> m_Tiles = {Tile.Square(0)};
+        public int BombCount { get; private set; }
 
         public Board(List<BoardPosition> bombs)
         {
@@ -115,7 +117,15 @@ module MineSweeper
 [EntryPoint]
 public func Main() -> int
 {
-    
+    Random random = {};
+    List<>
+
+    for(int i = 0; i < 30; i++)
+    {
+        int x = random.Range(0, 19);
+        int y = random.Range(0, 19);
+        List<>
+    }
 }
 
 

@@ -30,6 +30,11 @@ namespace Ripple.AST
 			return visitor.VisitFileStmt(this);
 		}
 
+		public override TReturn Accept<TReturn, TArg>(IStatementVisitor<TReturn, TArg> visitor, TArg arg)
+		{
+			return visitor.VisitFileStmt(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is FileStmt fileStmt)

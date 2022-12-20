@@ -28,6 +28,11 @@ namespace Ripple.AST
 			return visitor.VisitContinueStmt(this);
 		}
 
+		public override TReturn Accept<TReturn, TArg>(IStatementVisitor<TReturn, TArg> visitor, TArg arg)
+		{
+			return visitor.VisitContinueStmt(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is ContinueStmt continueStmt)

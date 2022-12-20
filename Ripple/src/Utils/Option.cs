@@ -15,7 +15,7 @@ namespace Ripple.Utils
 
         public Option(T value)
         {
-            if(value.GetType().IsValueType)
+            if(typeof(T).IsValueType)
             {
                 m_Value = value;
                 m_HasValue = true;
@@ -70,6 +70,18 @@ namespace Ripple.Utils
                 return okFunc(Value);
             else
                 return failFunc();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Option<T> option &&
+                   EqualityComparer<T>.Default.Equals(m_Value, option.m_Value) &&
+                   m_HasValue == option.m_HasValue;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(m_Value, m_HasValue);
         }
     }
 }

@@ -40,9 +40,9 @@ namespace Ripple.Lexing
             tokens.Add(new Token(filePath, TokenType.EOF, reader.Line, reader.Line));
 
             if (errors.Count > 0)
-                return new Result<List<Token>, List<LexerError>>.Fail(errors);
+                return errors;
 
-            return new Result<List<Token>, List<LexerError>>.Ok(tokens);
+            return tokens;
         }
 
         private static bool TryLexSegment(ref StringReader reader, ref List<LexerError> errors, ref List<Token> tokens)

@@ -38,6 +38,11 @@ namespace Ripple.AST
 			return visitor.VisitIfStmt(this);
 		}
 
+		public override TReturn Accept<TReturn, TArg>(IStatementVisitor<TReturn, TArg> visitor, TArg arg)
+		{
+			return visitor.VisitIfStmt(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is IfStmt ifStmt)

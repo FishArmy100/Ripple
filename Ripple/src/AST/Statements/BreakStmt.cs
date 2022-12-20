@@ -28,6 +28,11 @@ namespace Ripple.AST
 			return visitor.VisitBreakStmt(this);
 		}
 
+		public override TReturn Accept<TReturn, TArg>(IStatementVisitor<TReturn, TArg> visitor, TArg arg)
+		{
+			return visitor.VisitBreakStmt(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is BreakStmt breakStmt)

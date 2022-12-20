@@ -146,7 +146,7 @@ namespace Ripple.Validation
                     {
                         bool failed = false;
 
-                        TypeInfoHelper.GetTypeOfExpression(m_AST, m_VariableStack, arg).Match(
+                        TypeInfo.FromExpression(m_AST, m_VariableStack, arg, new Utils.Option<TypeInfo>()).Match(
                             ok => args.Add(ok),
                             fail => failed = true);
 

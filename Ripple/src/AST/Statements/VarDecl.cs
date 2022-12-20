@@ -36,6 +36,11 @@ namespace Ripple.AST
 			return visitor.VisitVarDecl(this);
 		}
 
+		public override TReturn Accept<TReturn, TArg>(IStatementVisitor<TReturn, TArg> visitor, TArg arg)
+		{
+			return visitor.VisitVarDecl(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is VarDecl varDecl)

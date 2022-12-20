@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Ripple.AST.Info;
-using Ripple.AST;
 using Ripple.Lexing;
 
-namespace Ripple.Validation
+namespace Ripple.AST.Utils
 {
     class LocalVariableStack
     {
         private readonly Stack<Dictionary<string, VariableInfo>> m_VariableStack = new Stack<Dictionary<string, VariableInfo>>();
+        public int ScopeCount => m_VariableStack.Count;
 
         public void PushScope()
         {

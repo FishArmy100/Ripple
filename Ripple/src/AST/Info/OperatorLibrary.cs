@@ -12,58 +12,74 @@ namespace Ripple.AST.Info
 {
     class OperatorLibrary
     {
-        public readonly OperatorList<OperatorInfo.Unary, TokenType, TypeInfo> UnaryOperators =
-            new((u, type) => u.Operand.Equals(type), u => u.OperatorType, u => u.Operand, GetInrinsicUnaryOperator);
+        public readonly UnaryOperatorEvaluator UnaryOperators = new UnaryOperatorEvaluator();
 
         public readonly OperatorList<OperatorInfo.Binary, TokenType, (TypeInfo, TypeInfo)> BinaryOperators =
-            new((u, args) => u.Left.Equals(args.Item1) && u.Right.Equals(args.Item2), u => u.OperatorType, u => (u.Left, u.Right), GetIntrinsicBinaryOperator);
+            new((u, args) => u.Left.Equals(args.Item1) && u.Right.Equals(args.Item2),
+                u => u.OperatorType, 
+                u => (u.Left, u.Right),
+                GetIntrinsicBinaryOperator,
+                (op, args, token) => new ASTInfoError("No binary operator '" + op + "', for types '" + args.Item1 + "' and '" + args.Item2 + "',", token));
 
         public readonly OperatorList<OperatorInfo.Cast, TypeInfo, TypeInfo> CastOperators =
-            new((u, type) => u.Operand.Equals(type), u => u.TypeToCastTo, u => u.Operand, GetIntrinsicCastOperator);
+            new((u, type) => u.Operand.Equals(type),
+                u => u.TypeToCastTo, 
+                u => u.Operand,
+                GetIntrinsicCastOperator,
+                (type, casted, token) => new ASTInfoError("No cast operator for type '" + casted + "', to type '" + type + "'.", token));
 
         public readonly OperatorList<OperatorInfo.Call, TypeInfo, List<TypeInfo>> CallOperators =
-            new((u, args) => u.Arguments.SequenceEqual(args), u => u.Callee, u => u.Arguments, GetIntrisicCallOperator);
+            new((u, args) => u.Arguments.SequenceEqual(args), 
+                u => u.Callee, 
+                u => u.Arguments, 
+                GetIntrisicCallOperator,
+                (callee, args, token) => new ASTInfoError("No call operator for type '" + callee + "', with arguments " + 
+                    args.ConvertAll(a => "'" + a + "'").Concat(", "), token));
 
         public readonly OperatorList<OperatorInfo.Index, TypeInfo, TypeInfo> IndexOperators =
-            new((u, arg) => u.Argument.Equals(arg), u => u.Indexed, u => u.Argument, GetIntrinsicIndexOperator);
+            new((u, arg) => u.Argument.Equals(arg), 
+                u => u.Indexed, 
+                u => u.Argument, 
+                GetIntrinsicIndexOperator,
+                (indexed, arg, token) => new ASTInfoError("No index operator for type '" + indexed + "', with argument '" + arg + "'.", token));
 
-        private static Option<OperatorInfo.Index> GetIntrinsicIndexOperator(TypeInfo callee, TypeInfo arg)
+        private static Option<Result<OperatorInfo.Index, ASTInfoError>> GetIntrinsicIndexOperator(TypeInfo indexee, TypeInfo arg)
         {
-            if(callee is TypeInfo.Array array && arg is TypeInfo.Basic barg && barg.Name == RipplePrimitives.Int32Name)
+            if(indexee is TypeInfo.Array array && arg is TypeInfo.Basic barg && barg.Name == RipplePrimitives.Int32Name)
             {
-                return new OperatorInfo.Index(callee, arg, array.Type);
+                return OptionResult(new OperatorInfo.Index(indexee, arg, array.Type));
             }
-            else if (callee is TypeInfo.Pointer p && arg is TypeInfo.Basic parg && parg.Name == RipplePrimitives.Int32Name)
+            else if (indexee is TypeInfo.Pointer p && arg is TypeInfo.Basic parg && parg.Name == RipplePrimitives.Int32Name)
             {
-                return new OperatorInfo.Index(callee, arg, p.Contained);
+                return OptionResult(new OperatorInfo.Index(indexee, arg, p.Contained));
             }
 
-            return new Option<OperatorInfo.Index>();
+            return NoneOptionResult<OperatorInfo.Index>(); 
         }
 
-        private static Option<OperatorInfo.Call> GetIntrisicCallOperator(TypeInfo callee, List<TypeInfo> args)
+        private static Option<Result<OperatorInfo.Call, ASTInfoError>> GetIntrisicCallOperator(TypeInfo callee, List<TypeInfo> args)
         {
             if(callee is TypeInfo.FunctionPointer fp)
             {
                 if (fp.Parameters.SequenceEqual(args))
-                    return new OperatorInfo.Call(callee, args, fp.Returned);
+                    return OptionResult(new OperatorInfo.Call(callee, args, fp.Returned));
             }
 
-            return new Option<OperatorInfo.Call>();
+            return NoneOptionResult<OperatorInfo.Call>();
         }
 
-        private static Option<OperatorInfo.Cast> GetIntrinsicCastOperator(TypeInfo typeToCastTo, TypeInfo arg)
+        private static Option<Result<OperatorInfo.Cast, ASTInfoError>> GetIntrinsicCastOperator(TypeInfo typeToCastTo, TypeInfo arg)
         {
             if (typeToCastTo.Equals(arg))
-                return new OperatorInfo.Cast(arg, typeToCastTo);
-            else if (typeToCastTo.Equals(arg.ChangeMutable(false)))
-                return new OperatorInfo.Cast(arg, typeToCastTo);
+                return OptionResult(new OperatorInfo.Cast(arg, typeToCastTo));
+            else if (typeToCastTo.ChangeMutable(false).Equals(arg.ChangeMutable(false)))
+                return OptionResult(new OperatorInfo.Cast(arg, typeToCastTo));
             else if (typeToCastTo is TypeInfo.Pointer p1 && arg is TypeInfo.Reference r1)
             {
                 if (!(p1.Contained.Mutable && !r1.Contained.Mutable) && 
                     r1.Contained.ChangeMutable(false).Equals(p1.Contained.ChangeMutable(false)))
                 {
-                    return new OperatorInfo.Cast(arg, typeToCastTo);
+                    return OptionResult(new OperatorInfo.Cast(arg, typeToCastTo));
                 }
             }
             else if (typeToCastTo is TypeInfo.Reference r2 && arg is TypeInfo.Pointer p2)
@@ -71,61 +87,65 @@ namespace Ripple.AST.Info
                 if (!(r2.Contained.Mutable && !p2.Contained.Mutable) &&
                     p2.Contained.ChangeMutable(false).Equals(r2.Contained.ChangeMutable(false)))
                 {
-                    return new OperatorInfo.Cast(arg, typeToCastTo);
+                    return OptionResult(new OperatorInfo.Cast(arg, typeToCastTo));
                 }
             }
             else if(typeToCastTo is TypeInfo.Pointer pointer && arg is TypeInfo.Pointer castedPointer)
             {
                 if (!(pointer.Contained.Mutable && !castedPointer.Contained.Mutable))
-                    return new OperatorInfo.Cast(arg, typeToCastTo);
+                    return OptionResult(new OperatorInfo.Cast(arg, typeToCastTo));
             }
 
-            return new Option<OperatorInfo.Cast>();
+            return NoneOptionResult<OperatorInfo.Cast>();
         }
 
-        private static Option<OperatorInfo.Binary> GetIntrinsicBinaryOperator(TokenType operatorType, (TypeInfo, TypeInfo) operands)
+        private static Option<Result<OperatorInfo.Binary, ASTInfoError>> GetIntrinsicBinaryOperator(TokenType operatorType, (TypeInfo, TypeInfo) operands)
         {
             TypeInfo left = operands.Item1;
             TypeInfo right = operands.Item2;
 
-            if(operatorType == TokenType.Equal)
+            if(operatorType == TokenType.Equal && left.Mutable)
             {
-                if (left.Mutable && left.Equals(right.ChangeMutable(true)))
-                    return new OperatorInfo.Binary(left, right, operatorType, left);
+                if (left.Equals(right.ChangeMutable(true)))
+                {
+                    return OptionResult(new OperatorInfo.Binary(left, right, operatorType, left));
+                }
+                else if(left is TypeInfo.Reference rl && right is TypeInfo.Reference rr)
+                {
+                    if(rl.Contained.Equals(rr.Contained) && rr.Lifetime.IsAssignableTo(rl.Lifetime))
+                    {
+                        return OptionResult(new OperatorInfo.Binary(left, right, operatorType, left));
+                    }
+                    else
+                    {
+                        return ErrorResult<OperatorInfo.Binary>(new ASTInfoError("Right operand does not live long enouph.", new Token()));
+                    }
+                }
             }
             else if(operatorType.IsType(TokenType.Plus, TokenType.Minus))
             {
-                if(left is TypeInfo.Pointer p && right is TypeInfo.Basic b && b.Name == RipplePrimitives.Int32Name)
+                if(left is TypeInfo.Pointer && right is TypeInfo.Basic b && b.Name == RipplePrimitives.Int32Name)
                 {
-                    return new OperatorInfo.Binary(left, right, operatorType, left);
+                    return OptionResult(new OperatorInfo.Binary(left, right, operatorType, left));
                 }
             }
 
-            return new Option<OperatorInfo.Binary>();
+            return NoneOptionResult<OperatorInfo.Binary>();
         }
 
-        private static Option<OperatorInfo.Unary> GetInrinsicUnaryOperator(TokenType operatorType, TypeInfo arg)
+        private static Option<Result<T, ASTInfoError>> OptionResult<T>(T value)
         {
-            if(operatorType == TokenType.Ampersand)
-            {
-                return new OperatorInfo.Unary(arg, operatorType, new TypeInfo.Reference(false, arg.ChangeMutable(false)));
-            }
-            else if(operatorType == TokenType.RefMut && arg.Mutable)
-            {
-                return new OperatorInfo.Unary(arg, operatorType, new TypeInfo.Reference(true, arg));
-            }
-            else if(operatorType == TokenType.Star && arg is TypeInfo.Pointer p)
-            {
-                return new OperatorInfo.Unary(p, operatorType, p.Contained);
-            }
-            else if (operatorType == TokenType.Star && arg is TypeInfo.Reference r)
-            {
-                return new OperatorInfo.Unary(r, operatorType, r.Contained);
-            }
-            else
-            {
-                return new Option<OperatorInfo.Unary>();
-            }
+            return new Option<Result<T, ASTInfoError>>(value);
+        }
+
+        private static Option<Result<T, ASTInfoError>> ErrorResult<T>(ASTInfoError error)
+        {
+            return new Option<Result<T, ASTInfoError>>(error);
+        }
+
+        private static Option<Result<T, ASTInfoError>> NoneOptionResult<T>()
+        {
+            return new Option<Result<T, ASTInfoError>>();
         }
     }
 }

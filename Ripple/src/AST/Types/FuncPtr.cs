@@ -36,6 +36,11 @@ namespace Ripple.AST
 			return visitor.VisitFuncPtr(this);
 		}
 
+		public override TReturn Accept<TReturn, TArg>(ITypeNameVisitor<TReturn, TArg> visitor, TArg arg)
+		{
+			return visitor.VisitFuncPtr(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is FuncPtr funcPtr)

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Utils.Extensions;
 using Ripple.Utils;
+using Ripple.Lexing;
 
 namespace Ripple.AST.Info
 {
@@ -14,14 +15,20 @@ namespace Ripple.AST.Info
         private readonly Func<TOperator, TArgs, bool> m_Selector;
         private readonly Func<TOperator, TPrimary> m_PrimaryGetter;
         private readonly Func<TOperator, TArgs> m_ArgsGetter;
-        private readonly Func<TPrimary, TArgs, Option<TOperator>> m_IntrinsicOperatorGetter;
+        private readonly Func<TPrimary, TArgs, Option<Result<TOperator, ASTInfoError>>> m_IntrinsicOperatorGetter;
+        private readonly Func<TPrimary, TArgs, Token, ASTInfoError> m_GenErrorFunc;
 
-        public OperatorList(Func<TOperator, TArgs, bool> selector, Func<TOperator, TPrimary> primaryGetter, Func<TOperator, TArgs> argsGetter, Func<TPrimary, TArgs, Option<TOperator>> intrinsicOperatorGetter)
+        public OperatorList(Func<TOperator, TArgs, bool> selector, 
+                            Func<TOperator, TPrimary> primaryGetter, 
+                            Func<TOperator, TArgs> argsGetter, 
+                            Func<TPrimary, TArgs, Option<Result<TOperator, ASTInfoError>>> intrinsicOperatorGetter, 
+                            Func<TPrimary, TArgs, Token, ASTInfoError> genErrorFunc)
         {
             m_Selector = selector;
             m_PrimaryGetter = primaryGetter;
             m_ArgsGetter = argsGetter;
             m_IntrinsicOperatorGetter = intrinsicOperatorGetter;
+            m_GenErrorFunc = genErrorFunc;
         }
 
         public bool TryAdd(TOperator op)
@@ -39,20 +46,25 @@ namespace Ripple.AST.Info
             return false;
         }
 
-        public bool TryGet(TPrimary primary, TArgs args, out TOperator operatorType)
+        public Result<TOperator, ASTInfoError> TryGet(TPrimary primary, TArgs args, Token errorToken)
         {
-            Option<TOperator> op = m_IntrinsicOperatorGetter(primary, args);
-            if(op.HasValue())
+            var op = m_IntrinsicOperatorGetter(primary, args);
+            return op.Match(result =>
             {
-                operatorType = op.Value;
-                return true;
-            }
+                return result;
+            },
+            () => 
+            {
+                List<TOperator> overloads = m_Operators.GetOrCreate(primary);
+                var operatorData = overloads.FirstOrDefault(o => m_Selector(o, args));
+                if (operatorData != null)
+                    return operatorData;
 
-            List<TOperator> overloads = m_Operators.GetOrCreate(primary);
-            operatorType = overloads.FirstOrDefault(o => m_Selector(o, args));
-            return operatorType != null;
+                return new Result<TOperator, ASTInfoError>(m_GenErrorFunc(primary, args, errorToken));
+            });
         }
 
-        public bool Contains(TPrimary primary, TArgs args) => TryGet(primary, args, out _);
+        public bool Contains(TPrimary primary, TArgs args) => 
+            TryGet(primary, args, new Token()).IsOk();
     }
 }

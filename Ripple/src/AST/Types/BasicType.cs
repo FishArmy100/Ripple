@@ -28,6 +28,11 @@ namespace Ripple.AST
 			return visitor.VisitBasicType(this);
 		}
 
+		public override TReturn Accept<TReturn, TArg>(ITypeNameVisitor<TReturn, TArg> visitor, TArg arg)
+		{
+			return visitor.VisitBasicType(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is BasicType basicType)

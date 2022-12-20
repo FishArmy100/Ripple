@@ -48,7 +48,7 @@ namespace Ripple.Validation
 
         public void VisitExprStmt(ExprStmt exprStmt)
         {
-            CheckExpression(exprStmt.Expr);
+            CheckExpression(exprStmt.Expr, new Option<TypeInfo>());
         }
 
         public void VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl) { }
@@ -67,7 +67,7 @@ namespace Ripple.Validation
             {
                 VerifyReturnBool(cond, forStmt.ForTok);
             });
-            forStmt.Iter.Match(iter => CheckExpression(iter));
+            forStmt.Iter.Match(iter => CheckExpression(iter, new Option<TypeInfo>()));
 
             m_LoopCount++;
             forStmt.Body.Accept(this);
@@ -78,7 +78,7 @@ namespace Ripple.Validation
 
         private void VerifyReturnBool(Expression cond, Token tokenForError)
         {
-            CheckExpression(cond).Match(type =>
+            CheckExpression(cond, RipplePrimitives.Bool).Match(type =>
             {
                 if (!type.Equals(RipplePrimitives.Bool))
                     AddError("Condition expression must evaluate to a bool.", tokenForError);
@@ -135,14 +135,14 @@ namespace Ripple.Validation
             {
                 returnStmt.Expr.Match(expr =>
                 {
-                    CheckExpression(expr).Match(returned =>
+                    CheckExpression(expr, returnTypeInfo).Match(returned =>
                     {
                         if (!returned.Equals(returnTypeInfo))
                         {
                             AddError("Cannot return value of type: " +
-                                returned.ToPrettyString() +
+                                returned +
                                 " from function with return type: " +
-                                returnTypeInfo.ToPrettyString(), returnStmt.ReturnTok);
+                                returnTypeInfo, returnStmt.ReturnTok);
                         }
                     });
                 },
@@ -164,46 +164,14 @@ namespace Ripple.Validation
             TypeInfo varType = TypeInfo.FromASTType(varDecl.Type);
             TypeInfo varTypeChecker = varType.ChangeMutable(false);
 
-            if(varDecl.Expr is InitializerList list && varType is TypeInfo.Array arr)
+            CheckExpression(varDecl.Expr, varType).Match(ok =>
             {
-                TypeInfo arrayType = arr.Type.ChangeMutable(false);
-                bool typeChecked = true;
-                foreach(Expression expression in list.Expressions)
+                var binaryOperators = m_ASTInfo.OperatorLibrary.BinaryOperators;
+                if (!binaryOperators.Contains(TokenType.Equal, (varType.ChangeMutable(true), ok.Type)))
                 {
-                    typeChecked = CheckExpression(expression).Match(ok =>
-                    {
-                        return arrayType.Equals(ok.ChangeMutable(false));
-                    },
-                    () => { return false; });
-
-                    if (!typeChecked)
-                        break;
-                }
-
-                if(!typeChecked || list.Expressions.Count > arr.Size)
-                {
-                    AddError("Cannot assign value of the initializer list the given array.", varDecl.Equels);
-                    return;
-                }
-                else 
-                {
-                    if(m_CurrentFunc != null)
-                    {
-                        foreach (var info in VariableInfo.FromVarDecl(varDecl))
-                            m_LocalVariables.AddVariable(info);
-                    }
-
-                    return; // so it doesnt check the expression to the initalizer list
-                }
-            }
-
-            CheckExpression(varDecl.Expr).Match(ok =>
-            {
-                if (!varTypeChecker.Equals(ok.ChangeMutable(false)))
-                {
-                    AddError("Variable of type: " + varType.ToPrettyString() +
+                    AddError("Variable of type: " + varType +
                              " cannot be assigned to a expression evaluating to type: " +
-                             ok.ToPrettyString(), varDecl.VarNames[0]);
+                             ok, varDecl.VarNames[0]);
                 }
                 else
                 {
@@ -239,15 +207,13 @@ namespace Ripple.Validation
             m_LoopCount--;
         }
 
-        private Option<TypeInfo> CheckExpression(Expression expression)
+        private Option<ValueInfo> CheckExpression(Expression expression, Option<TypeInfo> expected)
         {
-            var result = TypeInfoHelper.GetTypeOfExpression(m_ASTInfo, m_LocalVariables, expression);
-            Option<TypeInfo> info = new Option<TypeInfo>();
-            result.Match(ok => { info = ok; }, fail => AddError(fail));
+            var result = ValueInfo.FromExpression(m_ASTInfo, m_LocalVariables, expression, expected);
+            Option<ValueInfo> info = new Option<ValueInfo>();
+            result.Match(ok => { info = ok; }, fail => AddError(fail.Message, fail.Token));
             return info;
         }
-
-        private void AddError(TypeInfoHelper.Error error) => AddError(error.Message, error.Token);
 
         private void AddError(string message, Token token)
         {
