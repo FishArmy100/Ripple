@@ -112,7 +112,9 @@ namespace Ripple.AST.Info
                 }
                 else if(left is TypeInfo.Reference rl && right is TypeInfo.Reference rr)
                 {
-                    if(rl.Contained.Equals(rr.Contained) && rr.Lifetime.IsAssignableTo(rl.Lifetime))
+                    bool areTypesEqual = rl.Contained.EqualsWithoutFirstMutable(rr.Contained);
+                    bool areLifetimesValid = AreLifetimesAssignable(rl.Lifetime, rr.Lifetime);
+                    if (areTypesEqual && areLifetimesValid)
                     {
                         return OptionResult(new OperatorInfo.Binary(left, right, operatorType, left));
                     }
@@ -131,6 +133,17 @@ namespace Ripple.AST.Info
             }
 
             return NoneOptionResult<OperatorInfo.Binary>();
+        }
+
+        private static bool AreLifetimesAssignable(Option<LifetimeInfo> left, Option<LifetimeInfo> right)
+        {
+            if (!left.HasValue())
+                return false;
+
+            if (!right.HasValue())
+                return false;
+
+            return right.Value.IsAssignableTo(left.Value); 
         }
 
         private static Option<Result<T, ASTInfoError>> OptionResult<T>(T value)

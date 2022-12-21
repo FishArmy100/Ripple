@@ -26,7 +26,14 @@ namespace Ripple.AST.Info
             ValueOfExpressionVisitor visitor = new ValueOfExpressionVisitor(ast, localVariables);
             try
             {
-                return expr.Accept(visitor, expected);
+                ValueInfo info = expr.Accept(visitor, expected);
+                info.Type.Walk(t =>
+                {
+                    if (t is TypeInfo.Reference r && !r.Lifetime.HasValue())
+                        throw new AmbiguousTypeException("Could not identify the lifetime of the type '" + info.Type + "'.", new Lexing.Token());
+                });
+
+                return info;
             }
             catch (TypeOfExpressionExeption e)
             {

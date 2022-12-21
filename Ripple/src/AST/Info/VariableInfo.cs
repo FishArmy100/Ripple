@@ -13,24 +13,30 @@ namespace Ripple.AST.Info
         public readonly Token NameToken;
         public readonly TypeInfo Type;
         public readonly bool IsUnsafe;
+        public readonly int Lifetime;
 
-        public VariableInfo(Token nameToken, TypeInfo type, bool isUnsafe)
+        public VariableInfo(Token nameToken, TypeInfo type, bool isUnsafe, int lifetime)
         {
             NameToken = nameToken;
             Type = type;
             IsUnsafe = isUnsafe;
-        }
-
-        public static List<VariableInfo> FromVarDecl(VarDecl varDecl)
-        {
-            TypeInfo type = TypeInfo.FromASTType(varDecl.Type);
-            List<VariableInfo> infos = new List<VariableInfo>();
-            foreach(Token name in varDecl.VarNames)
-                infos.Add(new VariableInfo(name, type, varDecl.UnsafeToken.HasValue));
-
-            return infos;
+            Lifetime = lifetime;
         }
 
         public string Name => NameToken.Text;
+
+        public override bool Equals(object obj)
+        {
+            return obj is VariableInfo info &&
+                   EqualityComparer<Token>.Default.Equals(NameToken, info.NameToken) &&
+                   EqualityComparer<TypeInfo>.Default.Equals(Type, info.Type) &&
+                   IsUnsafe == info.IsUnsafe &&
+                   Lifetime == info.Lifetime;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(NameToken, Type, IsUnsafe, Lifetime);
+        }
     }
 }

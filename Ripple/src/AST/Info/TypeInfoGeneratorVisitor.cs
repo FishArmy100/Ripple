@@ -53,7 +53,10 @@ namespace Ripple.AST.Info
         {
             TypeInfo baseType = referenceType.BaseType.Accept(this);
             bool mutable = referenceType.MutToken.HasValue;
-            Option<Token> lifetime = referenceType.Lifetime.HasValue ? referenceType.Lifetime.Value : new Option<Token>();
+
+            Option<LifetimeInfo> lifetime = referenceType.Lifetime.HasValue ? 
+                new LifetimeInfo(referenceType.Lifetime.Value) : 
+                new Option<LifetimeInfo>();
             
             return new TypeInfo.Reference(mutable, baseType, lifetime);
         }

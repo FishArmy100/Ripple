@@ -91,7 +91,12 @@ namespace Ripple.Validation
             m_LocalVariables.PushScope();
 
             foreach ((TypeName type, Token name) in funcDecl.Param.ParamList)
-                m_LocalVariables.AddVariable(new VariableInfo(name, TypeInfo.FromASTType(type), false));
+            {
+                m_LocalVariables.AddVariable(name, TypeInfo.FromASTType(type), funcDecl.UnsafeToken.HasValue, (p) =>
+                {
+                    AddError("Parameter: " + p.Text + " Is already defined.", p);
+                });
+            }
 
             funcDecl.Body.Accept(this);
             m_LocalVariables.PopScope();
@@ -175,20 +180,19 @@ namespace Ripple.Validation
                 }
                 else
                 {
-                    AddVeriables(varDecl);
+                    AddVeriables(varDecl.VarNames, ok.Type, varDecl.UnsafeToken.HasValue);
                 }
             });
         }
 
-        private void AddVeriables(VarDecl varDecl)
+        private void AddVeriables(List<Token> names, TypeInfo type, bool isUnsafe)
         {
             if (m_CurrentFunc != null)
             {
-                foreach (var info in VariableInfo.FromVarDecl(varDecl))
+                m_LocalVariables.AddVariables(names, type, isUnsafe, v =>
                 {
-                    if (!m_LocalVariables.AddVariable(info))
-                        AddError("Variable: " + info.Name + " Is already defined.", info.NameToken); 
-                }
+                    AddError("Variable: " + v.Text + " Is already defined.", v);
+                });
             }
         }
 

@@ -51,9 +51,9 @@ namespace Ripple.Validation
                 .ConvertAll(p => GetReferences(p.Type))
                 .SelectMany(r => r)
                 .ToList()
-                .ConvertAll(r => r.Lifetime);
+                .ConvertAll(r => r.Lifetime.Value);
 
-            List<LifetimeInfo> returnedLifetimes = GetReferences(info.ReturnType).ConvertAll(r => r.Lifetime);
+            List<LifetimeInfo> returnedLifetimes = GetReferences(info.ReturnType).ConvertAll(r => r.Lifetime.Value);
             liftimes.AddRange(returnedLifetimes);
 
             return liftimes.Distinct().ToList();
@@ -80,7 +80,7 @@ namespace Ripple.Validation
                 {
                     if (p is TypeInfo.Reference r)
                     {
-                        if (r.Lifetime)
+                        if (!r.Lifetime.HasValue())
                         {
                             AddError("Currently, a parameter reference must have a lifetime, sorry, will fix it lator :)", r.GetPrimaries()[0].Name);
                             foundError = true;

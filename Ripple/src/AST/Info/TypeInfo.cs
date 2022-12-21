@@ -207,7 +207,8 @@ namespace Ripple.AST.Info
                 return obj is Reference reference &&
                        Mutable == reference.Mutable &&
                        EqualityComparer<TypeInfo>.Default.Equals(Contained, reference.Contained) &&
-                       EqualityComparer<Option<LifetimeInfo>>.Default.Equals(Lifetime, reference.Lifetime);
+                       (reference.Lifetime.HasValue() ^ Lifetime.HasValue() || 
+                       EqualityComparer<Option<LifetimeInfo>>.Default.Equals(Lifetime, reference.Lifetime));
             }
         }
 

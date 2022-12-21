@@ -128,20 +128,20 @@ namespace Ripple.AST.Info
                 CheckType(varDecl.Type, false);
                 if(m_IsInGlobalScope)
                 {
-                    List<VariableInfo> variables = VariableInfo.FromVarDecl(varDecl);
-                    foreach(VariableInfo variable in variables)
+                    TypeInfo variableType = TypeInfo.FromASTType(varDecl.Type);
+                    foreach(Token variable in varDecl.VarNames)
                     {
-                        if(GlobalVariables.ContainsKey(variable.Name))
+                        if(GlobalVariables.ContainsKey(variable.Text))
                         {
-                            AddError("Variable with name: " + variable.Name + ", is already defined", variable.NameToken);
+                            AddError("Variable with name: " + variable.Text + ", is already defined", variable);
                         }
-                        else if(Functions.ContainsFunctionWithName(variable.Name))
+                        else if(Functions.ContainsFunctionWithName(variable.Text))
                         {
-                            AddError("A funciton with the name: " + variable.Name + ", is aready defined", variable.NameToken);
+                            AddError("A funciton with the name: " + variable.Text + ", is aready defined", variable);
                         }
                         else
                         {
-                            GlobalVariables.Add(variable.Name, variable);
+                            GlobalVariables.Add(variable.Text, new VariableInfo(variable, variableType, varDecl.UnsafeToken.HasValue, -1));
                         }
                     }
                 }

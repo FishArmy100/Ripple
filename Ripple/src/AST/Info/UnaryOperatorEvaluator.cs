@@ -27,7 +27,7 @@ namespace Ripple.AST.Info
 
         public Result<ValueInfo, ASTInfoError> EvaluateOperator(TokenType operatorType, ValueInfo arg, Token errorToken)
         {
-            var op = TryEvaluateIntrinsic(operatorType, arg);
+            var op = TryEvaluateIntrinsic(operatorType, arg, errorToken);
             return op.Match(result =>
             {
                 return result;
@@ -44,7 +44,7 @@ namespace Ripple.AST.Info
             });
         }
 
-        private static Option<Result<ValueInfo, ASTInfoError>> TryEvaluateIntrinsic(TokenType operatorType, ValueInfo arg)
+        private static Option<Result<ValueInfo, ASTInfoError>> TryEvaluateIntrinsic(TokenType operatorType, ValueInfo arg, Token errorToken)
         {
             TypeInfo argType = arg.Type;
 
@@ -67,8 +67,16 @@ namespace Ripple.AST.Info
             }
             else if (operatorType == TokenType.Star && argType is TypeInfo.Reference r)
             {
-                ValueInfo val = new ValueInfo(r.Contained, r.Lifetime);
-                return OptionResult(val);
+                return r.Lifetime.Match(ok =>
+                {
+                    return OptionResult(new ValueInfo(r.Contained, ok));
+                },
+                () =>
+                {
+                    ASTInfoError error = new ASTInfoError("Lifetime of the value is ambigous.", errorToken);
+                    return ErrorOptionResult<ValueInfo>(error);
+                });
+                
             }
             else
             {
@@ -79,6 +87,11 @@ namespace Ripple.AST.Info
         private static Option<Result<T, ASTInfoError>> OptionResult<T>(T value)
         {
             return new Option<Result<T, ASTInfoError>>(value);
+        }
+
+        private static Option<Result<T, ASTInfoError>> ErrorOptionResult<T>(ASTInfoError error)
+        {
+            return new Option<Result<T, ASTInfoError>>(error);
         }
 
         private static Option<Result<T, ASTInfoError>> NoneOptionResult<T>()

@@ -10,6 +10,8 @@ namespace Ripple.AST.Info
 {
     class LifetimeInfo
     {
+        public static readonly LifetimeInfo Static = new LifetimeInfo(new Token("static", TokenType.Lifetime, -1, -1));
+
         private readonly Either<int, Token> m_LifetimeValue;
 
         public LifetimeInfo(Token lifetime)

@@ -20,29 +20,22 @@ namespace Ripple.AST.Utils
             m_VariableStack.Pop();
         }
 
-        public bool AddVariable(VariableInfo info)
+        public void AddVariables(List<Token> names, TypeInfo type, bool isUnsafe, Action<Token> onFailed)
         {
-            return m_VariableStack.Peek().TryAdd(info.Name, info);
+            foreach (Token name in names)
+                AddVariable(name, type, isUnsafe, onFailed);
         }
 
-        public void AddVariable(VarDecl varDecl, Action<VariableInfo> onFailed)
+        public void AddVariable(Token name, TypeInfo type, bool isUnsafe, Action<Token> onFailed)
         {
-            TypeInfo type = TypeInfo.FromASTType(varDecl.Type);
-            foreach (Token name in varDecl.VarNames)
+            VariableInfo info = new VariableInfo(name, type, isUnsafe, ScopeCount);
+            if (m_VariableStack.Peek().ContainsKey(info.Name))
             {
-                VariableInfo info = new VariableInfo(name, type, varDecl.UnsafeToken.HasValue);
-                if (!AddVariable(info))
-                    onFailed(info);
+                onFailed(name);
             }
-        }
-
-        public void AddVariable(VarDecl varDecl)
-        {
-            TypeInfo type = TypeInfo.FromASTType(varDecl.Type);
-            foreach (Token name in varDecl.VarNames)
+            else
             {
-                VariableInfo info = new VariableInfo(name, type, varDecl.UnsafeToken.HasValue);
-                AddVariable(info);
+                m_VariableStack.Peek().Add(info.Name, info);
             }
         }
 

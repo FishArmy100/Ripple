@@ -34,8 +34,7 @@ namespace Ripple.Validation
 
                 if(m_IsInFunction)
                 {
-                    foreach (VariableInfo variableInfo in VariableInfo.FromVarDecl(varDecl))
-                        m_VariableStack.AddVariable(variableInfo);
+                    m_VariableStack.AddVariables(varDecl.VarNames, TypeInfo.FromASTType(varDecl.Type), varDecl.UnsafeToken.HasValue, (_) => { });
                 }
             });
         }
@@ -49,7 +48,7 @@ namespace Ripple.Validation
 
                 m_VariableStack.PushScope();
                 foreach ((TypeName type, Token name) in funcDecl.Param.ParamList)
-                    m_VariableStack.AddVariable(new VariableInfo(name, TypeInfo.FromASTType(type), false));
+                    m_VariableStack.AddVariable(name, TypeInfo.FromASTType(type), funcDecl.UnsafeToken.HasValue, (_) => { });
 
                 base.VisitFuncDecl(funcDecl);
 
@@ -146,8 +145,8 @@ namespace Ripple.Validation
                     {
                         bool failed = false;
 
-                        TypeInfo.FromExpression(m_AST, m_VariableStack, arg, new Utils.Option<TypeInfo>()).Match(
-                            ok => args.Add(ok),
+                        ValueInfo.FromExpression(m_AST, m_VariableStack, arg, new Utils.Option<TypeInfo>()).Match(
+                            ok => args.Add(ok.Type),
                             fail => failed = true);
 
                         if (failed)

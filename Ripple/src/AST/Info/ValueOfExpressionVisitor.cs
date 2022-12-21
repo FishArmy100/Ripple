@@ -207,10 +207,10 @@ namespace Ripple.AST.Info
         {
             string name = identifier.Name.Text;
             if (m_VariableStack.TryGetVariable(name, out VariableInfo info))
-                return ValueInfoFromType(info.Type);
+                return new ValueInfo(info.Type, info.Lifetime);
 
             if (m_ASTInfo.GlobalVariables.TryGetValue(name, out info))
-                return ValueInfoFromType(info.Type);
+                return new ValueInfo(info.Type, info.Lifetime);
 
             List<FunctionInfo> functions = m_ASTInfo.Functions.GetOverloadsWithName(name);
 
@@ -220,14 +220,14 @@ namespace Ripple.AST.Info
                 {
                     TypeInfo funcType = new TypeInfo.FunctionPointer(funcInfo);
                     if (funcType.ChangeMutable(false).Equals(expected.Value.ChangeMutable(false)))
-                        return ValueInfoFromType(expected.Value);
+                        return new ValueInfo(expected.Value, LifetimeInfo.Static);
                 }
             }
 
             if (functions.Count == 1)
             {
                 FunctionInfo funcInfo = functions[0];
-                return ValueInfoFromType(new TypeInfo.FunctionPointer(funcInfo));
+                return new ValueInfo(new TypeInfo.FunctionPointer(funcInfo), LifetimeInfo.Static);
             }
             else if (functions.Count > 1)
             {
