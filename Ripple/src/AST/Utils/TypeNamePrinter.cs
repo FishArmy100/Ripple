@@ -38,7 +38,14 @@ namespace Ripple.AST.Utils
 
             public string VisitFuncPtr(FuncPtr funcPtr)
             {
-                string str = "(";
+                string str = "func";
+
+                funcPtr.Lifetimes.Match(ok =>
+                {
+                    str += "<" + ok.ConvertAll(t => t.Text).Concat(", ") + ">";
+                });
+
+                str += "(";
 
                 str += funcPtr.Parameters
                         .ConvertAll(p => p.Accept(this))

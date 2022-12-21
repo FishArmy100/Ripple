@@ -76,7 +76,7 @@ namespace ASTGeneration
                 "PointerType : TypeName BaseType; Token? MutToken; Token Star",
                 "ReferenceType : TypeName BaseType; Token? MutToken; Token Ampersand; Token? Lifetime",
                 "ArrayType : TypeName BaseType; Token? MutToken; Token OpenBracket; Token Size; Token CloseBracket",
-                "FuncPtr : Token? MutToken; Token OpenParen; List<TypeName> Parameters; Token CloseParen; Token Arrow; TypeName ReturnType",
+                "FuncPtr : Token? MutToken; Token FuncToken; Option<List<Token>> Lifetimes; Token OpenParen; List<TypeName> Parameters; Token CloseParen; Token Arrow; TypeName ReturnType",
             }, additionalUsings);
         }
     }

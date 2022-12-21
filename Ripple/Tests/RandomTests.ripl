@@ -1,9 +1,6 @@
 ﻿
 func Test() -> void
 {
-	int i = 5;
-	int& r = &i;
-	{
-		int& r2 = 5;
-	}
+	func<'f>(int, (mut func<'a>(int&'a, int&'a)->int)&'f)->int fn = nullptr;
+	func(int, int)->int f = 0;
 }
