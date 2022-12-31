@@ -14,7 +14,7 @@ namespace Ripple.Validation
     {
         public readonly List<ValidationError> Errors = new List<ValidationError>();
 
-        private bool m_IsGlobal = false;
+        private bool m_IsGlobal = true;
         private bool m_IsUnsafe = false;
         private bool m_PreviouseBlockReturns = false;
         private readonly LocalVariableStack m_VariableStack = new LocalVariableStack();
@@ -22,6 +22,12 @@ namespace Ripple.Validation
         private Option<TypeInfo> m_CurrentReturnType = new Option<TypeInfo>();
 
         private readonly ASTInfo m_ASTInfo;
+
+        public ValidatorHelperVisitor(ASTInfo astInfo)
+        {
+            m_ASTInfo = astInfo;
+            m_ASTInfo.AST.Accept(this);
+        }
 
         public override void VisitFuncDecl(FuncDecl funcDecl)
         {
@@ -56,7 +62,7 @@ namespace Ripple.Validation
 
             forStmt.Iter.Match(ok =>
             {
-                var result = ValueInfo.FromExpression(ok, m_ASTInfo, m_VariableStack);
+                var result = ValueInfo.FromExpression(ok, m_ASTInfo, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList());
                 result.Match(ok => { }, fail => Errors.Add(new ValidationError(fail.Message, fail.Token)));
             });
 
@@ -92,13 +98,13 @@ namespace Ripple.Validation
         {
             if(!m_IsGlobal)
             {
-                ValueOfExpressionVisitor visitor = new ValueOfExpressionVisitor(m_ASTInfo, m_VariableStack);
-                var result = VariableInfo.FromVarDecl(varDecl, visitor, m_ASTInfo.PrimaryTypes, m_CurrentLifetimes.SelectMany(l => l).ToList(), m_VariableStack.CurrentLifetime, m_IsUnsafe);
+                ValueOfExpressionVisitor visitor = new ValueOfExpressionVisitor(m_ASTInfo, m_VariableStack, GetActiveLifetimesList(), GetSafetyContext());
+                var result = VariableInfo.FromVarDecl(varDecl, visitor, m_ASTInfo.PrimaryTypes, GetActiveLifetimesList(), m_VariableStack.CurrentLifetime, GetSafetyContext());
                 result.Match(ok =>
                 {
-                    foreach(VariableInfo variable in ok)
+                    foreach (VariableInfo variable in ok)
                     {
-                        if(!m_VariableStack.TryAddVariable(variable))
+                        if (!m_VariableStack.TryAddVariable(variable))
                         {
                             AddError("Variable '" + variable.Name + "' has already been defined.", variable.NameToken);
                         }
@@ -107,13 +113,18 @@ namespace Ripple.Validation
                 fail =>
                 {
                     Errors.AddRange(fail.ConvertAll(e => new ValidationError(e.Message, e.Token)));
-                }); 
+                });
             }
+        }
+
+        private List<Token> GetActiveLifetimesList()
+        {
+            return m_CurrentLifetimes.SelectMany(l => l).ToList();
         }
 
         private void CheckCondition(Expression condition, Token errorToken)
         {
-            var result = ValueInfo.FromExpression(condition, m_ASTInfo, m_VariableStack);
+            var result = ValueInfo.FromExpression(condition, m_ASTInfo, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList());
             result.Match(ok =>
             {
                 if (!ok.Type.Equals(RipplePrimitives.Bool))
@@ -126,7 +137,7 @@ namespace Ripple.Validation
         {
             List<Token> functionLifetimes = decl.GenericParams.Match(ok => ok.Lifetimes, () => new List<Token>());
 
-            m_CurrentReturnType = TypeInfo.FromASTType(decl.ReturnType, m_ASTInfo.PrimaryTypes, functionLifetimes).ToResult().ToOption();
+            m_CurrentReturnType = TypeInfo.FromASTType(decl.ReturnType, m_ASTInfo.PrimaryTypes, functionLifetimes, GetSafetyContext()).ToResult().ToOption();
             m_IsGlobal = false;
             m_VariableStack.PushScope();
 
@@ -134,7 +145,7 @@ namespace Ripple.Validation
             {
                 foreach((var type, var name) in decl.Param.ParamList)
                 {
-                    VariableInfo.FromFunctionParameter(type, name, m_VariableStack.CurrentLifetime, m_IsUnsafe, m_ASTInfo.PrimaryTypes, functionLifetimes).ToOption().Match(
+                    VariableInfo.FromFunctionParameter(type, name, m_VariableStack.CurrentLifetime, m_ASTInfo.PrimaryTypes, functionLifetimes, GetSafetyContext()).ToOption().Match(
                         ok =>
                         {
                             m_VariableStack.TryAddVariable(ok);
@@ -147,6 +158,11 @@ namespace Ripple.Validation
             m_VariableStack.PopScope();
             m_IsGlobal = true;
             m_CurrentReturnType = new Option<TypeInfo>();
+        }
+
+        private SafetyContext GetSafetyContext()
+        {
+            return new SafetyContext(!m_IsUnsafe);
         }
 
         private void UpdateUnsafe(bool isUnsafe, Action func)

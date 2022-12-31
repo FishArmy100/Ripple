@@ -1,7 +1,7 @@
 ﻿
-
+unsafe int* test = nullptr;
 
 func Test() -> void
 {
-	int* i = nullptr;
+	//unsafe int* i = nullptr;
 }

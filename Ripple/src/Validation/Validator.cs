@@ -17,9 +17,16 @@ namespace Ripple.Validation
         public static Result<ASTInfo, List<ValidationError>> ValidateAst(ProgramStmt programStmt)
         {
             ASTInfo info = GenerateASTInfo(programStmt);
+            List<ValidationError> errors = new List<ValidationError>();
 
-            if (info.Errors.Count > 0)
-                return info.Errors.ConvertAll(e => new ValidationError(e.Message, e.Token));
+            errors.AddRange(info.Errors.ConvertAll(e => new ValidationError(e.Message, e.Token)));
+
+            ValidatorHelperVisitor visitor = new ValidatorHelperVisitor(info);
+
+            errors.AddRange(visitor.Errors);
+
+            if (errors.Count > 0)
+                return new Result<ASTInfo, List<ValidationError>>(errors);
 
             return info;
         }
@@ -28,7 +35,7 @@ namespace Ripple.Validation
         {
             List<PrimaryTypeInfo> primaries = RippleBuiltins.GetPrimitives();
             FunctionList functions = RippleBuiltins.GetBuiltInFunctions();
-            return new ASTInfo(programStmt, primaries, functions,  RippleBuiltins.GetBuiltInOperators());
+            return new ASTInfo(programStmt, primaries, functions, RippleBuiltins.GetBuiltInOperators());
         } 
     }
 }

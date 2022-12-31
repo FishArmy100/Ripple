@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple.src.AST.Info
+namespace Ripple.AST.Info
 {
     struct SafetyContext
     {

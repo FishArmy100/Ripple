@@ -13,12 +13,14 @@ namespace Ripple.AST.Info
     {
         private readonly List<PrimaryTypeInfo> m_PrimaryTypes;
         private readonly List<Token> m_ActiveLifetimes;
+        private readonly SafetyContext m_SafetyContext;
         public readonly List<ASTInfoError> Errors = new List<ASTInfoError>();
 
-        public TypeNameValidityChecker(TypeName typeName, List<PrimaryTypeInfo> primaryTypes, List<Token> activeLifetimes)
+        public TypeNameValidityChecker(TypeName typeName, List<PrimaryTypeInfo> primaryTypes, List<Token> activeLifetimes, SafetyContext safetyContext)
         {
-            this.m_PrimaryTypes = primaryTypes;
-            this.m_ActiveLifetimes = activeLifetimes;
+            m_PrimaryTypes = primaryTypes;
+            m_ActiveLifetimes = activeLifetimes;
+            m_SafetyContext = safetyContext;
             typeName.Accept(this);
         }
 
@@ -35,6 +37,12 @@ namespace Ripple.AST.Info
                 Errors.Add(new ASTInfoError("Liftime '" + lifetime.Text + "' has not been defined.", lifetime));
 
             base.VisitReferenceType(referenceType);
+        }
+
+        public override void VisitPointerType(PointerType pointerType)
+        {
+            if (m_SafetyContext.IsSafe)
+                Errors.Add(new ASTInfoError("Unsafe type used in a safe context.", pointerType.Star));
         }
     }
 }

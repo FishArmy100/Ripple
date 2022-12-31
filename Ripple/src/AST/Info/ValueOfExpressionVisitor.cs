@@ -12,23 +12,32 @@ namespace Ripple.AST.Info
     {
         private readonly LocalVariableStack m_VariableStack;
         private readonly FunctionList m_Functions;
+        private readonly List<PrimaryTypeInfo> m_Primaries;
         private readonly OperatorEvaluatorLibrary m_OperatorLibrary;
         private readonly Dictionary<string, VariableInfo> m_Globals;
+        private readonly SafetyContext m_SafetyContext;
+        private readonly List<Token> m_ActiveLifetimes;
 
-        public ValueOfExpressionVisitor(ASTInfo astInfo, LocalVariableStack variableStack)
+        public ValueOfExpressionVisitor(ASTInfo astInfo, LocalVariableStack variableStack, List<Token> activeLifetimes, SafetyContext safetyContext)
         {
             m_Functions = astInfo.Functions;
             m_Globals = astInfo.GlobalVariables;
             m_OperatorLibrary = astInfo.OperatorLibrary;
             m_VariableStack = variableStack;
+            m_SafetyContext = safetyContext;
+            m_Primaries = astInfo.PrimaryTypes;
+            m_ActiveLifetimes = activeLifetimes;
         }
 
-        public ValueOfExpressionVisitor(LocalVariableStack variableStack, FunctionList functions, OperatorEvaluatorLibrary operatorLibrary, Dictionary<string, VariableInfo> globals)
+        public ValueOfExpressionVisitor(LocalVariableStack variableStack, FunctionList functions, OperatorEvaluatorLibrary operatorLibrary, Dictionary<string, VariableInfo> globals, SafetyContext safetyContext, List<PrimaryTypeInfo> primaries, List<Token> activeLifetimes)
         {
             m_VariableStack = variableStack;
             m_Functions = functions;
             m_OperatorLibrary = operatorLibrary;
             m_Globals = globals;
+            m_Primaries = primaries;
+            m_SafetyContext = safetyContext;
+            m_ActiveLifetimes = activeLifetimes;
         }
 
         public ValueInfo VisitBinary(Binary binary, Option<TypeInfo> expected)
@@ -155,32 +164,12 @@ namespace Ripple.AST.Info
                 call.Args[i].Accept(this, expectedParam); // double checks to make sure that everything can be infered, like initalizer lists
             }
 
+            FunctionInfo funcInfo = possibleCalled[0];
+
+            if (funcInfo.IsUnsafe && m_SafetyContext.IsSafe)
+                ThrowUnsafeTypeError("Use of unsafe function '" + funcInfo.Name + "' in a safe context.", call.OpenParen);
+
             return new ValueInfo(possibleCalled[0].ReturnType, m_VariableStack.CurrentLifetime);
-        }
-
-        private TypeInfo CheckCallVariable(Call call, Identifier id, string name, VariableInfo varInfo)
-        {
-            if (varInfo.Type is TypeInfo.FunctionPointer fp)
-            {
-                if (call.Args.Count < fp.Parameters.Count)
-                    throw new TypeOfExpressionExeption("Too few arguments for call expression.", id.Name);
-                if (call.Args.Count > fp.Parameters.Count)
-                    throw new TypeOfExpressionExeption("Too many arguments for call expression.", id.Name);
-
-                for (int i = 0; i < fp.Parameters.Count; i++)
-                {
-                    TypeInfo paramInfo = fp.Parameters[i];
-                    TypeInfo argInfo = call.Args[i].Accept(this, paramInfo).Type;
-                    if (!paramInfo.ChangeMutable(false).Equals(argInfo.ChangeMutable(false)))
-                        throw new TypeOfExpressionExeption("Expected type: " + paramInfo + ", but found type: " + argInfo + ".", id.Name);
-                }
-
-                return fp.Returned;
-            }
-            else
-            {
-                throw new TypeOfExpressionExeption("Identifier: " + name + ", cannot be called like a function.", id.Name);
-            }
         }
 
         public ValueInfo VisitCast(Cast cast, Option<TypeInfo> expected)
@@ -219,10 +208,18 @@ namespace Ripple.AST.Info
         {
             string name = identifier.Name.Text;
             if (m_VariableStack.TryGetVariable(name, out VariableInfo info))
+            {
+                if(info.IsUnsafe && m_SafetyContext.IsSafe)
+                    ThrowUnsafeTypeError("Use of unsafe local variable '" + info.Name + "' in a safe context.", identifier.Name);
                 return new ValueInfo(info.Type, info.Lifetime);
+            }
 
             if (m_Globals.TryGetValue(name, out info))
+            {
+                if (info.IsUnsafe && m_SafetyContext.IsSafe)
+                    ThrowUnsafeTypeError("Use of unsafe global variable '" + info.Name + "' in a safe context.", identifier.Name);
                 return new ValueInfo(info.Type, info.Lifetime);
+            }
 
             List<FunctionInfo> functions = m_Functions.GetOverloadsWithName(name);
 
@@ -232,7 +229,12 @@ namespace Ripple.AST.Info
                 {
                     TypeInfo funcType = new TypeInfo.FunctionPointer(funcInfo);
                     if (funcType.ChangeMutable(false).Equals(expected.Value.ChangeMutable(false)))
+                    {
+                        if (funcInfo.IsUnsafe && m_SafetyContext.IsSafe)
+                            ThrowUnsafeTypeError("Use of unsafe function '" + funcInfo.Name + "' in a safe context.", identifier.Name);
+
                         return new ValueInfo(expected.Value, LifetimeInfo.Static);
+                    }
                 }
             }
 
@@ -253,7 +255,7 @@ namespace Ripple.AST.Info
             }
         }
 
-        public ValueInfo VisitIndex(AST.Index index, Option<TypeInfo> expected)
+        public ValueInfo VisitIndex(Index index, Option<TypeInfo> expected)
         {
             ValueInfo indexed = index.Indexed.Accept(this, new Option<TypeInfo>());
             ValueInfo arg = index.Argument.Accept(this, RipplePrimitives.Int32);
@@ -349,6 +351,8 @@ namespace Ripple.AST.Info
 
         public ValueInfo VisitSizeOf(SizeOf sizeOf, Option<TypeInfo> expected)
         {
+            TypeNameValidityChecker validator = new TypeNameValidityChecker(sizeOf.Type, m_Primaries, m_ActiveLifetimes, m_SafetyContext);
+
             return expected.Match(e =>
             {
                 if (e is TypeInfo.Basic b && b.Name == RipplePrimitives.Int32Name)
@@ -360,6 +364,11 @@ namespace Ripple.AST.Info
         public ValueInfo VisitTypeExpression(TypeExpression typeExpression, Option<TypeInfo> expected)
         {
             throw new NotImplementedException();
+        }
+
+        private void ThrowUnsafeTypeError(string message, Token token)
+        {
+            throw new TypeOfExpressionExeption(message, token);
         }
 
         private ValueInfo ValueInfoFromType(TypeInfo type)

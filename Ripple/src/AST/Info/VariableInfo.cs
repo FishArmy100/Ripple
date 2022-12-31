@@ -20,7 +20,7 @@ namespace Ripple.AST.Info
 
         public bool IsGlobal => Lifetime.Equals(LifetimeInfo.Static);
 
-        public VariableInfo(Token nameToken, TypeInfo type, bool isUnsafe, LifetimeInfo lifetime)
+        private VariableInfo(Token nameToken, TypeInfo type, bool isUnsafe, LifetimeInfo lifetime)
         {
             NameToken = nameToken;
             Type = type;
@@ -28,15 +28,15 @@ namespace Ripple.AST.Info
             Lifetime = lifetime;
         }
 
-        public static Result<VariableInfo, List<ASTInfoError>> FromFunctionParameter(TypeName type, Token name, LifetimeInfo lifetime, bool isUnsafe, List<PrimaryTypeInfo> primaries, List<Token> lifetimes)
+        public static Result<VariableInfo, List<ASTInfoError>> FromFunctionParameter(TypeName type, Token name, LifetimeInfo lifetime, List<PrimaryTypeInfo> primaries, List<Token> lifetimes, SafetyContext safetyContext)
         {
-            List<ASTInfoError> typeNameErrors = new TypeNameValidityChecker(type, primaries, lifetimes).Errors;
+            List<ASTInfoError> typeNameErrors = new TypeNameValidityChecker(type, primaries, lifetimes, safetyContext).Errors;
             if (typeNameErrors.Count > 0)
                 return typeNameErrors;
 
-            return TypeInfo.FromASTType(type, primaries, lifetimes).ToResult().Match(ok =>
+            return TypeInfo.FromASTType(type, primaries, lifetimes, safetyContext).ToResult().Match(ok =>
             {
-                VariableInfo info = new VariableInfo(name, ok, isUnsafe, lifetime);
+                VariableInfo info = new VariableInfo(name, ok, !safetyContext.IsSafe, lifetime);
                 return new Result<VariableInfo, List<ASTInfoError>>(info);
             },
             fail =>
@@ -45,15 +45,18 @@ namespace Ripple.AST.Info
             });
         }
 
-        public static Result<List<VariableInfo>, List<ASTInfoError>> FromVarDecl(VarDecl varDecl, ValueOfExpressionVisitor visitor, List<PrimaryTypeInfo> primaries, List<Token> lifetimes, LifetimeInfo lifetime, bool isUnsafe)
+        public static Result<List<VariableInfo>, List<ASTInfoError>> FromVarDecl(VarDecl varDecl, ValueOfExpressionVisitor visitor, List<PrimaryTypeInfo> primaries, List<Token> lifetimes, LifetimeInfo lifetime, SafetyContext safetyContext)
         {
-            TypeInfoCreationResult creationResult = TypeInfo.FromASTType(varDecl.Type, primaries, lifetimes);
+            if (safetyContext.IsSafe && varDecl.UnsafeToken.HasValue)
+                safetyContext = new SafetyContext(false);
+
+            TypeInfoCreationResult creationResult = TypeInfo.FromASTType(varDecl.Type, primaries, lifetimes, safetyContext);
 
             if (creationResult.InvalidTypeErrors.Count > 0)
                 return creationResult.InvalidTypeErrors;
 
-            var result = GetTypeFromExpression(varDecl.Expr, visitor, creationResult.Type);
-            return result.Match(ok =>
+            var expressionResult = GetTypeFromExpression(varDecl.Expr, visitor, creationResult.Type);
+            return expressionResult.Match(ok =>
             {
                 if(!ok.IsEquatableToTypeName(varDecl.Type))
                 {
@@ -64,7 +67,7 @@ namespace Ripple.AST.Info
 
                 List<VariableInfo> vars = varDecl.VarNames.ConvertAll(n =>
                 {
-                    return new VariableInfo(n, ok, isUnsafe, lifetime);
+                    return new VariableInfo(n, ok, !safetyContext.IsSafe, lifetime);
                 });
 
                 return new Result<List<VariableInfo>, List<ASTInfoError>>(vars);

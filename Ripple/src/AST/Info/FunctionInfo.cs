@@ -30,7 +30,7 @@ namespace Ripple.AST.Info
         public static Result<FunctionInfo, List<ASTInfoError>> FromASTFunction(FuncDecl funcDecl, List<PrimaryTypeInfo> primaries)
         {
             Token funcName = funcDecl.Name;
-            bool isUnsafe = funcDecl.UnsafeToken.HasValue;
+            SafetyContext safetyContext = new SafetyContext(!funcDecl.UnsafeToken.HasValue);
 
             List<ASTInfoError> errors = new List<ASTInfoError>();
             Func<ReferenceType, AmbiguousTypeException> errorGenerator = 
@@ -44,7 +44,7 @@ namespace Ripple.AST.Info
 
             foreach ((var type, var name) in funcDecl.Param.ParamList)
             { 
-                var result = TypeInfo.FromASTType(type, primaries, lifetimes, errorGenerator);
+                var result = TypeInfo.FromASTType(type, primaries, lifetimes, safetyContext, errorGenerator);
                 result.ToResult().Match(ok =>
                 {
                     if (parameters.Any(p => p.Name == name.Text))
@@ -58,7 +58,7 @@ namespace Ripple.AST.Info
                 });
             }
 
-            Option<TypeInfo> returned = TypeInfo.FromASTType(funcDecl.ReturnType, primaries, lifetimes, errorGenerator).ToResult().Match(ok =>
+            Option<TypeInfo> returned = TypeInfo.FromASTType(funcDecl.ReturnType, primaries, lifetimes, safetyContext, errorGenerator).ToResult().Match(ok =>
             {
                 return ok;
             },
@@ -75,17 +75,18 @@ namespace Ripple.AST.Info
             if (errors.Count > 0)
                 return errors;
 
-            return new FunctionInfo(isUnsafe, funcName, lifetimes, parameters, returned.Value);
+            return new FunctionInfo(!safetyContext.IsSafe, funcName, lifetimes, parameters, returned.Value);
         }
 
         public static Result<FunctionInfo, List<ASTInfoError>> FromASTExternalFunction(ExternalFuncDecl funcDecl, List<PrimaryTypeInfo> primaries)
         {
             List<ASTInfoError> errors = new List<ASTInfoError>();
             List<ParameterInfo> parameters = new List<ParameterInfo>();
+            SafetyContext safetyContext = new SafetyContext(false);
 
             foreach ((var type, var name) in funcDecl.Parameters.ParamList)
             {
-                var result = TypeInfo.FromASTType(type, primaries, new List<Token>());
+                var result = TypeInfo.FromASTType(type, primaries, new List<Token>(),  safetyContext);
                 result.ToResult().Match(ok =>
                 {
                     CheckExternalFunctionType(ok, ref errors, ref parameters, name);
@@ -96,7 +97,7 @@ namespace Ripple.AST.Info
                 });
             }
 
-            var returned = TypeInfo.FromASTType(funcDecl.ReturnType, primaries, new List<Token>());
+            var returned = TypeInfo.FromASTType(funcDecl.ReturnType, primaries, new List<Token>(), safetyContext);
             returned.ToResult().Match(ok =>
             {
                 CheckExternalFunctionType(ok, ref errors, ref parameters, funcDecl.Name);

@@ -48,9 +48,9 @@ namespace Ripple.AST.Info
             return primaries;
         }
 
-        public static TypeInfoCreationResult FromASTType(TypeName typeName, List<PrimaryTypeInfo> primaries, List<Token> lifetimes, Func<ReferenceType, AmbiguousTypeException> errorFunc = null)
+        public static TypeInfoCreationResult FromASTType(TypeName typeName, List<PrimaryTypeInfo> primaries, List<Token> lifetimes, SafetyContext safetyContext, Func<ReferenceType, AmbiguousTypeException> errorFunc = null)
         {
-            List<ASTInfoError> typeErrors = new TypeNameValidityChecker(typeName, primaries, lifetimes).Errors;
+            List<ASTInfoError> typeErrors = new TypeNameValidityChecker(typeName, primaries, lifetimes, safetyContext).Errors;
 
             if (typeErrors.Count > 0)
                 return new TypeInfoCreationResult(new Option<TypeInfo>(), new Option<ASTInfoError>(), typeErrors);

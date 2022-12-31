@@ -55,11 +55,14 @@ namespace Ripple.AST.Info
                 ast.Accept(this);
             }
 
+            public override void VisitFuncDecl(FuncDecl funcDecl) { } // not implemented, so only global variables are visited
+
             public override void VisitVarDecl(VarDecl varDecl)
             {
                 LocalVariableStack variableStack = new LocalVariableStack();
-                ValueOfExpressionVisitor visitor = new ValueOfExpressionVisitor(variableStack, m_Functions, m_Operators, new Dictionary<string, VariableInfo>());
-                var result = VariableInfo.FromVarDecl(varDecl, visitor, m_Primaries, new List<Token>(), LifetimeInfo.Static, varDecl.UnsafeToken.HasValue);
+                SafetyContext safetyContext = new SafetyContext(!varDecl.UnsafeToken.HasValue);
+                ValueOfExpressionVisitor visitor = new ValueOfExpressionVisitor(variableStack, m_Functions, m_Operators, GlobalVariables, safetyContext, m_Primaries, new List<Token>());
+                var result = VariableInfo.FromVarDecl(varDecl, visitor, m_Primaries, new List<Token>(), LifetimeInfo.Static, safetyContext);
                 result.Match(ok =>
                 {
                     if(CheckType(ok[0].Type))
