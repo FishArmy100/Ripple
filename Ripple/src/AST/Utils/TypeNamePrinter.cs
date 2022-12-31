@@ -10,7 +10,6 @@ namespace Ripple.AST.Utils
 {
     static class TypeNamePrinter
     {
-
         public static string PrintType(TypeName typeName)
         {
             TypeNamePrinterVisitor visitor = new TypeNamePrinterVisitor();

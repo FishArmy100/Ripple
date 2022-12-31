@@ -11,6 +11,13 @@ namespace Ripple.AST.Info
 {
     class TypeInfoGeneratorVisitor : ITypeNameVisitor<TypeInfo>
     {
+        private readonly Func<ReferenceType, AmbiguousTypeException> m_ErrorGenerator;
+
+        public TypeInfoGeneratorVisitor(Func<ReferenceType, AmbiguousTypeException> errorGenerator)
+        {
+            m_ErrorGenerator = errorGenerator;
+        }
+
         public TypeInfo VisitTypeName(TypeName type)
         {
             return type.Accept(this);
@@ -54,11 +61,10 @@ namespace Ripple.AST.Info
             TypeInfo baseType = referenceType.BaseType.Accept(this);
             bool mutable = referenceType.MutToken.HasValue;
 
-            Option<LifetimeInfo> lifetime = referenceType.Lifetime.HasValue ? 
-                new LifetimeInfo(referenceType.Lifetime.Value) : 
-                new Option<LifetimeInfo>();
-            
-            return new TypeInfo.Reference(mutable, baseType, lifetime);
+            if(referenceType.Lifetime is Token l)
+                return new TypeInfo.Reference(mutable, baseType, new LifetimeInfo(l));
+
+            throw m_ErrorGenerator(referenceType);
         }
     }
 }

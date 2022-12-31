@@ -18,21 +18,66 @@ namespace Ripple.AST.Info
             Mutable = mutable;
         }
 
-        public abstract bool IsUnsafe();
-        public abstract List<PrimaryTypeInfo> GetPrimaries();
         public abstract TypeInfo ChangeMutable(bool isMutable);
         public abstract bool HasNonPointerVoid();
         public abstract void Walk(Action<TypeInfo> walker);
+        public abstract bool EqualsWithoutLifetimes(TypeInfo other);
+        public abstract bool IsEquatableToTypeName(TypeName typeName);
+
+        public bool IsUnsafe()
+        {
+            bool isUnsafe = false;
+            this.Walk(t =>
+            {
+                if (t is Pointer)
+                    isUnsafe = true;
+            });
+
+            return isUnsafe;
+        }
+
+        public List<PrimaryTypeInfo> GetPrimaries()
+        {
+            List<PrimaryTypeInfo> primaries = new List<PrimaryTypeInfo>();
+            this.Walk((t) =>
+            {
+                if (t is Basic b)
+                    primaries.Add(b.NameType);
+            });
+
+            return primaries;
+        }
+
+        public static TypeInfoCreationResult FromASTType(TypeName typeName, List<PrimaryTypeInfo> primaries, List<Token> lifetimes, Func<ReferenceType, AmbiguousTypeException> errorFunc = null)
+        {
+            List<ASTInfoError> typeErrors = new TypeNameValidityChecker(typeName, primaries, lifetimes).Errors;
+
+            if (typeErrors.Count > 0)
+                return new TypeInfoCreationResult(new Option<TypeInfo>(), new Option<ASTInfoError>(), typeErrors);
+
+            try
+            {
+                TypeInfo info = new TypeInfoGeneratorVisitor(errorFunc == null ? DefaultErrorGenerator : errorFunc).VisitTypeName(typeName);
+                return new TypeInfoCreationResult(info, new Option<ASTInfoError>(), new List<ASTInfoError>());
+            }
+            catch(AmbiguousTypeException e)
+            {
+                return new TypeInfoCreationResult(new Option<TypeInfo>(), new ASTInfoError(e.Message, e.ErrorToken), new List<ASTInfoError>());
+            }
+            catch(TypeOfExpressionExeption e)
+            {
+                return new TypeInfoCreationResult(new Option<TypeInfo>(), new ASTInfoError(e.Message, e.ErrorToken), new List<ASTInfoError>());
+            }
+        }
+
+        private static AmbiguousTypeException DefaultErrorGenerator(ReferenceType referenceType)
+        {
+            return new AmbiguousTypeException("Expected a lifetime.", referenceType.Ampersand);
+        }
 
         public bool EqualsWithoutFirstMutable(TypeInfo other)
         {
             return this.ChangeMutable(false).Equals(other.ChangeMutable(false));
-        }
-
-        public static TypeInfo FromASTType(TypeName type)
-        {
-            TypeInfoGeneratorVisitor visitor = new TypeInfoGeneratorVisitor();
-            return visitor.VisitTypeName(type);
         }
 
         protected string GetMutStrAfter() => (Mutable ? " mut" : "");
@@ -60,16 +105,6 @@ namespace Ripple.AST.Info
                 return HashCode.Combine(Mutable, NameType);
             }
 
-            public override bool IsUnsafe()
-            {
-                return false;
-            }
-
-            public override List<PrimaryTypeInfo> GetPrimaries()
-            {
-                return new List<PrimaryTypeInfo> { NameType };
-            }
-
             public override TypeInfo ChangeMutable(bool isMutable)
             {
                 return new Basic(isMutable, NameType);
@@ -88,6 +123,19 @@ namespace Ripple.AST.Info
             public override void Walk(Action<TypeInfo> walker)
             {
                 walker(this);
+            }
+
+            public override bool EqualsWithoutLifetimes(TypeInfo other) => Equals(other);
+
+            public override bool IsEquatableToTypeName(TypeName typeName)
+            {
+                if(typeName is BasicType basic)
+                {
+                    return Name == basic.Identifier.Text &&
+                           Mutable == basic.MutToken.HasValue;
+                }
+
+                return false;
             }
         }
 
@@ -112,14 +160,11 @@ namespace Ripple.AST.Info
                        EqualityComparer<TypeInfo>.Default.Equals(Contained, pointer.Contained);
             }
 
+            public override bool EqualsWithoutLifetimes(TypeInfo other) => Equals(other);
+
             public override int GetHashCode()
             {
                 return HashCode.Combine(Mutable, Contained, GetType());
-            }
-
-            public override List<PrimaryTypeInfo> GetPrimaries()
-            {
-                return Contained.GetPrimaries();
             }
 
             public override bool HasNonPointerVoid()
@@ -129,8 +174,6 @@ namespace Ripple.AST.Info
                 else
                     return Contained.HasNonPointerVoid();
             }
-
-            public override bool IsUnsafe() => true;
 
             public override string ToString()
             {
@@ -149,14 +192,25 @@ namespace Ripple.AST.Info
                 walker(this);
                 Contained.Walk(walker);
             }
+
+            public override bool IsEquatableToTypeName(TypeName typeName)
+            {
+                if (typeName is PointerType pointer)
+                {
+                    return Contained.IsEquatableToTypeName(pointer.BaseType) &&
+                           Mutable == pointer.MutToken.HasValue;
+                }
+
+                return false;
+            }
         }
 
         public class Reference : TypeInfo
         {
             public readonly TypeInfo Contained;
-            public readonly Option<LifetimeInfo> Lifetime;
+            public readonly LifetimeInfo Lifetime;
 
-            public Reference(bool isMutable, TypeInfo contained, Option<LifetimeInfo> lifetime) : base(isMutable)
+            public Reference(bool isMutable, TypeInfo contained, LifetimeInfo lifetime) : base(isMutable)
             {
                 Contained = contained;
                 Lifetime = lifetime;
@@ -165,11 +219,6 @@ namespace Ripple.AST.Info
             public override TypeInfo ChangeMutable(bool isMutable)
             {
                 return new Reference(isMutable, Contained, Lifetime);
-            }
-
-            public override List<PrimaryTypeInfo> GetPrimaries()
-            {
-                return Contained.GetPrimaries();
             }
 
             public override string ToString()
@@ -183,8 +232,6 @@ namespace Ripple.AST.Info
                     return Contained + GetMutStrAfter() + "&";
                 }
             }
-
-            public override bool IsUnsafe() => Contained.IsUnsafe();
 
             public override bool HasNonPointerVoid()
             {
@@ -207,8 +254,33 @@ namespace Ripple.AST.Info
                 return obj is Reference reference &&
                        Mutable == reference.Mutable &&
                        EqualityComparer<TypeInfo>.Default.Equals(Contained, reference.Contained) &&
-                       (reference.Lifetime.HasValue() ^ Lifetime.HasValue() || 
-                       EqualityComparer<Option<LifetimeInfo>>.Default.Equals(Lifetime, reference.Lifetime));
+                       EqualityComparer<LifetimeInfo>.Default.Equals(Lifetime, reference.Lifetime);
+            }
+
+            public override bool EqualsWithoutLifetimes(TypeInfo other)
+            {
+                return other is Reference reference &&
+                       Mutable == reference.Mutable &&
+                       EqualityComparer<TypeInfo>.Default.Equals(Contained, reference.Contained);
+            }
+
+            public override bool IsEquatableToTypeName(TypeName typeName)
+            {
+                if (typeName is ReferenceType reference)
+                {
+                    bool hasEquatableLifetimes = false;
+
+                    if (!reference.Lifetime.HasValue)
+                        hasEquatableLifetimes = true;
+                    else if (Lifetime.LifetimeToken is Token t)
+                        hasEquatableLifetimes = t.Equals(reference.Lifetime.Value);
+
+                    return Contained.IsEquatableToTypeName(reference.BaseType) &&
+                           Mutable == reference.MutToken.HasValue &&
+                           hasEquatableLifetimes;
+                }
+
+                return false;
             }
         }
 
@@ -247,15 +319,6 @@ namespace Ripple.AST.Info
                 return HashCode.Combine(Mutable, Parameters, Returned, GetType());
             }
 
-            public override List<PrimaryTypeInfo> GetPrimaries()
-            {
-                List<PrimaryTypeInfo> primaries = Parameters.SelectMany(p => p.GetPrimaries()).ToList();
-                primaries.AddRange(Returned.GetPrimaries());
-                return primaries;
-            }
-
-            public override bool IsUnsafe() => Parameters.Any(t => t.IsUnsafe()) || Returned.IsUnsafe();
-
             public override string ToString()
             {
                 return GetMutStrBefore() + "(" + Parameters.ToList().ConvertAll(p => p.ToString()).Concat(", ") + 
@@ -280,6 +343,28 @@ namespace Ripple.AST.Info
                     type.Walk(walker);
 
                 Returned.Walk(walker);
+            }
+
+            public override bool EqualsWithoutLifetimes(TypeInfo other) => Equals(other);
+
+            public override bool IsEquatableToTypeName(TypeName typeName)
+            {
+                if(typeName is FuncPtr funcPtr)
+                {
+                    if (funcPtr.Parameters.Count != Parameters.Count)
+                        return false;
+
+                    for(int i = 0; i < Parameters.Count; i++)
+                    {
+                        if (!Parameters[i].IsEquatableToTypeName(typeName))
+                            return false;
+                    }
+
+                    return Returned.IsEquatableToTypeName(funcPtr.ReturnType) &&
+                           Mutable == funcPtr.MutToken.HasValue;
+                }
+
+                return false;
             }
         }
 
@@ -308,16 +393,6 @@ namespace Ripple.AST.Info
                 return HashCode.Combine(Mutable, Type, SizeToken, GetType());
             }
 
-            public override bool IsUnsafe()
-            {
-                return Type.IsUnsafe();
-            }
-
-            public override List<PrimaryTypeInfo> GetPrimaries()
-            {
-                return Type.GetPrimaries();
-            }
-
             public override TypeInfo ChangeMutable(bool isMutable)
             {
                 return new Array(isMutable, Type, SizeToken);
@@ -337,6 +412,19 @@ namespace Ripple.AST.Info
             {
                 walker(this);
                 Type.Walk(walker);
+            }
+
+            public override bool EqualsWithoutLifetimes(TypeInfo other) => Equals(other);
+
+            public override bool IsEquatableToTypeName(TypeName typeName)
+            {
+                if(typeName is ArrayType array)
+                {
+                    return Type.IsEquatableToTypeName(array.BaseType) &&
+                           SizeToken.Equals(array.Size);
+                }
+
+                return false;
             }
         }
     }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.Utils.Extensions;
 using Ripple.AST.Info;
+using Ripple.Utils;
 
 namespace Ripple.AST.Utils
 {
@@ -21,56 +22,6 @@ namespace Ripple.AST.Utils
                 GenPrimative(RipplePrimitives.VoidName),
                 GenPrimative(RipplePrimitives.CharName),
             };
-        }
-
-        public static OperatorLibrary GetPrimitiveOperators()
-        {
-            OperatorLibrary library = new OperatorLibrary();
-            AppendBinaryOperators(ref library);
-            AppendUnaryOperators(ref library);
-            AppendCastOperators(ref library);
-
-            return library;
-        }
-
-        private static void AppendBinaryOperators(ref OperatorLibrary library)
-        {
-            List<OperatorInfo.Binary> intOperators = GenBinaries(RipplePrimitives.Int32Name,
-                TokenType.Plus, TokenType.Minus, TokenType.Star, TokenType.Slash, TokenType.Mod,
-                TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan,
-                TokenType.LessThanEqual, TokenType.EqualEqual, TokenType.BangEqual);
-
-            List<OperatorInfo.Binary> floatOperators = GenBinaries(RipplePrimitives.Float32Name,
-                TokenType.Plus, TokenType.Minus, TokenType.Star, TokenType.Slash,
-                TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan,
-                TokenType.LessThanEqual, TokenType.EqualEqual, TokenType.BangEqual);
-
-            List<OperatorInfo.Binary> boolOperators = GenBinaries(RipplePrimitives.BoolName,
-                TokenType.EqualEqual, TokenType.BangEqual,
-                TokenType.AmpersandAmpersand, TokenType.PipePipe);
-
-            List<OperatorInfo.Binary> operators = new List<OperatorInfo.Binary>();
-            operators.AddRange(intOperators);
-            operators.AddRange(floatOperators);
-            operators.AddRange(boolOperators);
-
-            foreach (var op in operators)
-                _ = library.BinaryOperators.TryAdd(op);
-        }
-
-        private static void AppendUnaryOperators(ref OperatorLibrary library)
-        {
-            library.UnaryOperators.TryAdd(GenUnary(TokenType.Minus, RipplePrimitives.Int32Name));
-            library.UnaryOperators.TryAdd(GenUnary(TokenType.Minus, RipplePrimitives.Float32Name));
-            library.UnaryOperators.TryAdd(GenUnary(TokenType.Bang, RipplePrimitives.BoolName));
-        }
-
-        private static void AppendCastOperators(ref OperatorLibrary operatorLibrary)
-        {
-            OperatorInfo.Cast intToFloat = new OperatorInfo.Cast(RipplePrimitives.Int32, RipplePrimitives.Float32);
-            OperatorInfo.Cast floatToInt = new OperatorInfo.Cast(RipplePrimitives.Float32, RipplePrimitives.Int32);
-            operatorLibrary.CastOperators.TryAdd(floatToInt);
-            operatorLibrary.CastOperators.TryAdd(intToFloat);
         }
 
         public static FunctionList GetBuiltInFunctions()
@@ -90,6 +41,81 @@ namespace Ripple.AST.Utils
             return list;
         }
 
+        public static OperatorEvaluatorLibrary GetBuiltInOperators()
+        {
+            OperatorEvaluatorLibrary library = new OperatorEvaluatorLibrary();
+            AppendBinaryOperators(ref library);
+            AppendUnaryOperators(ref library);
+            return library;
+        }
+
+        private static void AppendBinaryOperators(ref OperatorEvaluatorLibrary library)
+        {
+            TokenType[] intagerOperators =      { TokenType.Plus, TokenType.Minus, TokenType.Star, TokenType.Slash, TokenType.Mod, TokenType.EqualEqual, TokenType.BangEqual, TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan, TokenType.LessThanEqual };
+            TokenType[] floatOperators =        { TokenType.Plus, TokenType.Minus, TokenType.Star, TokenType.Slash, TokenType.EqualEqual, TokenType.BangEqual, TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan, TokenType.LessThanEqual };
+            TokenType[] boolOperators =         { TokenType.EqualEqual, TokenType.BangEqual, TokenType.AmpersandAmpersand, TokenType.PipePipe };
+            TokenType[] charactorOperators =    { TokenType.EqualEqual, TokenType.BangEqual };
+
+            AddBinaryOperatorsForType(ref library, RipplePrimitives.Int32,      intagerOperators);
+            AddBinaryOperatorsForType(ref library, RipplePrimitives.Float32,    floatOperators);
+            AddBinaryOperatorsForType(ref library, RipplePrimitives.Bool,       boolOperators);
+            AddBinaryOperatorsForType(ref library, RipplePrimitives.Char,       charactorOperators);
+
+            library.Binaries.AddOperatorEvaluator((op, args, lifetime) =>
+            {
+                (var left, var right) = args;
+                if(op == TokenType.Plus && left.Type is TypeInfo.Pointer p && right.Equals(RipplePrimitives.Int32))
+                {
+                    ValueInfo info = new ValueInfo(p, lifetime);
+                    return new Option<ValueInfo>(info);
+                }
+
+                return new Option<ValueInfo>();
+            });
+        }
+
+        private static void AppendUnaryOperators(ref OperatorEvaluatorLibrary library)
+        {
+            AddUnaryOperatorsForType(ref library, RipplePrimitives.Int32, TokenType.Minus);
+            AddUnaryOperatorsForType(ref library, RipplePrimitives.Float32, TokenType.Minus);
+            AddUnaryOperatorsForType(ref library, RipplePrimitives.Bool, TokenType.Bang);
+        }
+
+        private static void AddBinaryOperatorsForType(ref OperatorEvaluatorLibrary library, TypeInfo type, params TokenType[] operators)
+        {
+            library.Binaries.AddOperatorEvaluator((op, args, lifetime) => 
+            {
+                (var left, var right) = args;
+                if (operators.Contains(op) && left.Type.Equals(type) && right.Type.Equals(type))
+                {
+                    if(op.IsType(TokenType.EqualEqual, TokenType.BangEqual, TokenType.GreaterThan, 
+                                 TokenType.GreaterThanEqual, TokenType.LessThan, TokenType.LessThanEqual))
+                    {
+                        return new Option<ValueInfo>(new ValueInfo(RipplePrimitives.Bool, lifetime));
+                    }
+                    else
+                    {
+                        return new Option<ValueInfo>(new ValueInfo(type, lifetime));
+                    }
+                }
+
+                return new Option<ValueInfo>();
+            });
+        }
+
+        private static void AddUnaryOperatorsForType(ref OperatorEvaluatorLibrary library, TypeInfo type, params TokenType[] operators)
+        {
+            library.Unaries.AddOperatorEvaluator((op, arg, lifetime) =>
+            {
+                if (operators.Contains(op) && arg.Equals(op))
+                {
+                    return new Option<ValueInfo>(new ValueInfo(type, lifetime));
+                }
+
+                return new Option<ValueInfo>();
+            });
+        }
+
         private static Token GenIdTok(string name)
         {
             return new Token(name, TokenType.Identifier, -1, -1);
@@ -102,30 +128,7 @@ namespace Ripple.AST.Utils
             List<ParameterInfo> parameterInfos = paramaters
                 .ConvertAll(p => new ParameterInfo(GenIdTok(p.Item2), GenBasicType(p.Item1)));
 
-            return new FunctionInfo(false, funcName, new List<LifetimeInfo>(), parameterInfos, returnType);
-        }
-
-        private static List<OperatorInfo.Binary> GenBinaries(string typeName, params TokenType[] operatorTypes)
-        {
-            List<OperatorInfo.Binary> operatorDatas = new List<OperatorInfo.Binary>();
-            foreach (TokenType operatorType in operatorTypes)
-                operatorDatas.Add(GenBinary(operatorType, typeName));
-
-            return operatorDatas;
-        }
-
-        private static OperatorInfo.Binary GenBinary(TokenType operatorType, string typeName)
-        {
-            if (operatorType.IsType(TokenType.EqualEqual, TokenType.GreaterThanEqual, TokenType.BangEqual, 
-                TokenType.LessThanEqual, TokenType.GreaterThan, TokenType.LessThan))
-                return new OperatorInfo.Binary(GenBasicType(typeName), GenBasicType(typeName), operatorType, RipplePrimitives.Bool);
-
-            return new OperatorInfo.Binary(GenBasicType(typeName), GenBasicType(typeName), operatorType, GenBasicType(typeName));
-        }
-
-        private static OperatorInfo.Unary GenUnary(TokenType operatorType, string typeName)
-        {
-            return new OperatorInfo.Unary(GenBasicType(typeName), operatorType, GenBasicType(typeName));
+            return new FunctionInfo(false, funcName, new List<Token>(), parameterInfos, returnType); 
         }
 
         private static PrimaryTypeInfo GenPrimative(string name)
