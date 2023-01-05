@@ -94,6 +94,16 @@ namespace Ripple.Validation
             m_VariableStack.PopScope();
         }
 
+        public override void VisitExprStmt(ExprStmt exprStmt)
+        {
+            ValueInfo.FromExpression(exprStmt.Expr, m_ASTInfo, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList()).Match(
+                ok => { },
+                fail =>
+                {
+                    Errors.Add(new ValidationError(fail.Message, fail.Token));
+                });
+        }
+
         public override void VisitVarDecl(VarDecl varDecl)
         {
             if(!m_IsGlobal)

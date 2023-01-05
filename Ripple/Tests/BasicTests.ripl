@@ -1,0 +1,70 @@
+﻿
+extern "C" func print(char* fmt) -> void; 
+
+func ArrayTesting() -> void
+{
+	mut int[10] array = { 5, 6, 7 };
+	mut int& ref = &mut array[0];
+
+	int&[1]& = &{ &5 };
+}
+
+unsafe func PointerTesting() -> void
+{
+	int* ptr1 = nullptr;
+	float* ptr2 = ptr1 as float*;
+
+	float& f1 = ptr2 as float&;
+	float* f2 = f1 as float&;
+
+	int[2] arr = { 1, 2 };
+	int* first = &arr[0] as int*;
+	int* second = first + 1;
+	int i = arr[1];
+
+	int* null = nullptr;
+}
+
+func ReferenceTesting() -> void
+{
+	int&& r1 = &&0;
+	mut int mut& mut& r2 = &mut &mut 5;
+
+	**r2 = 4;
+}
+
+func Add<'a, 'b>(int&'a a, int&'b b) -> int
+{
+	return *a + *b;
+}
+
+func FunctionPointerTesting() -> void
+{
+	func<'a, 'b>(int&'a, int&'b)->int func_ptr = Add<'a, 'b>;
+	int sum = func_ptr(&5, &5);
+}
+
+func BasicOperatorTests() -> void
+{
+	int i1 = 1;
+	int i2 = 2;
+
+	float f1 = (i1 + i2 - i1 * i2 / i1 % i2) as float;
+	int i3 = f1 as int;
+
+	float f2 = 5.0;
+	float f3 = f2 + f1 - f1 / f2 * f2;
+
+	char c1 = 'c';
+	char c2 = 'b';
+
+	bool b1 = c1 == c2 || c1 != c2;
+	bool b2 = f1 > f2 || f2 < f1 && f3 == f2 || f1 != f2;
+	bool b3 = i1 > i2 || i2 < i1 && i3 == i2 || i1 != i2;
+}
+
+func CStringTests -> void
+{
+	char* string = "Hello World!";
+	printf(string);
+}

@@ -1,7 +1,6 @@
 ﻿
-unsafe int* test = nullptr;
 
-func Test() -> void
+unsafe func Test() -> void
 {
-	//unsafe int* i = nullptr;
+	char* ptr = c"Hello World!";
 }

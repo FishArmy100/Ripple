@@ -46,6 +46,7 @@ namespace Ripple.AST.Utils
             OperatorEvaluatorLibrary library = new OperatorEvaluatorLibrary();
             AppendBinaryOperators(ref library);
             AppendUnaryOperators(ref library);
+            AppendCastOperators(ref library);
             return library;
         }
 
@@ -61,13 +62,34 @@ namespace Ripple.AST.Utils
             AddBinaryOperatorsForType(ref library, RipplePrimitives.Bool,       boolOperators);
             AddBinaryOperatorsForType(ref library, RipplePrimitives.Char,       charactorOperators);
 
-            library.Binaries.AddOperatorEvaluator((op, args, lifetime) =>
+            library.Binaries.AddOperatorEvaluator((op, args, lifetime) => // pointer arithmatic operators
             {
                 (var left, var right) = args;
-                if(op == TokenType.Plus && left.Type is TypeInfo.Pointer p && right.Equals(RipplePrimitives.Int32))
+                if(op == TokenType.Plus && left.Type is TypeInfo.Pointer p && right.Type.Equals(RipplePrimitives.Int32))
                 {
                     ValueInfo info = new ValueInfo(p, lifetime);
                     return new Option<ValueInfo>(info);
+                }
+
+                return new Option<ValueInfo>();
+            });
+
+            library.Binaries.AddOperatorEvaluator((op, args, lifetime) => // assignment operators
+            {
+                (var left, var right) = args;
+                if (left.Type.Mutable)
+                {
+                    if(left.Type.EqualsWithoutFirstMutable(right.Type))
+                    {
+                        ValueInfo info = new ValueInfo(left.Type, lifetime);
+                        return new Option<ValueInfo>(info);
+                    }
+                    else if(left.Type is TypeInfo.Reference rl && right.Type is TypeInfo.Reference rr &&
+                            rr.Lifetime.IsAssignableTo(rl.Lifetime))
+                    {
+                        ValueInfo info = new ValueInfo(left.Type, lifetime);
+                        return new Option<ValueInfo>(info);
+                    }
                 }
 
                 return new Option<ValueInfo>();
@@ -79,6 +101,80 @@ namespace Ripple.AST.Utils
             AddUnaryOperatorsForType(ref library, RipplePrimitives.Int32, TokenType.Minus);
             AddUnaryOperatorsForType(ref library, RipplePrimitives.Float32, TokenType.Minus);
             AddUnaryOperatorsForType(ref library, RipplePrimitives.Bool, TokenType.Bang);
+
+            library.Unaries.AddOperatorEvaluator((op, operand, lifetime) => // dereference and reference of operators
+            {
+                if(op == TokenType.Star && operand.Type is TypeInfo.Pointer p)
+                {
+                    ValueInfo info = new ValueInfo(p.Contained, operand.Lifetime);
+                    return new Option<ValueInfo>(info);
+                }
+                else if (op == TokenType.Star && operand.Type is TypeInfo.Reference r)
+                {
+                    ValueInfo info = new ValueInfo(r.Contained, r.Lifetime);
+                    return new Option<ValueInfo>(info);
+                }
+                else if(op == TokenType.Ampersand)
+                {
+                    TypeInfo type = new TypeInfo.Reference(false, operand.Type.ChangeMutable(false), operand.Lifetime);
+                    ValueInfo value = new ValueInfo(type, lifetime);
+                    return new Option<ValueInfo>(value);
+                }
+                else if(op == TokenType.RefMut && operand.Type.Mutable)
+                {
+                    TypeInfo type = new TypeInfo.Reference(false, operand.Type, operand.Lifetime);
+                    ValueInfo value = new ValueInfo(type, lifetime);
+                    return new Option<ValueInfo>(value);
+                }
+
+                return new Option<ValueInfo>();
+            });
+        }
+
+        private static void AppendCastOperators(ref OperatorEvaluatorLibrary library)
+        {
+            library.Casts.AddOperatorEvaluator((type, value, lifetime) => // identity casts: int -> int
+            {
+                if(type.EqualsWithoutFirstMutable(value.Type))
+                {
+                    ValueInfo info = new ValueInfo(type, lifetime);
+                    return new Option<ValueInfo>(info);
+                }
+
+                return new Option<ValueInfo>();
+            });
+
+            library.Casts.AddOperatorEvaluator((type, value, lifetime) => // pointer -> pointer casts
+            {
+                if(type is TypeInfo.Pointer ptype && value.Type is TypeInfo.Pointer pvalue && !(ptype.Contained.Mutable && !pvalue.Contained.Mutable))
+                {
+                    return new Option<ValueInfo>(new ValueInfo(type, lifetime));
+                }
+
+                return new Option<ValueInfo>();
+            });
+
+            library.Casts.AddOperatorEvaluator((type, value, lifetime) => // reference -> pointer casts
+            {
+                if (type is TypeInfo.Pointer ptype && value.Type is TypeInfo.Reference rvalue && !(ptype.Contained.Mutable && !rvalue.Contained.Mutable))
+                {
+                    if(ptype.Contained.EqualsWithoutFirstMutable(rvalue.Contained))
+                        return new Option<ValueInfo>(new ValueInfo(type, lifetime));
+                }
+
+                return new Option<ValueInfo>();
+            });
+
+            library.Casts.AddOperatorEvaluator((type, value, lifetime) => // pointer -> reference casts
+            {
+                if (type is TypeInfo.Reference rtype && value.Type is TypeInfo.Pointer pvalue && !(rtype.Contained.Mutable && !pvalue.Contained.Mutable))
+                {
+                    if (rtype.Contained.EqualsWithoutFirstMutable(pvalue.Contained))
+                        return new Option<ValueInfo>(new ValueInfo(type, lifetime));
+                }
+
+                return new Option<ValueInfo>();
+            });
         }
 
         private static void AddBinaryOperatorsForType(ref OperatorEvaluatorLibrary library, TypeInfo type, params TokenType[] operators)

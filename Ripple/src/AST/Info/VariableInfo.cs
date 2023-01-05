@@ -58,7 +58,27 @@ namespace Ripple.AST.Info
             var expressionResult = GetTypeFromExpression(varDecl.Expr, visitor, creationResult.Type);
             return expressionResult.Match(ok =>
             {
-                if(!ok.IsEquatableToTypeName(varDecl.Type))
+                bool wasMutable = varDecl.Type switch // sets the first type to immutable
+                {
+                    PointerType p => p.MutToken.HasValue,
+                    ReferenceType r => r.MutToken.HasValue,
+                    FuncPtr fp => fp.MutToken.HasValue,
+                    ArrayType a => a.MutToken.HasValue,
+                    BasicType b => b.MutToken.HasValue,
+                    _ => throw new ArgumentException("Unknown type name " + varDecl.Type.ToString())
+                };
+
+                TypeName changedMut = varDecl.Type switch // sets the first type to immutable
+                { 
+                    PointerType p => new PointerType(p.BaseType, null, p.Star),
+                    ReferenceType r => new ReferenceType(r.BaseType, null, r.Ampersand, r.Lifetime),
+                    FuncPtr fp => new FuncPtr(null, fp.FuncToken, fp.Lifetimes, fp.OpenParen, fp.Parameters, fp.CloseParen, fp.Arrow, fp.ReturnType),
+                    ArrayType a => new ArrayType(a.BaseType, null, a.OpenBracket, a.Size, a.CloseBracket),
+                    BasicType b => new BasicType(null, b.Identifier),
+                    _ => throw new ArgumentException("Unknown type name " + varDecl.Type.ToString())
+                };
+
+                if (!ok.ChangeMutable(false).IsEquatableToTypeName(changedMut))
                 {
                     string varTypeName = TypeNamePrinter.PrintType(varDecl.Type);
                     ASTInfoError error = new ASTInfoError("Cannot assign type '" + ok.ToString() + "', to a variable of type '" + varTypeName + "'.", varDecl.VarNames[0]);
@@ -67,7 +87,7 @@ namespace Ripple.AST.Info
 
                 List<VariableInfo> vars = varDecl.VarNames.ConvertAll(n =>
                 {
-                    return new VariableInfo(n, ok, !safetyContext.IsSafe, lifetime);
+                    return new VariableInfo(n, ok.ChangeMutable(wasMutable), !safetyContext.IsSafe, lifetime);
                 });
 
                 return new Result<List<VariableInfo>, List<ASTInfoError>>(vars);

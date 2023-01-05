@@ -177,24 +177,42 @@ namespace Ripple.AST.Info
             //if (cast.Castee is Identifier id) // casting to find a function overload
             //{
             //    string name = id.Name.Text;
-            //    List<FunctionInfo> funcOverloads = m_ASTInfo.Functions.GetOverloadsWithName(name);
+            //    List<FunctionInfo> funcOverloads = m_Functions.GetOverloadsWithName(name);
             //    if (!m_VariableStack.ContainsVariable(name) && funcOverloads.Count > 0)
             //    {
             //        foreach (FunctionInfo overload in funcOverloads)
             //        {
             //            TypeInfo.FunctionPointer type = new TypeInfo.FunctionPointer(overload);
-            //            if (type.Equals(TypeInfo.FromASTType(cast.TypeToCastTo)))
-            //                return new ValueInfo(type, m_VariableStack.ScopeCount);
+            //            Option<ValueInfo> func = TypeInfo.FromASTType(cast.TypeToCastTo, m_Primaries, m_ActiveLifetimes, m_SafetyContext).ToResult().Match(ok =>
+            //            {
+            //                if (type.Equals(ok))
+            //                    return new Option<ValueInfo>(new ValueInfo(type, LifetimeInfo.Static));
+            //                else
+            //                    return new Option<ValueInfo>();
+            //            },
+            //            fail =>
+            //            {
+            //                ASTInfoError error = fail[0];
+            //                throw new AmbiguousTypeException(error.Message, error.Token);
+            //            });
+
+            //            if (func.HasValue())
+            //                return func.Value;
             //        }
             //    }
             //}
 
             //TypeInfo typeToCastTo = TypeInfo.FromASTType(cast.TypeToCastTo);
-            //TypeInfo castee = cast.Castee.Accept(this, typeToCastTo).Type;
+            //ValueInfo castee = cast.Castee.Accept(this, typeToCastTo);
 
-            //return m_OperatorLibrary.CastOperators.TryGet(typeToCastTo, castee, cast.AsToken).Match(
-            //    ok => new ValueInfo(ok.TypeToCastTo, m_VariableStack.ScopeCount),
-            //    fail => throw new TypeOfExpressionExeption(fail.Message, fail.Token));
+            //return m_OperatorLibrary.Casts.Evaluate(typeToCastTo, castee, m_VariableStack.CurrentLifetime, cast.AsToken).Match(ok =>
+            //{
+            //    return ok;
+            //},
+            //fail =>
+            //{
+            //    throw new AmbiguousTypeException(fail.Message, fail.Token);
+            //});
 
             throw new NotImplementedException();
         }
@@ -343,6 +361,9 @@ namespace Ripple.AST.Info
                     if (expected.Match(e => e is TypeInfo.Pointer, () => false))
                         return ValueInfoFromType(expected.Value);
                     throw new AmbiguousTypeException("Could not infer nullptr, in this context", literal.Val);
+
+                case TokenType.CStringLiteral:
+                    return new ValueInfo(new TypeInfo.Pointer(false, RipplePrimitives.Char), LifetimeInfo.Static); // char* with a static lifetime
 
                 default:
                     throw new TypeOfExpressionExeption("Unknown literal.", literal.Val);

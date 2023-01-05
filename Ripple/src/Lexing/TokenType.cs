@@ -25,7 +25,7 @@ namespace Ripple.Lexing
 
         // Literals
         IntagerLiteral, FloatLiteral, CharactorLiteral, StringLiteral,
-        Nullptr,
+        Nullptr, CStringLiteral,
 
         // Keywords
         Func, For, If, True, False, Return, 
