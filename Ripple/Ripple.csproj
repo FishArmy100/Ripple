@@ -10,14 +10,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Tests\BasicTests.ripl" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="Tests\BasicTests.ripl" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Sharprompt" Version="2.4.5" />
   </ItemGroup>
 

@@ -1,15 +1,26 @@
 ﻿using System;
 using Ripple.Lexing;
+using System.Collections.Generic;
 
 namespace Ripple.AST.Info
 {
     class ValueOfExpressionExeption : Exception
     {
-        public readonly Token ErrorToken;
+        public readonly IReadOnlyList<ASTInfoError> Errors;
 
-        public ValueOfExpressionExeption(string message, Token errorToken) : base(message)
+        public ValueOfExpressionExeption(IReadOnlyList<ASTInfoError> errors)
         {
-            ErrorToken = errorToken;
+            Errors = errors;
+        }
+
+        public ValueOfExpressionExeption(ASTInfoError error)
+        {
+            Errors = new List<ASTInfoError> { error };
+        }
+
+        public ValueOfExpressionExeption(string message, Token errorToken)
+        {
+            Errors = new List<ASTInfoError> { new ASTInfoError(message, errorToken) };
         }
     }
 }

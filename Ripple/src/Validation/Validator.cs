@@ -33,7 +33,7 @@ namespace Ripple.Validation
 
         private static ASTInfo GenerateASTInfo(ProgramStmt programStmt)
         {
-            List<PrimaryTypeInfo> primaries = RippleBuiltins.GetPrimitives();
+            List<string> primaries = RippleBuiltins.GetPrimitives();
             FunctionList functions = RippleBuiltins.GetBuiltInFunctions();
             return new ASTInfo(programStmt, primaries, functions, RippleBuiltins.GetBuiltInOperators());
         } 

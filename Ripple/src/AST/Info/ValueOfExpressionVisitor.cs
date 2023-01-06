@@ -128,7 +128,7 @@ namespace Ripple.AST.Info
                 {
                     argumentTypes.Add(expression.Accept(this, new Option<TypeInfo>()).Type);
                 }
-                catch (AmbiguousTypeException)
+                catch (ValueOfExpressionExeption)
                 {
                     argumentTypes.Add(new Option<TypeInfo>());
                 }
@@ -179,7 +179,7 @@ namespace Ripple.AST.Info
         public ValueInfo VisitCast(Cast cast, Option<TypeInfo> expected)
         {
             TypeInfo typeToCastTo = TypeInfoUtils.FromASTType(cast.TypeToCastTo, m_Primaries, m_ActiveLifetimes, m_SafetyContext)
-                .Match(ok => ok, fail => throw new ValueOfExpressionExeption(fail[0].Message, fail[0].Token)); 
+                .Match(ok => ok, fail => throw new ValueOfExpressionExeption(fail)); 
 
             if (cast.Castee is Identifier id) // casting to find a function overload
             {
@@ -190,18 +190,17 @@ namespace Ripple.AST.Info
                     foreach (FunctionInfo overload in funcOverloads)
                     {
                         FuncPtrInfo type = TypeInfoUtils.FromFunctionInfo(overload);
-                        if (type.Equals(TypeInfo.FromASTType(cast.TypeToCastTo)))
-                            return new ValueInfo(type, m_VariableStack.ScopeCount);
+                        if (type.IsEquatableTo(typeToCastTo))
+                            return new ValueInfo(type, LifetimeInfo.Static);
                     }
                 }
             }
 
-            TypeInfo typeToCastTo = TypeInfo.FromASTType(cast.TypeToCastTo);
-            TypeInfo castee = cast.Castee.Accept(this, typeToCastTo).Type;
+            ValueInfo castee = cast.Castee.Accept(this, typeToCastTo);
 
-            return m_OperatorLibrary.CastOperators.TryGet(typeToCastTo, castee, cast.AsToken).Match(
-                ok => new ValueInfo(ok.TypeToCastTo, m_VariableStack.ScopeCount),
-                fail => throw new TypeOfExpressionExeption(fail.Message, fail.Token));
+            return m_OperatorLibrary.Casts.Evaluate(typeToCastTo, castee, m_VariableStack.CurrentLifetime, cast.AsToken).Match(
+                ok => ok,
+                fail => throw new ValueOfExpressionExeption(fail));
         }
 
         public ValueInfo VisitGrouping(Grouping grouping, Option<TypeInfo> expected)
@@ -228,12 +227,12 @@ namespace Ripple.AST.Info
 
             List<FunctionInfo> functions = m_Functions.GetOverloadsWithName(name);
 
-            if (expected.HasValue() && expected.Value is TypeInfo.FunctionPointer)
+            if (expected.HasValue() && expected.Value is FuncPtrInfo)
             {
                 foreach (FunctionInfo funcInfo in functions)
                 {
-                    TypeInfo funcType = new TypeInfo.FunctionPointer(funcInfo);
-                    if (funcType.ChangeMutable(false).Equals(expected.Value.ChangeMutable(false)))
+                    TypeInfo funcType = TypeInfoUtils.FromFunctionInfo(funcInfo);
+                    if (funcType.IsEquatableTo(expected.Value))
                     {
                         if (funcInfo.IsUnsafe && m_SafetyContext.IsSafe)
                             ThrowUnsafeTypeError("Use of unsafe function '" + funcInfo.Name + "' in a safe context.", identifier.Name);
@@ -246,7 +245,7 @@ namespace Ripple.AST.Info
             if (functions.Count == 1)
             {
                 FunctionInfo funcInfo = functions[0];
-                return new ValueInfo(new TypeInfo.FunctionPointer(funcInfo), LifetimeInfo.Static);
+                return new ValueInfo(TypeInfoUtils.FromFunctionInfo(funcInfo), LifetimeInfo.Static);
             }
             else if (functions.Count > 1)
             {
@@ -271,15 +270,15 @@ namespace Ripple.AST.Info
 
         public ValueInfo VisitInitializerList(InitializerList initializerList, Option<TypeInfo> expected)
         {
-            if (expected.HasValue() && expected.Value is TypeInfo.Array array)
+            if (expected.HasValue() && expected.Value is ArrayInfo array)
             {
                 foreach (Expression expression in initializerList.Expressions)
                 {
-                    TypeInfo info = expression.Accept(this, array.Type).Type;
-                    if (!info.Equals(array.Type))
+                    TypeInfo info = expression.Accept(this, array.Contained).Type;
+                    if (!info.Equals(array.Contained))
                     {
                         string message = "Expected an array of: " +
-                            array.Type +
+                            array.Contained +
                             ", but found an expression for: " +
                             info + ".";
 
@@ -293,7 +292,7 @@ namespace Ripple.AST.Info
                 return ValueInfoFromType(array);
             }
 
-            throw new AmbiguousTypeException("Could not infer the type of the initializer list.", initializerList.OpenBrace);
+            throw new ValueOfExpressionExeption("Could not infer the type of the initializer list.", initializerList.OpenBrace);
         }
 
         public ValueInfo VisitLiteral(Literal literal, Option<TypeInfo> expected)
@@ -303,7 +302,7 @@ namespace Ripple.AST.Info
                 case TokenType.IntagerLiteral:
                     return expected.Match(e =>
                     {
-                        if (e is TypeInfo.Basic b)
+                        if (e is BasicTypeInfo b)
                         {
                             if (b.Name == RipplePrimitives.Int32Name)
                                 return ValueInfoFromType(b);
@@ -318,7 +317,7 @@ namespace Ripple.AST.Info
                 case TokenType.FloatLiteral:
                     return expected.Match(e =>
                     {
-                        if (e is TypeInfo.Basic b && b.Name == RipplePrimitives.Float32Name) // will return accurate mutable value
+                        if (e is BasicTypeInfo b && b.Name == RipplePrimitives.Float32Name) // will return accurate mutable value
                             return ValueInfoFromType(b);
 
                         return ValueInfoFromType(RipplePrimitives.Float32);
@@ -329,7 +328,7 @@ namespace Ripple.AST.Info
                 case TokenType.False:
                     return expected.Match(e =>
                     {
-                        if (e is TypeInfo.Basic b && b.Name == RipplePrimitives.BoolName)
+                        if (e is BasicTypeInfo b && b.Name == RipplePrimitives.BoolName)
                             return ValueInfoFromType(b);
                         return ValueInfoFromType(RipplePrimitives.Bool);
                     },
@@ -338,19 +337,19 @@ namespace Ripple.AST.Info
                 case TokenType.CharactorLiteral:
                     return expected.Match(e =>
                     {
-                        if (e is TypeInfo.Basic b && b.Name == RipplePrimitives.CharName)
+                        if (e is BasicTypeInfo b && b.Name == RipplePrimitives.CharName)
                             return ValueInfoFromType(b);
                         return ValueInfoFromType(RipplePrimitives.Char);
                     },
                     () => ValueInfoFromType(RipplePrimitives.Char));
 
                 case TokenType.Nullptr:
-                    if (expected.Match(e => e is TypeInfo.Pointer, () => false))
+                    if (expected.Match(e => e is PointerInfo, () => false))
                         return ValueInfoFromType(expected.Value);
-                    throw new AmbiguousTypeException("Could not infer nullptr, in this context", literal.Val);
+                    throw new ValueOfExpressionExeption("Could not infer nullptr, in this context", literal.Val);
 
                 case TokenType.CStringLiteral:
-                    return new ValueInfo(new TypeInfo.Pointer(false, RipplePrimitives.Char), LifetimeInfo.Static); // char* with a static lifetime
+                    return new ValueInfo(new PointerInfo(false, RipplePrimitives.Char), LifetimeInfo.Static); // char* with a static lifetime
 
                 default:
                     throw new ValueOfExpressionExeption("Unknown literal.", literal.Val);
@@ -359,11 +358,9 @@ namespace Ripple.AST.Info
 
         public ValueInfo VisitSizeOf(SizeOf sizeOf, Option<TypeInfo> expected)
         {
-            TypeNameValidityChecker validator = new TypeNameValidityChecker(sizeOf.Type, m_Primaries, m_ActiveLifetimes, m_SafetyContext);
-
             return expected.Match(e =>
             {
-                if (e is TypeInfo.Basic b && b.Name == RipplePrimitives.Int32Name)
+                if (e is BasicTypeInfo b && b.Name == RipplePrimitives.Int32Name)
                     return ValueInfoFromType(b);
                 return ValueInfoFromType(RipplePrimitives.Int32);
             }, () => ValueInfoFromType(RipplePrimitives.Int32));

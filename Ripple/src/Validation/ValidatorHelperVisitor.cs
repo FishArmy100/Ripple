@@ -7,6 +7,7 @@ using Ripple.AST.Utils;
 using Ripple.Utils;
 using Ripple.Utils.Extensions;
 using Ripple.Lexing;
+using Ripple.AST.Info.Types;
 
 namespace Ripple.Validation
 {
@@ -18,7 +19,7 @@ namespace Ripple.Validation
         private bool m_IsUnsafe = false;
         private bool m_PreviouseBlockReturns = false;
         private readonly LocalVariableStack m_VariableStack = new LocalVariableStack();
-        private readonly Stack<List< Token>> m_CurrentLifetimes = new Stack<List<Token>>();
+        private readonly Stack<List<Token>> m_CurrentLifetimes = new Stack<List<Token>>();
         private Option<TypeInfo> m_CurrentReturnType = new Option<TypeInfo>();
 
         private readonly ASTInfo m_ASTInfo;
@@ -63,7 +64,7 @@ namespace Ripple.Validation
             forStmt.Iter.Match(ok =>
             {
                 var result = ValueInfo.FromExpression(ok, m_ASTInfo, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList());
-                result.Match(ok => { }, fail => Errors.Add(new ValidationError(fail.Message, fail.Token)));
+                result.Match(ok => { }, fail => Errors.AddRange(fail.ConvertAll(e => new ValidationError(e.Message, e.Token))));
             });
 
             forStmt.Body.Accept(this);
@@ -98,10 +99,7 @@ namespace Ripple.Validation
         {
             ValueInfo.FromExpression(exprStmt.Expr, m_ASTInfo, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList()).Match(
                 ok => { },
-                fail =>
-                {
-                    Errors.Add(new ValidationError(fail.Message, fail.Token));
-                });
+                fail => Errors.AddRange(fail.ConvertAll(e => new ValidationError(e.Message, e.Token))));
         }
 
         public override void VisitVarDecl(VarDecl varDecl)
@@ -127,9 +125,9 @@ namespace Ripple.Validation
             }
         }
 
-        private List<Token> GetActiveLifetimesList()
+        private List<LifetimeInfo> GetActiveLifetimesList()
         {
-            return m_CurrentLifetimes.SelectMany(l => l).ToList();
+            return m_CurrentLifetimes.SelectMany(l => l).ToList().ConvertAll(t => new LifetimeInfo(t));
         }
 
         private void CheckCondition(Expression condition, Token errorToken)
@@ -140,14 +138,14 @@ namespace Ripple.Validation
                 if (!ok.Type.Equals(RipplePrimitives.Bool))
                     AddError("Conditional expression must evaluate to a bool.", errorToken);
             },
-            fail => Errors.Add(new ValidationError(fail.Message, fail.Token)));
+            fail => Errors.AddRange(fail.ConvertAll(e => new ValidationError(e.Message, e.Token))));
         }
 
         private void UpdateFunctionData(FuncDecl decl, Action func)
         {
-            List<Token> functionLifetimes = decl.GenericParams.Match(ok => ok.Lifetimes, () => new List<Token>());
+            List<LifetimeInfo> functionLifetimes = decl.GenericParams.Match(ok => ok.Lifetimes.ConvertAll(l => new LifetimeInfo(l)), () => new List<LifetimeInfo>());
 
-            m_CurrentReturnType = TypeInfo.FromASTType(decl.ReturnType, m_ASTInfo.PrimaryTypes, functionLifetimes, GetSafetyContext()).ToResult().ToOption();
+            m_CurrentReturnType = TypeInfoUtils.FromASTType(decl.ReturnType, m_ASTInfo.PrimaryTypes, functionLifetimes, GetSafetyContext()).ToOption();
             m_IsGlobal = false;
             m_VariableStack.PushScope();
 

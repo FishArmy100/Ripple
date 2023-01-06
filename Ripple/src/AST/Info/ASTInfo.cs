@@ -7,6 +7,7 @@ using Ripple.Utils;
 using Ripple.AST.Utils;
 using Ripple.AST.Info;
 using Ripple.Lexing;
+using Ripple.AST.Info.Types;
 
 namespace Ripple.AST.Info
 {
@@ -20,7 +21,7 @@ namespace Ripple.AST.Info
 
         public readonly ProgramStmt AST;
 
-        public ASTInfo(ProgramStmt ast, List<PrimaryTypeInfo> primaryTypes, FunctionList additionalFunctions, OperatorEvaluatorLibrary operatorLibrary)
+        public ASTInfo(ProgramStmt ast, List<string> primaryTypes, FunctionList additionalFunctions, OperatorEvaluatorLibrary operatorLibrary)
         {
             PrimaryTypes = primaryTypes;
             OperatorLibrary = operatorLibrary;
@@ -38,7 +39,7 @@ namespace Ripple.AST.Info
 
         private class GlobalVariableFinderHelper : ASTWalkerBase
         {
-            private readonly List<PrimaryTypeInfo> m_Primaries;
+            private readonly List<string> m_Primaries;
             private readonly FunctionList m_Functions;
             private readonly List<string> m_FunctionNames;
             private readonly OperatorEvaluatorLibrary m_Operators;
@@ -46,7 +47,7 @@ namespace Ripple.AST.Info
             public readonly List<ASTInfoError> Errors = new List<ASTInfoError>();
             public readonly Dictionary<string, VariableInfo> GlobalVariables = new Dictionary<string, VariableInfo>();
 
-            public GlobalVariableFinderHelper(ProgramStmt ast, List<PrimaryTypeInfo> primaries, FunctionList functions, OperatorEvaluatorLibrary operators)
+            public GlobalVariableFinderHelper(ProgramStmt ast, List<string> primaries, FunctionList functions, OperatorEvaluatorLibrary operators)
             {
                 m_Primaries = primaries;
                 m_Functions = functions;
@@ -61,15 +62,12 @@ namespace Ripple.AST.Info
             {
                 LocalVariableStack variableStack = new LocalVariableStack();
                 SafetyContext safetyContext = new SafetyContext(!varDecl.UnsafeToken.HasValue);
-                ValueOfExpressionVisitor visitor = new ValueOfExpressionVisitor(variableStack, m_Functions, m_Operators, GlobalVariables, safetyContext, m_Primaries, new List<Token>());
-                var result = VariableInfo.FromVarDecl(varDecl, visitor, m_Primaries, new List<Token>(), LifetimeInfo.Static, safetyContext);
+                ValueOfExpressionVisitor visitor = new ValueOfExpressionVisitor(variableStack, m_Functions, m_Operators, GlobalVariables, safetyContext, m_Primaries, new List<LifetimeInfo>());
+                var result = VariableInfo.FromVarDecl(varDecl, visitor, m_Primaries, new List<LifetimeInfo>(), LifetimeInfo.Static, safetyContext);
                 result.Match(ok =>
                 {
-                    if(CheckType(ok[0].Type))
-                    {
-                        foreach (VariableInfo info in ok)
-                            TryAddVariableInfo(info);
-                    }
+                    foreach (VariableInfo info in ok)
+                        TryAddVariableInfo(info);
                 },
                 fail =>
                 {
@@ -95,29 +93,6 @@ namespace Ripple.AST.Info
                 GlobalVariables.Add(varName, variableInfo);
             }
 
-            private bool CheckType(TypeInfo info)
-            {
-                List<PrimaryTypeInfo> primaries = info.GetPrimaries();
-
-                bool isValid = true;
-                foreach (PrimaryTypeInfo primary in primaries)
-                {
-                    if (!m_Primaries.Contains(primary))
-                    {
-                        Errors.Add(new ASTInfoError("Undefined type: " + primary.Name.Text, primary.Name));
-                        isValid = false;
-                    }
-                }
-
-                if (info.HasNonPointerVoid())
-                {
-                    AddError("'void' type can only be used as a return type, otherwise, must be a pointer.", primaries[0].Name);
-                    isValid = false;
-                }
-
-                return isValid;
-            }
-
             private void AddError(string name, Token token)
             {
                 Errors.Add(new ASTInfoError(name, token));
@@ -126,37 +101,17 @@ namespace Ripple.AST.Info
 
         private class FunctionFinderHelper : ASTWalkerBase
         {
-            private readonly List<PrimaryTypeInfo> m_Primaries;
+            private readonly List<string> m_Primaries;
             private readonly List<string> m_GlobalVariableNames = new List<string>();
             
             public List<ASTInfoError> Errors { get; private set; } = new List<ASTInfoError>();
             public FunctionList Functions { get; private set; }
 
-            public FunctionFinderHelper(ProgramStmt ast, List<PrimaryTypeInfo> primaries, FunctionList additionalFunctions)
+            public FunctionFinderHelper(ProgramStmt ast, List<string> primaries, FunctionList additionalFunctions)
             {
                 Functions = additionalFunctions;
                 m_Primaries = primaries;
                 ast.Accept(this);
-            }
-
-            private Option<TypeInfo> CheckType(TypeInfo info, bool isReturnType)
-            {
-                List<PrimaryTypeInfo> primaries = info.GetPrimaries();
-
-                foreach(PrimaryTypeInfo primary in primaries)
-                {
-                    if(!m_Primaries.Contains(primary))
-                    {
-                        Errors.Add(new ASTInfoError("Undefined type: " + primary.Name.Text, primary.Name));
-                    }
-                }
-
-                if(!isReturnType && info.HasNonPointerVoid())
-                {
-                    AddError("'void' type can only be used as a return type, otherwise, must be a pointer.", primaries[0].Name);
-                }
-
-                return new Option<TypeInfo>();
             }
 
             public override void VisitFuncDecl(FuncDecl funcDecl)
@@ -185,10 +140,6 @@ namespace Ripple.AST.Info
 
             private void CheckFunctionInfo(FunctionInfo info)
             {
-                CheckType(info.ReturnType, true);
-                foreach (TypeInfo paramType in info.Parameters.ConvertAll(p => p.Type))
-                    CheckType(paramType, false);
-
                 if (m_GlobalVariableNames.Contains(info.Name))
                 {
                     AddError("Variable with the name: " + info.Name + ", has already been defined.", info.NameToken);

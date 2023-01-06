@@ -23,25 +23,21 @@ namespace Ripple.AST.Info
 
         public ValueInfo(TypeInfo type, int lifetime) : this(type, new LifetimeInfo(lifetime)) { }
 
-        public static Result<ValueInfo, ASTInfoError> FromExpression(Expression expression, ASTInfo ast, LocalVariableStack variableStack, SafetyContext safetyContext, List<Token> activeLifetimes, Option<TypeInfo> expected = default)
+        public static Result<ValueInfo, List<ASTInfoError>> FromExpression(Expression expression, ASTInfo ast, LocalVariableStack variableStack, SafetyContext safetyContext, List<LifetimeInfo> activeLifetimes, Option<TypeInfo> expected = default)
         {
             ValueOfExpressionVisitor visitor = new ValueOfExpressionVisitor(ast, variableStack, activeLifetimes, safetyContext);
             return FromExpression(expression, visitor, expected);
         }
 
-        public static Result<ValueInfo, ASTInfoError> FromExpression(Expression expression, ValueOfExpressionVisitor visitor, Option<TypeInfo> expected = default)
+        public static Result<ValueInfo, List<ASTInfoError>> FromExpression(Expression expression, ValueOfExpressionVisitor visitor, Option<TypeInfo> expected = default)
         {
             try
             {
                 return expression.Accept(visitor, expected);
             }
-            catch (AmbiguousTypeException e)
-            {
-                return new ASTInfoError(e.Message, e.ErrorToken);
-            }
             catch (ValueOfExpressionExeption e)
             {
-                return new ASTInfoError(e.Message, e.ErrorToken);
+                return e.Errors.ToList();
             }
 
         }

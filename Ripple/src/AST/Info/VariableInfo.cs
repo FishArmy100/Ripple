@@ -70,23 +70,19 @@ namespace Ripple.AST.Info
             },
             fail =>
             {
-                return new Result<List<VariableInfo>, List<ASTInfoError>>(new List<ASTInfoError> { fail });
+                return new Result<List<VariableInfo>, List<ASTInfoError>>(fail);
             });
         }
 
-        private static Result<TypeInfo, ASTInfoError> GetTypeFromExpression(Expression expression, ValueOfExpressionVisitor visitor, Option<TypeInfo> expected)
+        private static Result<TypeInfo, List<ASTInfoError>> GetTypeFromExpression(Expression expression, ValueOfExpressionVisitor visitor, Option<TypeInfo> expected)
         {
             try
             {
                 return expression.Accept(visitor, expected).Type;
             }
-            catch (AmbiguousTypeException e)
-            {
-                return new ASTInfoError(e.Message, e.ErrorToken);
-            }
             catch (ValueOfExpressionExeption e)
             {
-                return new ASTInfoError(e.Message, e.ErrorToken);
+                return e.Errors.ToList();
             }
         }
 
