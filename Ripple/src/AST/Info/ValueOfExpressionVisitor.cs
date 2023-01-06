@@ -5,6 +5,7 @@ using Ripple.Lexing;
 using Ripple.Utils;
 using Ripple.AST.Utils;
 using Ripple.Utils.Extensions;
+using Ripple.AST.Info.Types;
 
 namespace Ripple.AST.Info
 {
@@ -12,13 +13,13 @@ namespace Ripple.AST.Info
     {
         private readonly LocalVariableStack m_VariableStack;
         private readonly FunctionList m_Functions;
-        private readonly List<PrimaryTypeInfo> m_Primaries;
+        private readonly List<string> m_Primaries;
         private readonly OperatorEvaluatorLibrary m_OperatorLibrary;
         private readonly Dictionary<string, VariableInfo> m_Globals;
         private readonly SafetyContext m_SafetyContext;
-        private readonly List<Token> m_ActiveLifetimes;
+        private readonly List<LifetimeInfo> m_ActiveLifetimes;
 
-        public ValueOfExpressionVisitor(ASTInfo astInfo, LocalVariableStack variableStack, List<Token> activeLifetimes, SafetyContext safetyContext)
+        public ValueOfExpressionVisitor(ASTInfo astInfo, LocalVariableStack variableStack, List<LifetimeInfo> activeLifetimes, SafetyContext safetyContext)
         {
             m_Functions = astInfo.Functions;
             m_Globals = astInfo.GlobalVariables;
@@ -29,7 +30,7 @@ namespace Ripple.AST.Info
             m_ActiveLifetimes = activeLifetimes;
         }
 
-        public ValueOfExpressionVisitor(LocalVariableStack variableStack, FunctionList functions, OperatorEvaluatorLibrary operatorLibrary, Dictionary<string, VariableInfo> globals, SafetyContext safetyContext, List<PrimaryTypeInfo> primaries, List<Token> activeLifetimes)
+        public ValueOfExpressionVisitor(LocalVariableStack variableStack, FunctionList functions, OperatorEvaluatorLibrary operatorLibrary, Dictionary<string, VariableInfo> globals, SafetyContext safetyContext, List<string> primaries, List<LifetimeInfo> activeLifetimes)
         {
             m_VariableStack = variableStack;
             m_Functions = functions;
@@ -50,7 +51,7 @@ namespace Ripple.AST.Info
 
             return m_OperatorLibrary.Binaries.Evaluate(operatorType, (left, right), currentLifetime, binary.Op).Match(
                 ok => ok,
-                fail => throw new TypeOfExpressionExeption(fail.Message, fail.Token));
+                fail => throw new ValueOfExpressionExeption(fail.Message, fail.Token));
         }
 
         public ValueInfo VisitUnary(Unary unary, Option<TypeInfo> expected)
@@ -61,20 +62,23 @@ namespace Ripple.AST.Info
             expected.Match(e =>
             {
                 if (operatorType.IsType(TokenType.Minus, TokenType.Bang))
+                {
                     innerExpected = e;
-
-                else if (operatorType == TokenType.Ampersand && e is TypeInfo.Reference r1)
-                    innerExpected = r1.Contained.ChangeMutable(false);
-
-                else if (operatorType == TokenType.RefMut && e is TypeInfo.Reference r2 && r2.Contained.Mutable)
-                    innerExpected = r2.Contained;
+                }
+                else if(e is ReferenceInfo r)
+                {
+                    if (operatorType == TokenType.Ampersand)
+                        innerExpected = r.Contained.SetFirstMutable(false);
+                    else if (operatorType == TokenType.RefMut && r.Contained.IsMutable())
+                        innerExpected = r.Contained;
+                }
             });
 
             ValueInfo operand = unary.Expr.Accept(this, innerExpected);
 
             return m_OperatorLibrary.Unaries.Evaluate(operatorType, operand, m_VariableStack.CurrentLifetime, unary.Op).Match(
                 ok =>  ok,
-                fail => throw new TypeOfExpressionExeption(fail.Message, fail.Token));
+                fail => throw new ValueOfExpressionExeption(fail.Message, fail.Token));
         }
 
         public ValueInfo VisitCall(Call call, Option<TypeInfo> expected)
@@ -89,19 +93,19 @@ namespace Ripple.AST.Info
 
             ValueInfo callee = call.Callee.Accept(this, new Option<TypeInfo>());
 
-            if (callee.Type is TypeInfo.FunctionPointer fp)
+            if (callee.Type is FuncPtrInfo fp)
             {
                 if (call.Args.Count > fp.Parameters.Count)
-                    throw new TypeOfExpressionExeption("Too many arguments for this function pointer type.", call.OpenParen);
+                    throw new ValueOfExpressionExeption("Too many arguments for this function pointer type.", call.OpenParen);
                 if (call.Args.Count < fp.Parameters.Count)
-                    throw new TypeOfExpressionExeption("Too few arguments for this function pointer type.", call.OpenParen);
+                    throw new ValueOfExpressionExeption("Too few arguments for this function pointer type.", call.OpenParen);
 
                 for (int i = 0; i < call.Args.Count; i++)
                 {
                     TypeInfo param = fp.Parameters[i];
                     ValueInfo arg = call.Args[i].Accept(this, param);
                     if (!arg.Type.EqualsWithoutFirstMutable(param))
-                        throw new TypeOfExpressionExeption("Expected type: " + param + ", but found type: " + arg + ".", call.OpenParen);
+                        throw new ValueOfExpressionExeption("Expected type: " + param + ", but found type: " + arg + ".", call.OpenParen);
                 }
 
                 return new ValueInfo(fp.Returned, m_VariableStack.CurrentLifetime);
@@ -110,7 +114,7 @@ namespace Ripple.AST.Info
             List<ValueInfo> args = call.Args.ConvertAll(a => a.Accept(this, new Option<TypeInfo>()));
             return m_OperatorLibrary.Calls.Evaluate(callee, args, m_VariableStack.CurrentLifetime, call.OpenParen).Match(
                 ok => ok,
-                fail => throw new TypeOfExpressionExeption(fail.Message, fail.Token));
+                fail => throw new ValueOfExpressionExeption(fail.Message, fail.Token));
         }
 
         private ValueInfo CallFunction(Call call, Identifier id)
@@ -153,10 +157,10 @@ namespace Ripple.AST.Info
             }
 
             if (possibleCalled.Count == 0)
-                throw new TypeOfExpressionExeption("No function with given arguments found.", id.Name);
+                throw new ValueOfExpressionExeption("No function with given arguments found.", id.Name);
 
             if (possibleCalled.Count > 1)
-                throw new TypeOfExpressionExeption("Cannot disambiguate between given function overloads.", id.Name);
+                throw new ValueOfExpressionExeption("Cannot disambiguate between given function overloads.", id.Name);
 
             for (int i = 0; argCount > i; i++)
             {
@@ -174,47 +178,30 @@ namespace Ripple.AST.Info
 
         public ValueInfo VisitCast(Cast cast, Option<TypeInfo> expected)
         {
-            //if (cast.Castee is Identifier id) // casting to find a function overload
-            //{
-            //    string name = id.Name.Text;
-            //    List<FunctionInfo> funcOverloads = m_Functions.GetOverloadsWithName(name);
-            //    if (!m_VariableStack.ContainsVariable(name) && funcOverloads.Count > 0)
-            //    {
-            //        foreach (FunctionInfo overload in funcOverloads)
-            //        {
-            //            TypeInfo.FunctionPointer type = new TypeInfo.FunctionPointer(overload);
-            //            Option<ValueInfo> func = TypeInfo.FromASTType(cast.TypeToCastTo, m_Primaries, m_ActiveLifetimes, m_SafetyContext).ToResult().Match(ok =>
-            //            {
-            //                if (type.Equals(ok))
-            //                    return new Option<ValueInfo>(new ValueInfo(type, LifetimeInfo.Static));
-            //                else
-            //                    return new Option<ValueInfo>();
-            //            },
-            //            fail =>
-            //            {
-            //                ASTInfoError error = fail[0];
-            //                throw new AmbiguousTypeException(error.Message, error.Token);
-            //            });
+            TypeInfo typeToCastTo = TypeInfoUtils.FromASTType(cast.TypeToCastTo, m_Primaries, m_ActiveLifetimes, m_SafetyContext)
+                .Match(ok => ok, fail => throw new ValueOfExpressionExeption(fail[0].Message, fail[0].Token)); 
 
-            //            if (func.HasValue())
-            //                return func.Value;
-            //        }
-            //    }
-            //}
+            if (cast.Castee is Identifier id) // casting to find a function overload
+            {
+                string name = id.Name.Text;
+                List<FunctionInfo> funcOverloads = m_Functions.GetOverloadsWithName(name);
+                if (!m_VariableStack.ContainsVariable(name) && funcOverloads.Count > 0)
+                {
+                    foreach (FunctionInfo overload in funcOverloads)
+                    {
+                        FuncPtrInfo type = TypeInfoUtils.FromFunctionInfo(overload);
+                        if (type.Equals(TypeInfo.FromASTType(cast.TypeToCastTo)))
+                            return new ValueInfo(type, m_VariableStack.ScopeCount);
+                    }
+                }
+            }
 
-            //TypeInfo typeToCastTo = TypeInfo.FromASTType(cast.TypeToCastTo);
-            //ValueInfo castee = cast.Castee.Accept(this, typeToCastTo);
+            TypeInfo typeToCastTo = TypeInfo.FromASTType(cast.TypeToCastTo);
+            TypeInfo castee = cast.Castee.Accept(this, typeToCastTo).Type;
 
-            //return m_OperatorLibrary.Casts.Evaluate(typeToCastTo, castee, m_VariableStack.CurrentLifetime, cast.AsToken).Match(ok =>
-            //{
-            //    return ok;
-            //},
-            //fail =>
-            //{
-            //    throw new AmbiguousTypeException(fail.Message, fail.Token);
-            //});
-
-            throw new NotImplementedException();
+            return m_OperatorLibrary.CastOperators.TryGet(typeToCastTo, castee, cast.AsToken).Match(
+                ok => new ValueInfo(ok.TypeToCastTo, m_VariableStack.ScopeCount),
+                fail => throw new TypeOfExpressionExeption(fail.Message, fail.Token));
         }
 
         public ValueInfo VisitGrouping(Grouping grouping, Option<TypeInfo> expected)
@@ -264,12 +251,12 @@ namespace Ripple.AST.Info
             else if (functions.Count > 1)
             {
                 string message = "Too many function overloads for function: " + name + " to distinguish.";
-                throw new TypeOfExpressionExeption(message, identifier.Name);
+                throw new ValueOfExpressionExeption(message, identifier.Name);
             }
             else
             {
                 string varMessage = "Variable: " + name + " is not defined.";
-                throw new TypeOfExpressionExeption(varMessage, identifier.Name);
+                throw new ValueOfExpressionExeption(varMessage, identifier.Name);
             }
         }
 
@@ -279,7 +266,7 @@ namespace Ripple.AST.Info
             ValueInfo arg = index.Argument.Accept(this, RipplePrimitives.Int32);
             return m_OperatorLibrary.Indexers.Evaluate(indexed, arg, m_VariableStack.CurrentLifetime, index.OpenBracket).Match(
                 ok => ok,
-                fail => throw new TypeOfExpressionExeption(fail.Message, fail.Token));
+                fail => throw new ValueOfExpressionExeption(fail.Message, fail.Token));
         }
 
         public ValueInfo VisitInitializerList(InitializerList initializerList, Option<TypeInfo> expected)
@@ -296,12 +283,12 @@ namespace Ripple.AST.Info
                             ", but found an expression for: " +
                             info + ".";
 
-                        throw new TypeOfExpressionExeption(message, initializerList.OpenBrace);
+                        throw new ValueOfExpressionExeption(message, initializerList.OpenBrace);
                     }
                 }
 
                 if (initializerList.Expressions.Count > array.Size)
-                    throw new TypeOfExpressionExeption("Initializer list size is bigger than the array size.", initializerList.OpenBrace);
+                    throw new ValueOfExpressionExeption("Initializer list size is bigger than the array size.", initializerList.OpenBrace);
 
                 return ValueInfoFromType(array);
             }
@@ -366,7 +353,7 @@ namespace Ripple.AST.Info
                     return new ValueInfo(new TypeInfo.Pointer(false, RipplePrimitives.Char), LifetimeInfo.Static); // char* with a static lifetime
 
                 default:
-                    throw new TypeOfExpressionExeption("Unknown literal.", literal.Val);
+                    throw new ValueOfExpressionExeption("Unknown literal.", literal.Val);
             }
         }
 
@@ -389,7 +376,7 @@ namespace Ripple.AST.Info
 
         private void ThrowUnsafeTypeError(string message, Token token)
         {
-            throw new TypeOfExpressionExeption(message, token);
+            throw new ValueOfExpressionExeption(message, token);
         }
 
         private ValueInfo ValueInfoFromType(TypeInfo type)

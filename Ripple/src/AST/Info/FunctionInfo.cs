@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.Utils;
+using Ripple.AST.Info.Types;
 
 namespace Ripple.AST.Info
 {
@@ -27,25 +28,25 @@ namespace Ripple.AST.Info
             ReturnType = returnType;
         }
 
-        public static Result<FunctionInfo, List<ASTInfoError>> FromASTFunction(FuncDecl funcDecl, List<PrimaryTypeInfo> primaries)
+        public static Result<FunctionInfo, List<ASTInfoError>> FromASTFunction(FuncDecl funcDecl, List<string> primaries)
         {
             Token funcName = funcDecl.Name;
             SafetyContext safetyContext = new SafetyContext(!funcDecl.UnsafeToken.HasValue);
 
             List<ASTInfoError> errors = new List<ASTInfoError>();
-            Func<ReferenceType, AmbiguousTypeException> errorGenerator = 
-                (r) => new AmbiguousTypeException("Lifetimes in function parameters cannot be inferred yet", r.Ampersand);
 
             List<ParameterInfo> parameters = new List<ParameterInfo>();
 
-            List<Token> lifetimes = funcDecl.GenericParams.Match(
-                ok => ok.Lifetimes,
-                () => new List<Token>());
+            List<Token> lifetimeTokens = funcDecl.GenericParams.Match(ok => ok.Lifetimes, () => new List<Token>());
+
+            List<LifetimeInfo> lifetimes = funcDecl.GenericParams.Match(
+                ok => ok.Lifetimes.ConvertAll(t => new LifetimeInfo(t)),
+                () => new List<LifetimeInfo>());
 
             foreach ((var type, var name) in funcDecl.Param.ParamList)
-            { 
-                var result = TypeInfo.FromASTType(type, primaries, lifetimes, safetyContext, errorGenerator);
-                result.ToResult().Match(ok =>
+            {
+                var result = TypeInfoUtils.FromASTType(type, primaries, lifetimes, safetyContext, requireLifetimes: true);
+                result.Match(ok =>
                 {
                     if (parameters.Any(p => p.Name == name.Text))
                         errors.Add(new ASTInfoError("Parameter with same name '" + name.Text + "' already exists.", name));
@@ -58,7 +59,7 @@ namespace Ripple.AST.Info
                 });
             }
 
-            Option<TypeInfo> returned = TypeInfo.FromASTType(funcDecl.ReturnType, primaries, lifetimes, safetyContext, errorGenerator).ToResult().Match(ok =>
+            Option<TypeInfo> returned = TypeInfoUtils.FromASTType(funcDecl.ReturnType, primaries, lifetimes, safetyContext, requireLifetimes: true).Match(ok =>
             {
                 return ok;
             },
@@ -68,17 +69,16 @@ namespace Ripple.AST.Info
                 return new Option<TypeInfo>();
             });
 
-            List<LifetimeInfo> lifetimeInfos = lifetimes.ConvertAll(l => new LifetimeInfo(l));
             List<TypeInfo> parameterTypes = parameters.ConvertAll(p => p.Type);
-            CheckFunctionLifetimes(lifetimeInfos, parameterTypes, returned, ref errors);
+            CheckFunctionLifetimes(lifetimes, parameterTypes, returned, ref errors);
 
             if (errors.Count > 0)
                 return errors;
 
-            return new FunctionInfo(!safetyContext.IsSafe, funcName, lifetimes, parameters, returned.Value);
+            return new FunctionInfo(!safetyContext.IsSafe, funcName, lifetimeTokens, parameters, returned.Value);
         }
 
-        public static Result<FunctionInfo, List<ASTInfoError>> FromASTExternalFunction(ExternalFuncDecl funcDecl, List<PrimaryTypeInfo> primaries)
+        public static Result<FunctionInfo, List<ASTInfoError>> FromASTExternalFunction(ExternalFuncDecl funcDecl, List<string> primaries)
         {
             List<ASTInfoError> errors = new List<ASTInfoError>();
             List<ParameterInfo> parameters = new List<ParameterInfo>();
@@ -86,8 +86,8 @@ namespace Ripple.AST.Info
 
             foreach ((var type, var name) in funcDecl.Parameters.ParamList)
             {
-                var result = TypeInfo.FromASTType(type, primaries, new List<Token>(),  safetyContext);
-                result.ToResult().Match(ok =>
+                var result = TypeInfoUtils.FromASTType(type, primaries, new List<LifetimeInfo>(),  safetyContext);
+                result.Match(ok =>
                 {
                     CheckExternalFunctionType(ok, ref errors, ref parameters, name);
                 },
@@ -97,8 +97,8 @@ namespace Ripple.AST.Info
                 });
             }
 
-            var returned = TypeInfo.FromASTType(funcDecl.ReturnType, primaries, new List<Token>(), safetyContext);
-            returned.ToResult().Match(ok =>
+            var returned = TypeInfoUtils.FromASTType(funcDecl.ReturnType, primaries, new List<LifetimeInfo>(), safetyContext, false);
+            returned.Match(ok =>
             {
                 CheckExternalFunctionType(ok, ref errors, ref parameters, funcDecl.Name);
             },
@@ -110,7 +110,7 @@ namespace Ripple.AST.Info
             if (errors.Count > 0)
                 return errors;
 
-            return new FunctionInfo(true, funcDecl.Name, new List<Token>(), parameters, returned.Type.Value);
+            return new FunctionInfo(true, funcDecl.Name, new List<Token>(), parameters, returned.Value);
         }
 
         private static void CheckFunctionLifetimes(List<LifetimeInfo> lifetimes, List<TypeInfo> parameters, Option<TypeInfo> returned, ref List<ASTInfoError> errors)
@@ -120,8 +120,8 @@ namespace Ripple.AST.Info
             {
                 param.Walk(t =>
                 {
-                    if (t is TypeInfo.Reference r)
-                        usedParameterLifetimes.Add(r.Lifetime);
+                    if (t is ReferenceInfo r)
+                        usedParameterLifetimes.Add(r.Lifetime.Value);
                 });
             }
 
@@ -141,8 +141,8 @@ namespace Ripple.AST.Info
                 List<LifetimeInfo> returnedTypeLifetimes = new List<LifetimeInfo>();
                 returned.Value.Walk(t =>
                 {
-                    if (t is TypeInfo.Reference r && !returnedTypeLifetimes.Contains(r.Lifetime))
-                        returnedTypeLifetimes.Add(r.Lifetime);
+                    if (t is ReferenceInfo r && !returnedTypeLifetimes.Contains(r.Lifetime.Value))
+                        returnedTypeLifetimes.Add(r.Lifetime.Value);
                 });
 
                 foreach (LifetimeInfo info in returnedTypeLifetimes)
@@ -166,7 +166,7 @@ namespace Ripple.AST.Info
             bool hasReference = false;
             ok.Walk(t =>
             {
-                if (t is TypeInfo.Reference)
+                if (t is ReferenceInfo)
                     hasReference = true;
             });
 

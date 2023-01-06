@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.Utils;
 using Ripple.Utils.Extensions;
+using Ripple.AST.Info.Types;
 
 namespace Ripple.AST.Info
 {

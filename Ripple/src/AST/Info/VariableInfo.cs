@@ -8,6 +8,7 @@ using Ripple.AST;
 using Ripple.AST.Utils;
 using Ripple.Utils;
 using Ripple.Utils.Extensions;
+using Ripple.AST.Info.Types;
 
 namespace Ripple.AST.Info
 {
@@ -28,13 +29,9 @@ namespace Ripple.AST.Info
             Lifetime = lifetime;
         }
 
-        public static Result<VariableInfo, List<ASTInfoError>> FromFunctionParameter(TypeName type, Token name, LifetimeInfo lifetime, List<PrimaryTypeInfo> primaries, List<Token> lifetimes, SafetyContext safetyContext)
+        public static Result<VariableInfo, List<ASTInfoError>> FromFunctionParameter(TypeName type, Token name, LifetimeInfo lifetime, List<string> primaries, List<LifetimeInfo> lifetimes, SafetyContext safetyContext)
         {
-            List<ASTInfoError> typeNameErrors = new TypeNameValidityChecker(type, primaries, lifetimes, safetyContext).Errors;
-            if (typeNameErrors.Count > 0)
-                return typeNameErrors;
-
-            return TypeInfo.FromASTType(type, primaries, lifetimes, safetyContext).ToResult().Match(ok =>
+            return TypeInfoUtils.FromASTType(type, primaries, lifetimes, safetyContext, true).Match(ok =>
             {
                 VariableInfo info = new VariableInfo(name, ok, !safetyContext.IsSafe, lifetime);
                 return new Result<VariableInfo, List<ASTInfoError>>(info);
@@ -45,40 +42,19 @@ namespace Ripple.AST.Info
             });
         }
 
-        public static Result<List<VariableInfo>, List<ASTInfoError>> FromVarDecl(VarDecl varDecl, ValueOfExpressionVisitor visitor, List<PrimaryTypeInfo> primaries, List<Token> lifetimes, LifetimeInfo lifetime, SafetyContext safetyContext)
+        public static Result<List<VariableInfo>, List<ASTInfoError>> FromVarDecl(VarDecl varDecl, ValueOfExpressionVisitor visitor, List<string> primaries, List<LifetimeInfo> lifetimes, LifetimeInfo lifetime, SafetyContext safetyContext)
         {
             if (safetyContext.IsSafe && varDecl.UnsafeToken.HasValue)
                 safetyContext = new SafetyContext(false);
 
-            TypeInfoCreationResult creationResult = TypeInfo.FromASTType(varDecl.Type, primaries, lifetimes, safetyContext);
+            var result = TypeInfoUtils.FromASTType(varDecl.Type, primaries, lifetimes, safetyContext);
+            if (result.IsError())
+                return result.Error;
 
-            if (creationResult.InvalidTypeErrors.Count > 0)
-                return creationResult.InvalidTypeErrors;
-
-            var expressionResult = GetTypeFromExpression(varDecl.Expr, visitor, creationResult.Type);
+            var expressionResult = GetTypeFromExpression(varDecl.Expr, visitor, result.Value);
             return expressionResult.Match(ok =>
             {
-                bool wasMutable = varDecl.Type switch // sets the first type to immutable
-                {
-                    PointerType p => p.MutToken.HasValue,
-                    ReferenceType r => r.MutToken.HasValue,
-                    FuncPtr fp => fp.MutToken.HasValue,
-                    ArrayType a => a.MutToken.HasValue,
-                    BasicType b => b.MutToken.HasValue,
-                    _ => throw new ArgumentException("Unknown type name " + varDecl.Type.ToString())
-                };
-
-                TypeName changedMut = varDecl.Type switch // sets the first type to immutable
-                { 
-                    PointerType p => new PointerType(p.BaseType, null, p.Star),
-                    ReferenceType r => new ReferenceType(r.BaseType, null, r.Ampersand, r.Lifetime),
-                    FuncPtr fp => new FuncPtr(null, fp.FuncToken, fp.Lifetimes, fp.OpenParen, fp.Parameters, fp.CloseParen, fp.Arrow, fp.ReturnType),
-                    ArrayType a => new ArrayType(a.BaseType, null, a.OpenBracket, a.Size, a.CloseBracket),
-                    BasicType b => new BasicType(null, b.Identifier),
-                    _ => throw new ArgumentException("Unknown type name " + varDecl.Type.ToString())
-                };
-
-                if (!ok.ChangeMutable(false).IsEquatableToTypeName(changedMut))
+                if (!ok.Equals(result.Value))
                 {
                     string varTypeName = TypeNamePrinter.PrintType(varDecl.Type);
                     ASTInfoError error = new ASTInfoError("Cannot assign type '" + ok.ToString() + "', to a variable of type '" + varTypeName + "'.", varDecl.VarNames[0]);
@@ -87,7 +63,7 @@ namespace Ripple.AST.Info
 
                 List<VariableInfo> vars = varDecl.VarNames.ConvertAll(n =>
                 {
-                    return new VariableInfo(n, ok.ChangeMutable(wasMutable), !safetyContext.IsSafe, lifetime);
+                    return new VariableInfo(n, ok, !safetyContext.IsSafe, lifetime);
                 });
 
                 return new Result<List<VariableInfo>, List<ASTInfoError>>(vars);
@@ -108,7 +84,7 @@ namespace Ripple.AST.Info
             {
                 return new ASTInfoError(e.Message, e.ErrorToken);
             }
-            catch (TypeOfExpressionExeption e)
+            catch (ValueOfExpressionExeption e)
             {
                 return new ASTInfoError(e.Message, e.ErrorToken);
             }

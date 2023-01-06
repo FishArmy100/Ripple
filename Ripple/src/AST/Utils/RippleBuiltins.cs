@@ -7,20 +7,21 @@ using Ripple.Lexing;
 using Ripple.Utils.Extensions;
 using Ripple.AST.Info;
 using Ripple.Utils;
+using Ripple.AST.Info.Types;
 
 namespace Ripple.AST.Utils
 {
     static class RippleBuiltins
     {
-        public static List<PrimaryTypeInfo> GetPrimitives()
+        public static List<string> GetPrimitives()
         {
-            return new List<PrimaryTypeInfo>()
+            return new List<string>()
             {
-                GenPrimative(RipplePrimitives.Int32Name),
-                GenPrimative(RipplePrimitives.Float32Name),
-                GenPrimative(RipplePrimitives.BoolName),
-                GenPrimative(RipplePrimitives.VoidName),
-                GenPrimative(RipplePrimitives.CharName),
+                RipplePrimitives.Int32Name,
+                RipplePrimitives.Float32Name,
+                RipplePrimitives.BoolName,
+                RipplePrimitives.VoidName,
+                RipplePrimitives.CharName,
             };
         }
 
@@ -65,7 +66,7 @@ namespace Ripple.AST.Utils
             library.Binaries.AddOperatorEvaluator((op, args, lifetime) => // pointer arithmatic operators
             {
                 (var left, var right) = args;
-                if(op == TokenType.Plus && left.Type is TypeInfo.Pointer p && right.Type.Equals(RipplePrimitives.Int32))
+                if(op == TokenType.Plus && left.Type is  PointerInfo p && right.Type.Equals(RipplePrimitives.Int32))
                 {
                     ValueInfo info = new ValueInfo(p, lifetime);
                     return new Option<ValueInfo>(info);
@@ -77,15 +78,15 @@ namespace Ripple.AST.Utils
             library.Binaries.AddOperatorEvaluator((op, args, lifetime) => // assignment operators
             {
                 (var left, var right) = args;
-                if (left.Type.Mutable)
+                if (left.Type.IsMutable())
                 {
                     if(left.Type.EqualsWithoutFirstMutable(right.Type))
                     {
                         ValueInfo info = new ValueInfo(left.Type, lifetime);
                         return new Option<ValueInfo>(info);
                     }
-                    else if(left.Type is TypeInfo.Reference rl && right.Type is TypeInfo.Reference rr &&
-                            rr.Lifetime.IsAssignableTo(rl.Lifetime))
+                    else if(left.Type is ReferenceInfo rl && right.Type is ReferenceInfo rr &&
+                            rr.Lifetime.Value.IsAssignableTo(rl.Lifetime.Value))
                     {
                         ValueInfo info = new ValueInfo(left.Type, lifetime);
                         return new Option<ValueInfo>(info);
@@ -104,25 +105,25 @@ namespace Ripple.AST.Utils
 
             library.Unaries.AddOperatorEvaluator((op, operand, lifetime) => // dereference and reference of operators
             {
-                if(op == TokenType.Star && operand.Type is TypeInfo.Pointer p)
+                if(op == TokenType.Star && operand.Type is PointerInfo p)
                 {
                     ValueInfo info = new ValueInfo(p.Contained, operand.Lifetime);
                     return new Option<ValueInfo>(info);
                 }
-                else if (op == TokenType.Star && operand.Type is TypeInfo.Reference r)
+                else if (op == TokenType.Star && operand.Type is ReferenceInfo r)
                 {
-                    ValueInfo info = new ValueInfo(r.Contained, r.Lifetime);
+                    ValueInfo info = new ValueInfo(r.Contained, r.Lifetime.Value);
                     return new Option<ValueInfo>(info);
                 }
                 else if(op == TokenType.Ampersand)
                 {
-                    TypeInfo type = new TypeInfo.Reference(false, operand.Type.ChangeMutable(false), operand.Lifetime);
+                    TypeInfo type = new ReferenceInfo(false, operand.Type.SetFirstMutable(false), operand.Lifetime);
                     ValueInfo value = new ValueInfo(type, lifetime);
                     return new Option<ValueInfo>(value);
                 }
-                else if(op == TokenType.RefMut && operand.Type.Mutable)
+                else if(op == TokenType.RefMut && operand.Type.IsMutable())
                 {
-                    TypeInfo type = new TypeInfo.Reference(false, operand.Type, operand.Lifetime);
+                    TypeInfo type = new ReferenceInfo(false, operand.Type, operand.Lifetime);
                     ValueInfo value = new ValueInfo(type, lifetime);
                     return new Option<ValueInfo>(value);
                 }
@@ -146,7 +147,7 @@ namespace Ripple.AST.Utils
 
             library.Casts.AddOperatorEvaluator((type, value, lifetime) => // pointer -> pointer casts
             {
-                if(type is TypeInfo.Pointer ptype && value.Type is TypeInfo.Pointer pvalue && !(ptype.Contained.Mutable && !pvalue.Contained.Mutable))
+                if(type is PointerInfo ptype && value.Type is PointerInfo pvalue && !(ptype.Contained.IsMutable() && !pvalue.Contained.IsMutable()))
                 {
                     return new Option<ValueInfo>(new ValueInfo(type, lifetime));
                 }
@@ -156,7 +157,7 @@ namespace Ripple.AST.Utils
 
             library.Casts.AddOperatorEvaluator((type, value, lifetime) => // reference -> pointer casts
             {
-                if (type is TypeInfo.Pointer ptype && value.Type is TypeInfo.Reference rvalue && !(ptype.Contained.Mutable && !rvalue.Contained.Mutable))
+                if (type is PointerInfo ptype && value.Type is PointerInfo rvalue && !(ptype.Contained.IsMutable() && !rvalue.Contained.IsMutable()))
                 {
                     if(ptype.Contained.EqualsWithoutFirstMutable(rvalue.Contained))
                         return new Option<ValueInfo>(new ValueInfo(type, lifetime));
@@ -167,7 +168,7 @@ namespace Ripple.AST.Utils
 
             library.Casts.AddOperatorEvaluator((type, value, lifetime) => // pointer -> reference casts
             {
-                if (type is TypeInfo.Reference rtype && value.Type is TypeInfo.Pointer pvalue && !(rtype.Contained.Mutable && !pvalue.Contained.Mutable))
+                if (type is ReferenceInfo rtype && value.Type is PointerInfo pvalue && !(rtype.Contained.IsMutable() && !pvalue.Contained.IsMutable()))
                 {
                     if (rtype.Contained.EqualsWithoutFirstMutable(pvalue.Contained))
                         return new Option<ValueInfo>(new ValueInfo(type, lifetime));
@@ -227,14 +228,9 @@ namespace Ripple.AST.Utils
             return new FunctionInfo(false, funcName, new List<Token>(), parameterInfos, returnType); 
         }
 
-        private static PrimaryTypeInfo GenPrimative(string name)
-        {
-            return new PrimaryTypeInfo(GenIdTok(name));
-        }
-
         private static TypeInfo GenBasicType(string name)
         {
-            return new TypeInfo.Basic(false, GenPrimative(name));
+            return new BasicTypeInfo(false, name);
         }
     }
 }

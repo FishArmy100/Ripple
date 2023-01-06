@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Ripple.AST.Utils;
 using Ripple.Utils;
 using Ripple.Lexing;
+using Ripple.AST.Info.Types;
 
 namespace Ripple.AST.Info
 {
@@ -38,7 +39,7 @@ namespace Ripple.AST.Info
             {
                 return new ASTInfoError(e.Message, e.ErrorToken);
             }
-            catch (TypeOfExpressionExeption e)
+            catch (ValueOfExpressionExeption e)
             {
                 return new ASTInfoError(e.Message, e.ErrorToken);
             }

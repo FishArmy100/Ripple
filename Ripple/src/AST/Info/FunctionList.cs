@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Utils.Extensions;
 using Ripple.Utils;
+using Ripple.AST.Info.Types;
 
 namespace Ripple.AST.Info
 {
@@ -53,7 +54,7 @@ namespace Ripple.AST.Info
 
                     for(int i = 0; i < funcParams.Count; i++)
                     {
-                        if (!funcParams[i].EqualsWithoutLifetimes(parameterTypes[i]))
+                        if (!funcParams[i].IsEquatableTo(parameterTypes[i]))
                             return false;
                     }
 

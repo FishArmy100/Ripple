@@ -12,7 +12,7 @@ namespace Ripple.AST.Info
 {
     class ASTInfo
     {
-        public readonly List<PrimaryTypeInfo> PrimaryTypes;
+        public readonly List<string> PrimaryTypes;
         public readonly List<ASTInfoError> Errors;
         public readonly FunctionList Functions;
         public readonly Dictionary<string, VariableInfo> GlobalVariables;
