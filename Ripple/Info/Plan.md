@@ -8,6 +8,7 @@
 - Classes
   - Member functions 
   - Constructors/Destructor
+  - Move semantics 
 - Lifetime Inference 
 - Member Pointers 
 - Lifetime bounding
@@ -19,6 +20,7 @@
 - Interfaces?
   - Impl Expression 
   - Interface implementation 
+  - Operator overloading 
 ### Packages Update
 - Modules
 - Packages
