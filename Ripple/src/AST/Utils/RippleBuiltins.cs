@@ -48,6 +48,7 @@ namespace Ripple.AST.Utils
             AppendBinaryOperators(ref library);
             AppendUnaryOperators(ref library);
             AppendCastOperators(ref library);
+            AppendIndexOperators(ref library);
             return library;
         }
 
@@ -78,7 +79,7 @@ namespace Ripple.AST.Utils
             library.Binaries.AddOperatorEvaluator((op, args, lifetime) => // assignment operators
             {
                 (var left, var right) = args;
-                if (left.Type.IsMutable())
+                if (op == TokenType.Equal && left.Type.IsMutable())
                 {
                     if(left.Type.EqualsWithoutFirstMutable(right.Type))
                     {
@@ -132,8 +133,36 @@ namespace Ripple.AST.Utils
             });
         }
 
+        private static void AppendIndexOperators(ref OperatorEvaluatorLibrary library)
+        {
+            library.Indexers.AddOperatorEvaluator((indexed, arg, lifetime) => // array indexing
+            {
+                if(indexed.Type is ArrayInfo array && arg.Type.Equals(RipplePrimitives.Int32))
+                {
+                    ValueInfo info = new ValueInfo(array.Contained, lifetime);
+                    return new Option<ValueInfo>(info);
+                }
+
+                return new Option<ValueInfo>();
+            });
+
+            library.Indexers.AddOperatorEvaluator((indexed, arg, lifetime) => // pointer indexing
+            {
+                if (indexed.Type is PointerInfo pointer && arg.Type.Equals(RipplePrimitives.Int32))
+                {
+                    ValueInfo info = new ValueInfo(pointer.Contained, lifetime);
+                    return new Option<ValueInfo>(info);
+                }
+
+                return new Option<ValueInfo>();
+            });
+        }
+
         private static void AppendCastOperators(ref OperatorEvaluatorLibrary library)
         {
+            AddCast(RipplePrimitives.Int32, RipplePrimitives.Float32, ref library); // int -> float
+            AddCast(RipplePrimitives.Float32, RipplePrimitives.Int32, ref library); // float -> int
+
             library.Casts.AddOperatorEvaluator((type, value, lifetime) => // identity casts: int -> int
             {
                 if(type.EqualsWithoutFirstMutable(value.Type))
@@ -157,7 +186,7 @@ namespace Ripple.AST.Utils
 
             library.Casts.AddOperatorEvaluator((type, value, lifetime) => // reference -> pointer casts
             {
-                if (type is PointerInfo ptype && value.Type is PointerInfo rvalue && !(ptype.Contained.IsMutable() && !rvalue.Contained.IsMutable()))
+                if (type is PointerInfo ptype && value.Type is ReferenceInfo rvalue && !(ptype.Contained.IsMutable() && !rvalue.Contained.IsMutable()))
                 {
                     if(ptype.Contained.EqualsWithoutFirstMutable(rvalue.Contained))
                         return new Option<ValueInfo>(new ValueInfo(type, lifetime));
@@ -183,7 +212,7 @@ namespace Ripple.AST.Utils
             library.Binaries.AddOperatorEvaluator((op, args, lifetime) => 
             {
                 (var left, var right) = args;
-                if (operators.Contains(op) && left.Type.Equals(type) && right.Type.Equals(type))
+                if (operators.Contains(op) && left.Type.EqualsWithoutFirstMutable(type) && right.Type.EqualsWithoutFirstMutable(type))
                 {
                     if(op.IsType(TokenType.EqualEqual, TokenType.BangEqual, TokenType.GreaterThan, 
                                  TokenType.GreaterThanEqual, TokenType.LessThan, TokenType.LessThanEqual))
@@ -209,6 +238,19 @@ namespace Ripple.AST.Utils
                     return new Option<ValueInfo>(new ValueInfo(type, lifetime));
                 }
 
+                return new Option<ValueInfo>();
+            });
+        }
+
+        private static void AddCast(TypeInfo valueType, TypeInfo castType, ref OperatorEvaluatorLibrary library)
+        {
+            library.Casts.AddOperatorEvaluator((type, value, lifetime) =>
+            {
+                if(valueType.EqualsWithoutFirstMutable(value.Type) && castType.EqualsWithoutFirstMutable(type))
+                {
+                    ValueInfo info = new ValueInfo(castType, lifetime);
+                    return new Option<ValueInfo>(info);
+                }
                 return new Option<ValueInfo>();
             });
         }

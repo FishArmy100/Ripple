@@ -58,6 +58,7 @@ namespace Ripple.AST.Info
         {
             Option<TypeInfo> innerExpected = new Option<TypeInfo>();
             TokenType operatorType = unary.Op.Type;
+            bool expectedMutable = expected.Match(ok => ok.IsMutable(), () => false);
 
             expected.Match(e =>
             {
@@ -65,7 +66,7 @@ namespace Ripple.AST.Info
                 {
                     innerExpected = e;
                 }
-                else if(e is ReferenceInfo r)
+                else if (e is ReferenceInfo r)
                 {
                     if (operatorType == TokenType.Ampersand)
                         innerExpected = r.Contained.SetFirstMutable(false);
@@ -77,8 +78,19 @@ namespace Ripple.AST.Info
             ValueInfo operand = unary.Expr.Accept(this, innerExpected);
 
             return m_OperatorLibrary.Unaries.Evaluate(operatorType, operand, m_VariableStack.CurrentLifetime, unary.Op).Match(
-                ok =>  ok,
-                fail => throw new ValueOfExpressionExeption(fail.Message, fail.Token));
+                ok => 
+                {
+                    if(operatorType.IsType(TokenType.Ampersand, TokenType.RefMut))
+                    {
+                        return new ValueInfo(ok.Type.SetFirstMutable(expectedMutable), ok.Lifetime);
+                    }
+
+                    return ok;
+                },
+                fail =>
+                {
+                    throw new ValueOfExpressionExeption(fail.Message, fail.Token);
+                });
         }
 
         public ValueInfo VisitCall(Call call, Option<TypeInfo> expected)
@@ -275,7 +287,7 @@ namespace Ripple.AST.Info
                 foreach (Expression expression in initializerList.Expressions)
                 {
                     TypeInfo info = expression.Accept(this, array.Contained).Type;
-                    if (!info.Equals(array.Contained))
+                    if (!info.IsEquatableTo(array.Contained))
                     {
                         string message = "Expected an array of: " +
                             array.Contained +

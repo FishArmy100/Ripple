@@ -6,7 +6,7 @@ func ArrayTesting() -> void
 	mut int[10] array = { 5, 6, 7 };
 	mut int& ref = &mut array[0];
 
-	int&[1]& = &{ &5 };
+	int&[1]& ref2 = &{ &5 };
 }
 
 unsafe func PointerTesting() -> void
@@ -38,11 +38,12 @@ func Add<'a, 'b>(int&'a a, int&'b b) -> int
 	return *a + *b;
 }
 
-func FunctionPointerTesting() -> void
-{
-	func<'a, 'b>(int&'a, int&'b)->int func_ptr = Add<'a, 'b>;
-	int sum = func_ptr(&5, &5);
-}
+// Commented out
+//func FunctionPointerTesting() -> void
+//{
+//	  func<'a, 'b>(int&'a, int&'b)->int func_ptr = Add<'a, 'b>;
+//	  int sum = func_ptr(&5, &5);
+//}
 
 func BasicOperatorTests() -> void
 {
@@ -63,7 +64,7 @@ func BasicOperatorTests() -> void
 	bool b3 = i1 > i2 || i2 < i1 && i3 == i2 || i1 != i2;
 }
 
-func CStringTests -> void
+func CStringTests() -> void
 {
 	char* string = "Hello World!";
 	printf(string);

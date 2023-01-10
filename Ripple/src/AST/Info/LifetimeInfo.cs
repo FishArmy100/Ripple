@@ -60,7 +60,7 @@ namespace Ripple.AST.Info
         {
             return m_LifetimeValue.Match(i =>
             {
-                return i.ToString();
+                return  "'" + i.ToString();
             },
             t =>
             {

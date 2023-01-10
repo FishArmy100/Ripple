@@ -54,7 +54,7 @@ namespace Ripple.AST.Info
             var expressionResult = GetTypeFromExpression(varDecl.Expr, visitor, result.Value);
             return expressionResult.Match(ok =>
             {
-                if (!ok.Equals(result.Value))
+                if (!ok.SetFirstMutable(false).IsEquatableTo(result.Value.SetFirstMutable(false)))
                 {
                     string varTypeName = TypeNamePrinter.PrintType(varDecl.Type);
                     ASTInfoError error = new ASTInfoError("Cannot assign type '" + ok.ToString() + "', to a variable of type '" + varTypeName + "'.", varDecl.VarNames[0]);

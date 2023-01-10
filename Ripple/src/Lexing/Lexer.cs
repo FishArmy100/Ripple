@@ -388,9 +388,14 @@ namespace Ripple.Lexing
             {
                 while (reader.Advance() != '\n' && !reader.IsAtEnd())
                     continue;
+
+                return true;
             }
             else if(c == '/' && nc.Value == '*')
             {
+                reader.Advance();
+                reader.Advance();
+
                 while(!reader.IsAtEnd())
                 {
                     c = reader.Advance();

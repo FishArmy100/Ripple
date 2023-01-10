@@ -1,6 +1,9 @@
 ﻿
-
-unsafe func Test() -> void
+func Test() -> void
 {
-	char* ptr = c"Hello World!";
+	mut int i = 5;
+
+	{
+		
+	}
 }

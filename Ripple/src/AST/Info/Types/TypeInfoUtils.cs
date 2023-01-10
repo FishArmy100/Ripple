@@ -56,7 +56,7 @@ namespace Ripple.AST.Info.Types
                     break;
                 case ReferenceInfo r:
                     func(r);
-                    r.Walk(func);
+                    r.Contained.Walk(func);
                     break;
                 case PointerInfo p:
                     func(p);
@@ -97,7 +97,8 @@ namespace Ripple.AST.Info.Types
 
         public static bool IsEquatableTo(this TypeInfo self, TypeInfo other)
         {
-
+            AreTypesEquatableVisitor visitor = new AreTypesEquatableVisitor();
+            return self.Accept(visitor, other);
         }
     }
 }
