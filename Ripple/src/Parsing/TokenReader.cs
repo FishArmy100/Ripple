@@ -26,6 +26,7 @@ namespace Ripple.Parsing
         public List<Token> GetTokens() => m_Tokens;
 
         public Token Current() => m_Tokens[Index];
+        public TokenType CurrentType => m_Tokens[Index].Type;
         public Token Previous() => Peek(-1).Value;
         public Token Advance()
         {

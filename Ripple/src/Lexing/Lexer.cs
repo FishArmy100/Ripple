@@ -140,6 +140,17 @@ namespace Ripple.Lexing
                 int line = reader.Line;
                 int col = reader.Column;
 
+                if(reader.Current() == 'c' && reader.Peek() is char c && c == '\"')
+                {
+                    char prefix = reader.Advance();
+                    if(ScanStringLiteral(ref reader, out Token literal))
+                    {
+                        tok = new Token(prefix + literal.Text, TokenType.CStringLiteral, line, col);
+                        return true;
+                    }
+                        
+                }
+
                 string id = reader.Advance().ToString();
                 while(!reader.IsAtEnd() && reader.Current().IsAlphaNumeric())
                 {
@@ -261,11 +272,6 @@ namespace Ripple.Lexing
                     return true;
 
                 case '&':
-                    if (nc.HasValue && nc.Value == '&')
-                    {
-                        tok = GenToken(ref reader, TokenType.AmpersandAmpersand, 2);
-                        return true;
-                    }
                     tok = GenToken(ref reader, TokenType.Ampersand, 1);
                     return true;
 
@@ -382,9 +388,14 @@ namespace Ripple.Lexing
             {
                 while (reader.Advance() != '\n' && !reader.IsAtEnd())
                     continue;
+
+                return true;
             }
             else if(c == '/' && nc.Value == '*')
             {
+                reader.Advance();
+                reader.Advance();
+
                 while(!reader.IsAtEnd())
                 {
                     c = reader.Advance();

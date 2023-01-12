@@ -76,7 +76,16 @@ namespace ASTGeneration
                 "PointerType : TypeName BaseType; Token? MutToken; Token Star",
                 "ReferenceType : TypeName BaseType; Token? MutToken; Token Ampersand; Token? Lifetime",
                 "ArrayType : TypeName BaseType; Token? MutToken; Token OpenBracket; Token Size; Token CloseBracket",
-                "FuncPtr : Token? MutToken; Token OpenParen; List<TypeName> Parameters; Token CloseParen; Token Arrow; TypeName ReturnType",
+                "FuncPtr : Token? MutToken; Token FuncToken; Option<List<Token>> Lifetimes; Token OpenParen; List<TypeName> Parameters; Token CloseParen; Token Arrow; TypeName ReturnType",
+            }, additionalUsings);
+
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Info\\Types", "Ripple.AST.Info.Types", "TypeInfo", new List<string>
+            {
+                "BasicTypeInfo : bool IsMutable; string Name",
+                "PointerInfo : bool IsMutable; TypeInfo Contained",
+                "ReferenceInfo : bool IsMutable; TypeInfo Contained; Option<LifetimeInfo> Lifetime",
+                "ArrayInfo : bool IsMutable; TypeInfo Contained; int Size",
+                "FuncPtrInfo : bool IsMutable; List<LifetimeInfo> Lifetimes; List<TypeInfo> Parameters; TypeInfo Returned"
             }, additionalUsings);
         }
     }

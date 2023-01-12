@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Ripple.AST;
 using Ripple.AST.Info;
 using Ripple.Lexing;
+using Ripple.AST.Info.Types;
 
 namespace Ripple.AST.Utils
 {
@@ -25,9 +26,7 @@ namespace Ripple.AST.Utils
 
         private static TypeInfo GenPrimative(string name)
         {
-            Token token = new Token(name, TokenType.Identifier, -1, -1);
-            PrimaryTypeInfo info = new PrimaryTypeInfo(token);
-            return new TypeInfo.Basic(false, info);
+            return new BasicTypeInfo(false, name);
         }
     }
 }

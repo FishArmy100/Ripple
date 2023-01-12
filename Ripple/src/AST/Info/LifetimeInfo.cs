@@ -22,6 +22,13 @@ namespace Ripple.AST.Info
             m_LifetimeValue = new Either<int, Token>(lifetime);
         }
 
+        public LifetimeInfo(int lifetime)
+        {
+            m_LifetimeValue = new Either<int, Token>(lifetime);
+        }
+
+        public Token? LifetimeToken => m_LifetimeValue.IsOptionB ? m_LifetimeValue.BValue : null;
+
         public bool IsAssignableTo(LifetimeInfo other)
         {
             return other.m_LifetimeValue.Match(lifetimeLength =>
@@ -38,11 +45,6 @@ namespace Ripple.AST.Info
             });
         }
 
-        public LifetimeInfo(int lifetime)
-        {
-            m_LifetimeValue = new Either<int, Token>(lifetime);
-        }
-
         public override bool Equals(object obj)
         {
             return obj is LifetimeInfo info &&
@@ -52,6 +54,18 @@ namespace Ripple.AST.Info
         public override int GetHashCode()
         {
             return HashCode.Combine(m_LifetimeValue);
+        }
+
+        public override string ToString()
+        {
+            return m_LifetimeValue.Match(i =>
+            {
+                return  "'" + i.ToString();
+            },
+            t =>
+            {
+                return t.Text;
+            });
         }
     }
 }

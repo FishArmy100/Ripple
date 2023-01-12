@@ -444,7 +444,22 @@ namespace Ripple.Parsing
         }
 
         private static Expression ParseLogicalOr(TokenReader reader) => GetBinaryExpression(reader, ParseLogicalAnd, TokenType.PipePipe);
-        private static Expression ParseLogicalAnd(TokenReader reader) => GetBinaryExpression(reader, ParseEquality, TokenType.AmpersandAmpersand);
+        private static Expression ParseLogicalAnd(TokenReader reader)
+        {
+            Expression expr = ParseEquality(reader);
+            while (reader.CheckSequence(TokenType.Ampersand, TokenType.Ampersand))
+            {
+                Token anpersand1 = reader.Advance();
+                Token anpersand2 = reader.Advance();
+
+                Token op = new Token(anpersand1.Text + anpersand2.Text, TokenType.AmpersandAmpersand, anpersand1.Line, anpersand1.Column);
+                Expression right = ParseEquality(reader);
+                expr = new Binary(expr, op, right);
+            }
+
+            return expr;
+        }
+
         private static Expression ParseEquality(TokenReader reader) => GetBinaryExpression(reader, ParseComparison, TokenType.EqualEqual, TokenType.BangEqual);
         private static Expression ParseComparison(TokenReader reader) => GetBinaryExpression(reader, ParseTerm, TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan, TokenType.LessThanEqual);
         private static Expression ParseTerm(TokenReader reader) => GetBinaryExpression(reader, ParseFactor, TokenType.Plus, TokenType.Minus);
@@ -525,7 +540,7 @@ namespace Ripple.Parsing
 
         private static Expression ParsePrimary(TokenReader reader)
         {
-            if (reader.Match(TokenType.IntagerLiteral, TokenType.FloatLiteral, TokenType.True, TokenType.False, TokenType.StringLiteral, TokenType.CharactorLiteral, TokenType.Nullptr))
+            if (reader.Match(TokenType.IntagerLiteral, TokenType.FloatLiteral, TokenType.True, TokenType.False, TokenType.StringLiteral, TokenType.CStringLiteral, TokenType.CharactorLiteral, TokenType.Nullptr))
                 return new Literal(reader.Previous());
             if (TryParseTypeExpression(ref reader, out TypeExpression typeExpression))
                 return typeExpression;

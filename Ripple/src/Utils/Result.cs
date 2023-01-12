@@ -45,5 +45,10 @@ namespace Ripple.Utils
         {
             return m_Value.Match(okFunc, failFunc);
         }
+
+        public Option<TSuccess> ToOption()
+        {
+            return Match(ok => new Option<TSuccess>(ok), fail => new Option<TSuccess>());
+        }
     }
 }

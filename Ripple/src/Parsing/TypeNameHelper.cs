@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.AST;
 using Ripple.Utils.Extensions;
+using Ripple.Utils;
 
 namespace Ripple.Parsing
 {
@@ -73,8 +74,9 @@ namespace Ripple.Parsing
             }
             else if(reader.Match(TokenType.Ampersand))
             {
+                Token anperand = reader.Previous();
                 Token? lifetime = reader.TryMatch(TokenType.Lifetime);
-                TypeName refType = new ReferenceType(previous, mut, reader.Previous(), lifetime);
+                TypeName refType = new ReferenceType(previous, mut, anperand, lifetime);
                 return ParseTypePrefixRecursive(ref reader, refType);
             }
             else if(reader.Match(TokenType.OpenBracket))
@@ -93,43 +95,69 @@ namespace Ripple.Parsing
 
         private static TypeName ParseComplexType(ref TokenReader reader)
         {
-            Token? mutToken = null;
-            if (reader.Match(TokenType.Mut))
-                mutToken = reader.Previous();
-
-            Token openParen = reader.Consume(TokenType.OpenParen, "Expected '('.");
-            List<TypeName> typeNames = new List<TypeName>();
-            while(!reader.Match(TokenType.CloseParen))
+            if(reader.Current().Type == TokenType.OpenParen)
             {
-                typeNames.Add(ParseTypeName(ref reader));
-                if(!reader.Current().IsType(TokenType.CloseParen))
-                {
-                    reader.Consume(TokenType.Comma, "Expected ','.");
-                }
+                TypeName grouped = ParseGroupedType(ref reader);
+                return ParseTypePrefixRecursive(ref reader, grouped);
             }
-            Token closeParen = reader.Previous();
-
-            if(reader.Match(TokenType.RightThinArrow)) // is a function pointer
+            else if(reader.CurrentType == TokenType.Func)
             {
-                Token arrow = reader.Previous();
-                TypeName returnType = ParseTypeName(ref reader);
-                return new FuncPtr(mutToken, openParen, typeNames, closeParen, arrow, returnType);
+                return ParseFunctionPointerType(ref reader);
             }
-            else if(typeNames.Count == 1) // is a grouped type
+            else if(reader.CurrentType == TokenType.Mut && reader.Peek() is Token t && t.Type == TokenType.Func)
             {
-                if (mutToken != null)
-                    throw new ParserExeption(mutToken.Value, "Grouped type cannot have 'mut' qualifier");
-
-                return new GroupedType(openParen, typeNames[0], closeParen);
-            }
-            else if(typeNames.Count == 0)
-            {
-                throw new ParserExeption(closeParen, "Expected a type name");
+                return ParseFunctionPointerType(ref reader);
             }
             else
             {
-                throw new ParserExeption(closeParen, "Expected a function pointer");
+                throw new ParserExeption(reader.Current(), "Expected a type name.");
             }
+        }
+
+        private static TypeName ParseFunctionPointerType(ref TokenReader reader)
+        {
+            Token? mutToken = reader.Match(TokenType.Mut) ? reader.Previous() : null;
+            Token funcToken = reader.Consume(TokenType.Func, "Expected 'func'.");
+            Option<List<Token>> lifetimes = new Option<List<Token>>();
+            if(reader.CurrentType == TokenType.LessThan)
+            {
+                reader.Consume(TokenType.LessThan, "Expected a '<'.");
+                List<Token> ls = new List<Token>();
+                while(true)
+                {
+                    ls.Add(reader.Consume(TokenType.Lifetime, "Expected a lifetime parameter."));
+
+                    if (reader.Match(TokenType.GreaterThan))
+                        break;
+
+                    reader.Consume(TokenType.Comma, "Expected a ','.");
+                }
+
+                lifetimes = ls;
+            }
+
+            Token openParen = reader.Consume(TokenType.OpenParen, "Expected a '('.");
+            List<TypeName> parameters = new List<TypeName>();
+            while(!reader.Match(TokenType.CloseParen))
+            {
+                parameters.Add(ParseTypeName(ref reader));
+                if (reader.CurrentType != TokenType.CloseParen)
+                    reader.Consume(TokenType.Comma, "Expected a ','.");
+            }
+
+            Token closeParen = reader.Previous();
+            Token arrow = reader.Consume(TokenType.RightThinArrow, "Expected a '->'.");
+            TypeName returnType = ParseTypeName(ref reader);
+
+            return new FuncPtr(mutToken, funcToken, lifetimes, openParen, parameters, closeParen, arrow, returnType);
+        }
+
+        private static TypeName ParseGroupedType(ref TokenReader reader)
+        {
+            Token openParen = reader.Consume(TokenType.OpenParen, "Expected a '('.");
+            TypeName type = ParseTypeName(ref reader);
+            Token closeParen = reader.Consume(TokenType.CloseParen, "Expected a ')'.");
+            return new GroupedType(openParen, type, closeParen);
         }
     }
 }

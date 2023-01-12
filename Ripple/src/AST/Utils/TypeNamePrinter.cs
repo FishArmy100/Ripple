@@ -10,7 +10,6 @@ namespace Ripple.AST.Utils
 {
     static class TypeNamePrinter
     {
-
         public static string PrintType(TypeName typeName)
         {
             TypeNamePrinterVisitor visitor = new TypeNamePrinterVisitor();
@@ -38,7 +37,14 @@ namespace Ripple.AST.Utils
 
             public string VisitFuncPtr(FuncPtr funcPtr)
             {
-                string str = "(";
+                string str = "func";
+
+                funcPtr.Lifetimes.Match(ok =>
+                {
+                    str += "<" + ok.ConvertAll(t => t.Text).Concat(", ") + ">";
+                });
+
+                str += "(";
 
                 str += funcPtr.Parameters
                         .ConvertAll(p => p.Accept(this))

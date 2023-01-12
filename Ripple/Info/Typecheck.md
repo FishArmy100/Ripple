@@ -1,0 +1,12 @@
+### Information required by each step:
+- Operator/Function Call Check
+    - Veriable types and lifetimes
+    - Operators
+    - Functions
+- Unsafe Check
+    - What functions are called
+    - Variables used
+    - Is in an unsafe context
+- Reference Mutation + Multiple Mutable References
+    - Current variables referenced
+    - Reference operators

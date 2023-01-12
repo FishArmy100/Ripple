@@ -1,9 +1,5 @@
 ﻿
-func Test() -> void
+func Add<'a>(int&'a a, int&'a b) -> int
 {
-	int i = 5;
-	int& r = &i;
-	{
-		int& r2 = 5;
-	}
+	return *a + *b;
 }

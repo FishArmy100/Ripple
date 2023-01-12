@@ -27,7 +27,7 @@ namespace Ripple.Utils
         {
             get
             {
-                if (IsOptionA)
+                if (IsOptionB)
                     return (TB)Value;
                 throw new InvalidOperationException();
             }
