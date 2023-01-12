@@ -95,10 +95,43 @@ namespace Ripple.AST.Info.Types
             return typeName.Accept(visitor);
         }
 
+        /// <summary>
+        /// If one or both of the types does not have a lifetime, they will count references as equal
+        /// </summary>
+        /// <param name="self"></param>
+        /// <param name="other"></param>
+        /// <returns></returns>
         public static bool IsEquatableTo(this TypeInfo self, TypeInfo other)
         {
             AreTypesEquatableVisitor visitor = new AreTypesEquatableVisitor();
             return self.Accept(visitor, other);
+        }
+
+        public static bool EqualsWithoutLifetimes(this TypeInfo self, TypeInfo other)
+        {
+            return self switch
+            {
+                BasicTypeInfo b1 => other is BasicTypeInfo b2 && b1.Name == b2.Name && b1.IsMutable == b2.IsMutable,
+                PointerInfo p1 => other is PointerInfo p2 && p1.Contained.EqualsWithoutLifetimes(p2.Contained) && p1.IsMutable == p2.IsMutable,
+                ReferenceInfo r1 => other is ReferenceInfo r2 && r1.Contained.EqualsWithoutLifetimes(r2.Contained) && r1.IsMutable == r2.IsMutable,
+                ArrayInfo a1 => other is ArrayInfo a2 && a1.Size == a2.Size && a1.Contained.EqualsWithoutLifetimes(a2.Contained) && a1.IsMutable == a2.IsMutable,
+                FuncPtrInfo fp1 => other is FuncPtrInfo fp2 && FunctionTypesEqualWithoutLifetimes(fp1, fp2),
+                _ => throw new ArgumentException()
+            };
+        }
+
+        private static bool FunctionTypesEqualWithoutLifetimes(FuncPtrInfo a, FuncPtrInfo b)
+        {
+            if (!(a.IsMutable == b.IsMutable) || !(a.Parameters.Count == b.Parameters.Count))
+                return false;
+
+            for(int i = 0; i < a.Parameters.Count; i++)
+            {
+                if (!a.Parameters[i].EqualsWithoutLifetimes(b.Parameters[i]))
+                    return false;
+            }
+
+            return a.Returned.EqualsWithoutLifetimes(b.Returned);
         }
     }
 }

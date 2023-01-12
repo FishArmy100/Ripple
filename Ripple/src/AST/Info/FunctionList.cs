@@ -54,7 +54,7 @@ namespace Ripple.AST.Info
 
                     for(int i = 0; i < funcParams.Count; i++)
                     {
-                        if (!funcParams[i].IsEquatableTo(parameterTypes[i]))
+                        if (!funcParams[i].EqualsWithoutLifetimes(parameterTypes[i]))
                             return false;
                     }
 
