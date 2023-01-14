@@ -52,7 +52,7 @@ using module Core.Memory;
 
 module Core
 {
-  class Unique<T> : IInderectable
+  class Unique<T> : IInderectable, ICloneable
   {
     private unsafe T* ptr;
     public Unique<TArgs...>(TArgs args...) 
