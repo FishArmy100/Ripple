@@ -1,12 +1,35 @@
-### Information required by each step:
-- Operator/Function Call Check
-    - Veriable types and lifetimes
-    - Operators
-    - Functions
-- Unsafe Check
-    - What functions are called
-    - Variables used
-    - Is in an unsafe context
-- Reference Mutation + Multiple Mutable References
-    - Current variables referenced
-    - Reference operators
+## Borrow Checking
+### Rules:
+- You cannot move from a mutable reference
+- You cannot have multiple live mutable references to the same object
+- You cannot mutate a mutable reference while there is a live const reference
+- You cannot use a moved value
+- You cannot use a uninitalized variable
+- Non-Lexical lifetimes???
+
+
+## Functions with Lifetimes 
+### Generic lifetimes: Work with any given lifetimes
+```swift
+func Add<'a>(int&'a a, int&'a b) -> int
+{
+    return *a + *b;
+}
+
+func<'a>(int&'a, int&'a)->int f = Add<'a>; // works with any lifetime 'a
+```
+### Spisific lifetimes
+```swift
+func Add<'a>(int&'a a, int&'a b) -> int
+{
+    return *a + *b;
+}
+
+func Test<'a, 'b>(int&'a a, int&'b b) -> void
+{
+    func(int&,int&)->int math = Add<'a>;
+
+    math(a, a); // works
+    math(b, b); // does not compile, as math is a func<'a>(int&'a, int&'a)->int type
+}
+``` 
