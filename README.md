@@ -41,7 +41,10 @@ module Core.Memory
 
   unsafe func<T> Delete(T* ptr) -> void
   {
-    free(ptr);
+    comptime if(T is Destructible)
+      ptr->~T();
+
+    free(ptr as void*);
   }
 }
 ```
