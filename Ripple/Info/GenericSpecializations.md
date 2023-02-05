@@ -3,7 +3,7 @@
 ### Function implementation:
 ```swift
 comptime func IsMutable<T>() -> bool { return false; }
-impl<T> func IsMutable<mut T>() -> { return true; }
+impl<T> func IsMutable<mut T>() -> bool { return true; }
 
 func Test() -> void
 {
