@@ -170,9 +170,9 @@ namespace Ripple.Validation
             });
         }
 
-        private List<LifetimeInfo> GetActiveLifetimesList()
+        private List<string> GetActiveLifetimesList()
         {
-            return m_CurrentLifetimes.SelectMany(l => l).ToList().ConvertAll(t => new LifetimeInfo(t));
+            return m_CurrentLifetimes.SelectMany(l => l).ToList().ConvertAll(t => t.Text);
         }
 
         private void CheckCondition(Expression condition, Token errorToken)
@@ -189,9 +189,11 @@ namespace Ripple.Validation
 
         private void UpdateFunctionData(FuncDecl decl, Action func)
         {
-            List<LifetimeInfo> functionLifetimes = decl.GenericParams.Match(ok => ok.Lifetimes.ConvertAll(l => new LifetimeInfo(l)), () => new List<LifetimeInfo>());
+            List<string> functionLifetimes = decl.GenericParams
+                .MatchOrConstruct(ok => ok.Lifetimes.ConvertAll(l => l.Text));
 
-            m_CurrentReturnType = TypeInfoUtils.FromASTType(decl.ReturnType, m_ASTInfo.PrimaryTypes, functionLifetimes, GetSafetyContext())
+            m_CurrentReturnType = TypeInfoUtils
+                .FromASTType(decl.ReturnType, m_ASTInfo.PrimaryTypes, functionLifetimes, GetSafetyContext()) 
                 .ToOption()
                 .Match(ok => ok, () => null);
 

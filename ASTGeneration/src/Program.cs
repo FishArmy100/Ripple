@@ -83,9 +83,9 @@ namespace ASTGeneration
             {
                 "BasicTypeInfo : bool IsMutable; string Name",
                 "PointerInfo : bool IsMutable; TypeInfo Contained",
-                "ReferenceInfo : bool IsMutable; TypeInfo Contained; Option<LifetimeInfo> Lifetime",
+                "ReferenceInfo : bool IsMutable; TypeInfo Contained; Option<ReferenceLifetime> Lifetime",
                 "ArrayInfo : bool IsMutable; TypeInfo Contained; int Size",
-                "FuncPtrInfo : bool IsMutable; List<LifetimeInfo> Lifetimes; List<TypeInfo> Parameters; TypeInfo Returned"
+                "FuncPtrInfo : bool IsMutable; int FunctionIndex; int LifetimeCount; List<TypeInfo> Parameters; TypeInfo Returned"
             }, additionalUsings);
         }
     }

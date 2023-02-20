@@ -49,10 +49,25 @@ namespace Ripple.AST.Utils
             AppendUnaryOperators(ref library);
             AppendCastOperators(ref library);
             AppendIndexOperators(ref library);
+            AppendCallOperators(ref library);
             return library;
         }
 
-        private static void AppendBinaryOperators(ref OperatorEvaluatorLibrary library)
+		private static void AppendCallOperators(ref OperatorEvaluatorLibrary library)
+		{
+            library.Calls.AddOperatorEvaluator((callee, args, lifetime) =>
+			{
+                if(callee.Type is not FuncPtrInfo fp)
+                    return new Option<ValueInfo>();
+
+                if(fp.LifetimeCount == 0)
+				    return EvaluateBasicFuncPtr(fp, args, lifetime);
+
+                
+			});
+		}
+
+		private static void AppendBinaryOperators(ref OperatorEvaluatorLibrary library)
         {
             TokenType[] intagerOperators =      { TokenType.Plus, TokenType.Minus, TokenType.Star, TokenType.Slash, TokenType.Mod, TokenType.EqualEqual, TokenType.BangEqual, TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan, TokenType.LessThanEqual };
             TokenType[] floatOperators =        { TokenType.Plus, TokenType.Minus, TokenType.Star, TokenType.Slash, TokenType.EqualEqual, TokenType.BangEqual, TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan, TokenType.LessThanEqual };
@@ -86,11 +101,15 @@ namespace Ripple.AST.Utils
                         ValueInfo info = new ValueInfo(left.Type, lifetime);
                         return new Option<ValueInfo>(info);
                     }
-                    else if(left.Type is ReferenceInfo rl && right.Type is ReferenceInfo rr &&
-                            rr.Lifetime.Value.IsAssignableTo(rl.Lifetime.Value))
+                    else if(left.Type is ReferenceInfo rl && right.Type is ReferenceInfo rr)
                     {
-                        ValueInfo info = new ValueInfo(left.Type, lifetime);
-                        return new Option<ValueInfo>(info);
+                        if(rr.Lifetime.HasValue() && rr.Lifetime.Value.IsLifetimeInfo && 
+                           rl.Lifetime.HasValue() && rl.Lifetime.Value.IsLifetimeInfo)
+						{
+                            rr.Lifetime.Value.GetLifetimeInfo().Value.IsAssignableTo(rl.Lifetime.Value.GetLifetimeInfo().Value);
+                            ValueInfo info = new ValueInfo(left.Type, lifetime);
+                            return new Option<ValueInfo>(info);
+                        }
                     }
                 }
 
@@ -113,18 +132,21 @@ namespace Ripple.AST.Utils
                 }
                 else if (op == TokenType.Star && operand.Type is ReferenceInfo r)
                 {
-                    ValueInfo info = new ValueInfo(r.Contained, r.Lifetime.Value);
-                    return new Option<ValueInfo>(info);
+                    if(r.Lifetime.HasValue() && r.Lifetime.Value.IsLifetimeInfo)
+					{
+                        ValueInfo info = new ValueInfo(r.Contained, r.Lifetime.Value.GetLifetimeInfo().Value);
+                        return new Option<ValueInfo>(info);
+                    }
                 }
                 else if(op == TokenType.Ampersand)
                 {
-                    TypeInfo type = new ReferenceInfo(false, operand.Type.SetFirstMutable(false), operand.Lifetime);
+                    TypeInfo type = new ReferenceInfo(false, operand.Type.SetFirstMutable(false), new ReferenceLifetime(operand.Lifetime));
                     ValueInfo value = new ValueInfo(type, lifetime);
                     return new Option<ValueInfo>(value);
                 }
                 else if(op == TokenType.RefMut && operand.Type.IsMutable())
                 {
-                    TypeInfo type = new ReferenceInfo(false, operand.Type, operand.Lifetime);
+                    TypeInfo type = new ReferenceInfo(false, operand.Type, new ReferenceLifetime(operand.Lifetime));
                     ValueInfo value = new ValueInfo(type, lifetime);
                     return new Option<ValueInfo>(value);
                 }
@@ -255,6 +277,39 @@ namespace Ripple.AST.Utils
             });
         }
 
+        private static Option<ValueInfo> EvaluateBasicFuncPtr(FuncPtrInfo fp, List<ValueInfo> args, LifetimeInfo lifetime)
+        {
+            List<TypeInfo> parameters = fp.Parameters;
+            if (parameters.Count != args.Count)
+                return new Option<ValueInfo>();
+
+            bool callable = parameters.Zip(args).All(t =>
+            {
+                (var param, var arg) = t;
+
+                return arg.Type.EqualsWithoutFirstMutable(param);
+            });
+
+            if (!callable)
+                return new Option<ValueInfo>();
+
+            return new Option<ValueInfo>(new ValueInfo(fp.Returned, lifetime));
+        }
+        
+        private static Option<ValueInfo> EvaluateFuncPtrWithLifetimes(FuncPtrInfo fp, List<ValueInfo> args, LifetimeInfo lifetime)
+		{
+            List<TypeInfo> parameters = fp.Parameters;
+            if (parameters.Count != args.Count)
+                return new Option<ValueInfo>();
+
+            bool callable = parameters.Zip(args).All(t =>
+            {
+                (var p, var a) = t;
+                return p.SetFirstMutable(false).EqualsWithoutLifetimes(a.Type.SetFirstMutable(false));
+            });
+        }
+
+
         private static Token GenIdTok(string name)
         {
             return new Token(name, TokenType.Identifier, -1, -1);
@@ -267,7 +322,7 @@ namespace Ripple.AST.Utils
             List<ParameterInfo> parameterInfos = paramaters
                 .ConvertAll(p => new ParameterInfo(GenIdTok(p.Item2), GenBasicType(p.Item1)));
 
-            return new FunctionInfo(false, funcName, new List<Token>(), parameterInfos, returnType); 
+            return FunctionInfo.CreateFunction(false, name, returnType, parameterInfos);
         }
 
         private static TypeInfo GenBasicType(string name)

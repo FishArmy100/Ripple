@@ -29,7 +29,7 @@ namespace Ripple.AST.Info
             Lifetime = lifetime;
         }
 
-        public static Result<VariableInfo, List<ASTInfoError>> FromFunctionParameter(TypeName type, Token name, LifetimeInfo lifetime, List<string> primaries, List<LifetimeInfo> lifetimes, SafetyContext safetyContext)
+        public static Result<VariableInfo, List<ASTInfoError>> FromFunctionParameter(TypeName type, Token name, LifetimeInfo lifetime, List<string> primaries, List<string> lifetimes, SafetyContext safetyContext)
         {
             return TypeInfoUtils.FromASTType(type, primaries, lifetimes, safetyContext, true).Match(ok =>
             {
@@ -42,7 +42,7 @@ namespace Ripple.AST.Info
             });
         }
 
-        public static Result<List<VariableInfo>, List<ASTInfoError>> FromVarDecl(VarDecl varDecl, ValueOfExpressionVisitor visitor, List<string> primaries, List<LifetimeInfo> lifetimes, LifetimeInfo lifetime, SafetyContext safetyContext)
+        public static Result<List<VariableInfo>, List<ASTInfoError>> FromVarDecl(VarDecl varDecl, ValueOfExpressionVisitor visitor, List<string> primaries, List<string> lifetimes, LifetimeInfo lifetime, SafetyContext safetyContext)
         {
             if (safetyContext.IsSafe && varDecl.UnsafeToken.HasValue)
                 safetyContext = new SafetyContext(false);

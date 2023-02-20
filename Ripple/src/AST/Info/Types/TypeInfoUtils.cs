@@ -17,7 +17,7 @@ namespace Ripple.AST.Info.Types
                 ReferenceInfo   r => new ReferenceInfo(isMutable, r.Contained, r.Lifetime),
                 PointerInfo     p => new PointerInfo(isMutable, p.Contained),
                 ArrayInfo       a => new ArrayInfo(isMutable, a.Contained, a.Size),
-                FuncPtrInfo     f => new FuncPtrInfo(isMutable, f.Lifetimes, f.Parameters, f.Returned),
+                FuncPtrInfo     f => new FuncPtrInfo(isMutable, f.FunctionIndex, f.LifetimeCount, f.Parameters, f.Returned),
                 _ => throw new ArgumentException("No case for type: " + typeInfo.GetType())
             };
         }
@@ -38,13 +38,6 @@ namespace Ripple.AST.Info.Types
         public static bool EqualsWithoutFirstMutable(this TypeInfo self, TypeInfo other)
         {
             return self.SetFirstMutable(false).Equals(other.SetFirstMutable(false));
-        }
-
-        public static FuncPtrInfo FromFunctionInfo(FunctionInfo info)
-        {
-            List<LifetimeInfo> lifetimes = info.Lifetimes.ConvertAll(l => new LifetimeInfo(l));
-            List<TypeInfo> parameters = info.Parameters.ConvertAll(p => p.Type);
-            return new FuncPtrInfo(false, lifetimes, parameters, info.ReturnType);
         }
 
         public static void Walk(this TypeInfo typeInfo, Action<TypeInfo> func)
@@ -77,19 +70,7 @@ namespace Ripple.AST.Info.Types
             }
         }
 
-        public static List<LifetimeInfo> GetDeclaredLifetimes(this TypeInfo info)
-        {
-            List<LifetimeInfo> lifetimes = new List<LifetimeInfo>();
-            info.Walk((t) =>
-            {
-                if (t is ReferenceInfo r)
-                    r.Lifetime.Match(ok => lifetimes.Add(ok));
-            });
-
-            return lifetimes;
-        }
-
-        public static Result<TypeInfo, List<ASTInfoError>> FromASTType(TypeName typeName, List<string> primaryTypes, List<LifetimeInfo> activeLifetimes, SafetyContext safetyContext, bool requireLifetimes = false)
+        public static Result<TypeInfo, List<ASTInfoError>> FromASTType(TypeName typeName, List<string> primaryTypes, List<string> activeLifetimes, SafetyContext safetyContext, bool requireLifetimes = false)
         {
             TypeInfoGeneratorVisitor visitor = new TypeInfoGeneratorVisitor(primaryTypes, activeLifetimes, requireLifetimes, safetyContext);
             return typeName.Accept(visitor);

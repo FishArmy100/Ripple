@@ -17,10 +17,13 @@ namespace Ripple.AST.Info
         public readonly List<Token> Lifetimes;
         public readonly TypeInfo ReturnType;
 
+        public readonly FuncPtrInfo FunctionType;
+
         public string Name => NameToken.Text;
 
-        public FunctionInfo(bool isUnsafe, Token name, List<Token> lifetimes, List<ParameterInfo> parameters, TypeInfo returnType)
+        private FunctionInfo(FuncPtrInfo functionType, bool isUnsafe, Token name, List<Token> lifetimes, List<ParameterInfo> parameters, TypeInfo returnType)
         {
+            FunctionType = functionType;
             IsUnsafe = isUnsafe;
             NameToken = name;
             Lifetimes = lifetimes;
@@ -28,152 +31,68 @@ namespace Ripple.AST.Info
             ReturnType = returnType;
         }
 
+        /// <summary>
+        /// For internal uses only, does not perform any safety checks. For builtins like the print() function, ect
+        /// </summary>
+        /// <param name="isUnsafe"></param>
+        /// <param name="name"></param>
+        /// <param name="returned"></param>
+        /// <param name="arguments"></param>
+        /// <returns></returns>
+        public static FunctionInfo CreateFunction(bool isUnsafe, string name, TypeInfo returned, List<ParameterInfo> parameters)
+		{
+            return new FunctionInfo(
+                new FuncPtrInfo(false, 0, 0, parameters.Select(p => p.Type).ToList(), returned), 
+                isUnsafe, 
+                new Token(name, TokenType.Identifier, -1, -1), 
+                new List<Token>(), 
+                parameters, 
+                returned);
+		}
+
         public static Result<FunctionInfo, List<ASTInfoError>> FromASTFunction(FuncDecl funcDecl, List<string> primaries)
         {
-            Token funcName = funcDecl.Name;
-            SafetyContext safetyContext = new SafetyContext(!funcDecl.UnsafeToken.HasValue);
-
-            List<ASTInfoError> errors = new List<ASTInfoError>();
-
-            List<ParameterInfo> parameters = new List<ParameterInfo>();
-
-            List<Token> lifetimeTokens = funcDecl.GenericParams.Match(ok => ok.Lifetimes, () => new List<Token>());
-
-            List<LifetimeInfo> lifetimes = funcDecl.GenericParams.Match(
-                ok => ok.Lifetimes.ConvertAll(t => new LifetimeInfo(t)),
-                () => new List<LifetimeInfo>());
-
-            foreach ((var type, var name) in funcDecl.Param.ParamList)
+            var result = TypeInfoGeneratorVisitor.GenerateFromFuncDecl(funcDecl, primaries);
+            return result.Match(ok =>
             {
-                var result = TypeInfoUtils.FromASTType(type, primaries, lifetimes, safetyContext, requireLifetimes: true);
-                result.Match(ok =>
-                {
-                    if (parameters.Any(p => p.Name == name.Text))
-                        errors.Add(new ASTInfoError("Parameter with same name '" + name.Text + "' already exists.", name));
-                    else
-                        parameters.Add(new ParameterInfo(name, ok));
-                },
-                error =>
-                {
-                    errors.AddRange(error);
-                });
-            }
+				FuncPtrInfo funcPtr = ok;
+				bool isUnsafe = funcDecl.UnsafeToken.HasValue;
 
-            Option<TypeInfo> returned = TypeInfoUtils.FromASTType(funcDecl.ReturnType, primaries, lifetimes, safetyContext, requireLifetimes: true).Match(ok =>
-            {
-                return ok;
+                List<Token> lifetimes = funcDecl.GenericParams.Match(
+                    ok => ok.Lifetimes.Select(l => l).ToList(),
+                    () => new List<Token>());
+
+                List<Token> parameterNames = funcDecl.Param.ParamList.Select(p => p.Item2).ToList();
+
+                List<ParameterInfo> parameterInfos = funcPtr.Parameters.Zip(parameterNames, (t, n) => new ParameterInfo(n, t)).ToList();
+
+                FunctionInfo info = new FunctionInfo(ok, isUnsafe, funcDecl.Name, lifetimes, parameterInfos, funcPtr.Returned);
+                return new Result<FunctionInfo, List<ASTInfoError>>(info);
             },
-            error =>
+            fail =>
             {
-                errors.AddRange(error);
-                return new Option<TypeInfo>();
+                return new Result<FunctionInfo, List<ASTInfoError>>(fail);
             });
-
-            List<TypeInfo> parameterTypes = parameters.ConvertAll(p => p.Type);
-            CheckFunctionLifetimes(lifetimes, parameterTypes, returned, ref errors);
-
-            if (errors.Count > 0)
-                return errors;
-
-            return new FunctionInfo(!safetyContext.IsSafe, funcName, lifetimeTokens, parameters, returned.Value);
         }
 
         public static Result<FunctionInfo, List<ASTInfoError>> FromASTExternalFunction(ExternalFuncDecl funcDecl, List<string> primaries)
         {
-            List<ASTInfoError> errors = new List<ASTInfoError>();
-            List<ParameterInfo> parameters = new List<ParameterInfo>();
-            SafetyContext safetyContext = new SafetyContext(false);
-
-            foreach ((var type, var name) in funcDecl.Parameters.ParamList)
+            var result = TypeInfoGeneratorVisitor.GenerateFromExternalFuncDecl(funcDecl, primaries);
+            return result.Match(ok =>
             {
-                var result = TypeInfoUtils.FromASTType(type, primaries, new List<LifetimeInfo>(),  safetyContext);
-                result.Match(ok =>
-                {
-                    CheckExternalFunctionType(ok, ref errors, ref parameters, name);
-                },
-                error =>
-                {
-                    errors.AddRange(error);
-                });
-            }
+                FuncPtrInfo funcPtr = ok as FuncPtrInfo;
 
-            var returned = TypeInfoUtils.FromASTType(funcDecl.ReturnType, primaries, new List<LifetimeInfo>(), safetyContext, false);
-            returned.Match(ok =>
-            {
-                CheckExternalFunctionType(ok, ref errors, ref parameters, funcDecl.Name);
+                List<Token> parameterNames = funcDecl.Parameters.ParamList.Select(p => p.Item2).ToList();
+
+                List<ParameterInfo> parameterInfos = funcPtr.Parameters.Zip(parameterNames, (t, n) => new ParameterInfo(n, t)).ToList();
+
+                FunctionInfo info = new FunctionInfo(ok, true, funcDecl.Name, new List<Token>(), parameterInfos, funcPtr.Returned);
+                return new Result<FunctionInfo, List<ASTInfoError>>(info);
             },
-            error =>
+            fail =>
             {
-                errors.AddRange(error);
+                return new Result<FunctionInfo, List<ASTInfoError>>(fail);
             });
-
-            if (errors.Count > 0)
-                return errors;
-
-            return new FunctionInfo(true, funcDecl.Name, new List<Token>(), parameters, returned.Value);
-        }
-
-        private static void CheckFunctionLifetimes(List<LifetimeInfo> lifetimes, List<TypeInfo> parameters, Option<TypeInfo> returned, ref List<ASTInfoError> errors)
-        {
-            List<LifetimeInfo> usedParameterLifetimes = new List<LifetimeInfo>();
-            foreach(TypeInfo param in parameters)
-            {
-                param.Walk(t =>
-                {
-                    if (t is ReferenceInfo r)
-                        usedParameterLifetimes.Add(r.Lifetime.Value);
-                });
-            }
-
-            usedParameterLifetimes = usedParameterLifetimes.Distinct().ToList();
-
-            List<LifetimeInfo> validParameterLifetimes = new List<LifetimeInfo>();
-            foreach(LifetimeInfo info in usedParameterLifetimes)
-            {
-                if (lifetimes.Contains(info))
-                    validParameterLifetimes.Add(info);
-                else
-                    errors.Add(new ASTInfoError("Lifetime '" + info.LifetimeToken.Value.Text + "' has not been defined.", info.LifetimeToken.Value));
-            }
-
-            if(returned.HasValue())
-            {
-                List<LifetimeInfo> returnedTypeLifetimes = new List<LifetimeInfo>();
-                returned.Value.Walk(t =>
-                {
-                    if (t is ReferenceInfo r && !returnedTypeLifetimes.Contains(r.Lifetime.Value))
-                        returnedTypeLifetimes.Add(r.Lifetime.Value);
-                });
-
-                foreach (LifetimeInfo info in returnedTypeLifetimes)
-                {
-                    if (!validParameterLifetimes.Contains(info))
-                        errors.Add(new ASTInfoError("Lifetime'" + info.LifetimeToken.Value.Text + "' has not been defined and or used in a parameter.", info.LifetimeToken.Value));
-                }
-            }
-
-            foreach(LifetimeInfo info in lifetimes)
-            {
-                if(!validParameterLifetimes.Contains(info))
-                {
-                    errors.Add(new ASTInfoError("Lifetime '" + info.LifetimeToken.Value.Text + "' was not used in a parameter.", info.LifetimeToken.Value));
-                }
-            }
-        }
-
-        private static void CheckExternalFunctionType(TypeInfo ok, ref List<ASTInfoError> errors, ref List<ParameterInfo> parameters, Token name)
-        {
-            bool hasReference = false;
-            ok.Walk(t =>
-            {
-                if (t is ReferenceInfo)
-                    hasReference = true;
-            });
-
-            if (!hasReference)
-                parameters.Add(new ParameterInfo(name, ok));
-            else
-                errors.Add(new ASTInfoError("An external function cannot have a reference as a parameter or as a return type.", name));
         }
     }
 }

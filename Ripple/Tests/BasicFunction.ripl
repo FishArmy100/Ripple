@@ -1,9 +1,9 @@
 ﻿
 
-func Test() -> void
+unsafe func Test() -> void
 {
-	int[5] array = {1, 2, 3, 4, 5};
-	int* ptr = &array[0] as int*;
+	mut int[5] array = {1, 2, 3, 4, 5};
+	mut int* ptr = &mut array[0] as mut int*;
 
-	ptr[0] = 2;
+	ptr[0] = 2; 
 }

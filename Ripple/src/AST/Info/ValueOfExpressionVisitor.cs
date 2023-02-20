@@ -17,9 +17,9 @@ namespace Ripple.AST.Info
         private readonly OperatorEvaluatorLibrary m_OperatorLibrary;
         private readonly Dictionary<string, VariableInfo> m_Globals;
         private readonly SafetyContext m_SafetyContext;
-        private readonly List<LifetimeInfo> m_ActiveLifetimes;
+        private readonly List<string> m_ActiveLifetimes;
 
-        public ValueOfExpressionVisitor(ASTInfo astInfo, LocalVariableStack variableStack, List<LifetimeInfo> activeLifetimes, SafetyContext safetyContext)
+        public ValueOfExpressionVisitor(ASTInfo astInfo, LocalVariableStack variableStack, List<string> activeLifetimes, SafetyContext safetyContext)
         {
             m_Functions = astInfo.Functions;
             m_Globals = astInfo.GlobalVariables;
@@ -30,7 +30,7 @@ namespace Ripple.AST.Info
             m_ActiveLifetimes = activeLifetimes;
         }
 
-        public ValueOfExpressionVisitor(LocalVariableStack variableStack, FunctionList functions, OperatorEvaluatorLibrary operatorLibrary, Dictionary<string, VariableInfo> globals, SafetyContext safetyContext, List<string> primaries, List<LifetimeInfo> activeLifetimes)
+        public ValueOfExpressionVisitor(LocalVariableStack variableStack, FunctionList functions, OperatorEvaluatorLibrary operatorLibrary, Dictionary<string, VariableInfo> globals, SafetyContext safetyContext, List<string> primaries, List<string> activeLifetimes)
         {
             m_VariableStack = variableStack;
             m_Functions = functions;
@@ -133,16 +133,16 @@ namespace Ripple.AST.Info
         {
             string name = id.Name.Text;
             int argCount = call.Args.Count;
-            List<Option<TypeInfo>> argumentTypes = new List<Option<TypeInfo>>();
+            List<Option<ValueInfo>> arguments = new List<Option<ValueInfo>>();
             foreach (Expression expression in call.Args)
             {
                 try
                 {
-                    argumentTypes.Add(expression.Accept(this, new Option<TypeInfo>()).Type);
+                    arguments.Add(expression.Accept(this, new Option<TypeInfo>()));
                 }
                 catch (ValueOfExpressionExeption)
                 {
-                    argumentTypes.Add(new Option<TypeInfo>());
+                    arguments.Add(new Option<ValueInfo>());
                 }
             }
 
@@ -155,7 +155,7 @@ namespace Ripple.AST.Info
                 bool isValid = true;
                 for (int i = 0; argCount > i; i++)
                 {
-                    Option<TypeInfo> argInfo = argumentTypes[i];
+                    Option<TypeInfo> argInfo = arguments[i].MatchOrConstruct(ok => new Option<TypeInfo>(ok.Type));
                     TypeInfo expectedParam = info.Parameters[i].Type;
                     if (argInfo.HasValue() && !argInfo.Value.EqualsWithoutFirstMutable(expectedParam))
                     {
@@ -183,9 +183,19 @@ namespace Ripple.AST.Info
             FunctionInfo funcInfo = possibleCalled[0];
 
             if (funcInfo.IsUnsafe && m_SafetyContext.IsSafe)
-                ThrowUnsafeTypeError("Use of unsafe function '" + funcInfo.Name + "' in a safe context.", call.OpenParen);
+                ThrowError("Use of unsafe function '" + funcInfo.Name + "' in a safe context.", call.OpenParen);
 
-            return new ValueInfo(possibleCalled[0].ReturnType, m_VariableStack.CurrentLifetime);
+            List<ValueInfo> args = arguments.Select(at => at.Match(ok => ok, () => throw new ValueOfExpressionExeption("Invalid expression at call.", id.Name))).ToList();
+            return m_OperatorLibrary.Calls.Evaluate(new ValueInfo(funcInfo.FunctionType, LifetimeInfo.Static), args, m_VariableStack.CurrentLifetime, id.Name)
+                .Match(
+                ok =>
+                {
+                    return ok;
+                },
+                fail => 
+                {
+                    throw new ValueOfExpressionExeption(fail);
+                });
         }
 
         public ValueInfo VisitCast(Cast cast, Option<TypeInfo> expected)
@@ -201,7 +211,7 @@ namespace Ripple.AST.Info
                 {
                     foreach (FunctionInfo overload in funcOverloads)
                     {
-                        FuncPtrInfo type = TypeInfoUtils.FromFunctionInfo(overload);
+                        FuncPtrInfo type = overload.FunctionType;
                         if (type.IsEquatableTo(typeToCastTo))
                             return new ValueInfo(type, LifetimeInfo.Static);
                     }
@@ -226,14 +236,14 @@ namespace Ripple.AST.Info
             if (m_VariableStack.TryGetVariable(name, out VariableInfo info))
             {
                 if(info.IsUnsafe && m_SafetyContext.IsSafe)
-                    ThrowUnsafeTypeError("Use of unsafe local variable '" + info.Name + "' in a safe context.", identifier.Name);
+                    ThrowError("Use of unsafe local variable '" + info.Name + "' in a safe context.", identifier.Name);
                 return new ValueInfo(info.Type, info.Lifetime);
             }
 
             if (m_Globals.TryGetValue(name, out info))
             {
                 if (info.IsUnsafe && m_SafetyContext.IsSafe)
-                    ThrowUnsafeTypeError("Use of unsafe global variable '" + info.Name + "' in a safe context.", identifier.Name);
+                    ThrowError("Use of unsafe global variable '" + info.Name + "' in a safe context.", identifier.Name);
                 return new ValueInfo(info.Type, info.Lifetime);
             }
 
@@ -243,11 +253,14 @@ namespace Ripple.AST.Info
             {
                 foreach (FunctionInfo funcInfo in functions)
                 {
-                    TypeInfo funcType = TypeInfoUtils.FromFunctionInfo(funcInfo);
+                    TypeInfo funcType = funcInfo.FunctionType;
                     if (funcType.IsEquatableTo(expected.Value))
                     {
                         if (funcInfo.IsUnsafe && m_SafetyContext.IsSafe)
-                            ThrowUnsafeTypeError("Use of unsafe function '" + funcInfo.Name + "' in a safe context.", identifier.Name);
+                            ThrowError("Use of unsafe function '" + funcInfo.Name + "' in a safe context.", identifier.Name);
+
+                        if (funcInfo.Lifetimes.Count > 0)
+                            ThrowError("Function with lifetime paramaters must have them specified as arguments.", identifier.Name);
 
                         return new ValueInfo(expected.Value, LifetimeInfo.Static);
                     }
@@ -257,7 +270,7 @@ namespace Ripple.AST.Info
             if (functions.Count == 1)
             {
                 FunctionInfo funcInfo = functions[0];
-                return new ValueInfo(TypeInfoUtils.FromFunctionInfo(funcInfo), LifetimeInfo.Static);
+                return new ValueInfo(funcInfo.FunctionType, LifetimeInfo.Static);
             }
             else if (functions.Count > 1)
             {
@@ -383,7 +396,7 @@ namespace Ripple.AST.Info
             throw new NotImplementedException();
         }
 
-        private void ThrowUnsafeTypeError(string message, Token token)
+        private void ThrowError(string message, Token token)
         {
             throw new ValueOfExpressionExeption(message, token);
         }

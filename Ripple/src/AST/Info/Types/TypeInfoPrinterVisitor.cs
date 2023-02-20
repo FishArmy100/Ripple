@@ -53,7 +53,7 @@ namespace Ripple.AST.Info.Types
             return isMutable ? "mut " + subject : subject;
         }
 
-        private string GetLifetimeString(Option<LifetimeInfo> lifetime)
+        private string GetLifetimeString(Option<ReferenceLifetime> lifetime)
         {
             return lifetime.Match(ok => ok.ToString(), () => "");
         }

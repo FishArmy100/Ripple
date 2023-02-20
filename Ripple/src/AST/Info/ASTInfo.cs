@@ -62,8 +62,8 @@ namespace Ripple.AST.Info
             {
                 LocalVariableStack variableStack = new LocalVariableStack();
                 SafetyContext safetyContext = new SafetyContext(!varDecl.UnsafeToken.HasValue);
-                ValueOfExpressionVisitor visitor = new ValueOfExpressionVisitor(variableStack, m_Functions, m_Operators, GlobalVariables, safetyContext, m_Primaries, new List<LifetimeInfo>());
-                var result = VariableInfo.FromVarDecl(varDecl, visitor, m_Primaries, new List<LifetimeInfo>(), LifetimeInfo.Static, safetyContext);
+                ValueOfExpressionVisitor visitor = new ValueOfExpressionVisitor(variableStack, m_Functions, m_Operators, GlobalVariables, safetyContext, m_Primaries, new List<string>());
+                var result = VariableInfo.FromVarDecl(varDecl, visitor, m_Primaries, new List<string>(), LifetimeInfo.Static, safetyContext);
                 result.Match(ok =>
                 {
                     foreach (VariableInfo info in ok)

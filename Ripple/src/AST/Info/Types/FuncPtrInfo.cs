@@ -10,14 +10,16 @@ namespace Ripple.AST.Info.Types
 	class FuncPtrInfo : TypeInfo
 	{
 		public readonly bool IsMutable;
-		public readonly List<LifetimeInfo> Lifetimes;
+		public readonly int FunctionIndex;
+		public readonly int LifetimeCount;
 		public readonly List<TypeInfo> Parameters;
 		public readonly TypeInfo Returned;
 
-		public FuncPtrInfo(bool isMutable, List<LifetimeInfo> lifetimes, List<TypeInfo> parameters, TypeInfo returned)
+		public FuncPtrInfo(bool isMutable, int functionIndex, int lifetimeCount, List<TypeInfo> parameters, TypeInfo returned)
 		{
 			this.IsMutable = isMutable;
-			this.Lifetimes = lifetimes;
+			this.FunctionIndex = functionIndex;
+			this.LifetimeCount = lifetimeCount;
 			this.Parameters = parameters;
 			this.Returned = returned;
 		}
@@ -41,7 +43,7 @@ namespace Ripple.AST.Info.Types
 		{
 			if(other is FuncPtrInfo funcPtrInfo)
 			{
-				return IsMutable.Equals(funcPtrInfo.IsMutable) && Lifetimes.Equals(funcPtrInfo.Lifetimes) && Parameters.Equals(funcPtrInfo.Parameters) && Returned.Equals(funcPtrInfo.Returned);
+				return IsMutable.Equals(funcPtrInfo.IsMutable) && FunctionIndex.Equals(funcPtrInfo.FunctionIndex) && LifetimeCount.Equals(funcPtrInfo.LifetimeCount) && Parameters.Equals(funcPtrInfo.Parameters) && Returned.Equals(funcPtrInfo.Returned);
 			}
 			return false;
 		}
@@ -50,7 +52,8 @@ namespace Ripple.AST.Info.Types
 		{
 			HashCode code = new HashCode();
 			code.Add(IsMutable);
-			code.Add(Lifetimes);
+			code.Add(FunctionIndex);
+			code.Add(LifetimeCount);
 			code.Add(Parameters);
 			code.Add(Returned);
 			return code.ToHashCode();

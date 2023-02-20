@@ -11,9 +11,9 @@ namespace Ripple.AST.Info.Types
 	{
 		public readonly bool IsMutable;
 		public readonly TypeInfo Contained;
-		public readonly Option<LifetimeInfo> Lifetime;
+		public readonly Option<ReferenceLifetime> Lifetime;
 
-		public ReferenceInfo(bool isMutable, TypeInfo contained, Option<LifetimeInfo> lifetime)
+		public ReferenceInfo(bool isMutable, TypeInfo contained, Option<ReferenceLifetime> lifetime)
 		{
 			this.IsMutable = isMutable;
 			this.Contained = contained;

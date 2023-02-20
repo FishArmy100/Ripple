@@ -14,15 +14,28 @@ mut int& r2 = &mut *r1;
 ```
 
 ```rs
+func Add<'a>(int&'a a, int&'a b) -> int { return *a + *b; }
+func GetRef<'a>(int&'a a) -> int&'a { return a; }
+
 mut int i = 5;
 
-{
-    int&& r = &&i;
-    i = 6; // error
-}
+int sum = Add(&i, &i);
 
 i = 6; // fine
+
+GetRef(&i);
+
+i = 6; // fine
+
+int& i = GetRef(&i);
+
+i = 6; // error
 ```
+Notes: 
+- A r-value only needs reference tracked ONLY if:
+    - It is referenced
+    - It survives being passed to a function
+    - It is bound to a variable
 
 ## Functions with Lifetimes 
 ### Generic lifetimes: Work with any given lifetimes

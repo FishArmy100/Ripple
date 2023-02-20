@@ -72,6 +72,11 @@ namespace Ripple.Utils
                 return failFunc();
         }
 
+        public TReturn MatchOrConstruct<TReturn>(Func<T, TReturn> okFunc) where TReturn : new()
+		{
+            return Match(okFunc, () => new TReturn());
+		}
+
         public override bool Equals(object obj)
         {
             return obj is Option<T> option &&

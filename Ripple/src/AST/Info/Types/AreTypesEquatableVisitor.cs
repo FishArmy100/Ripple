@@ -34,6 +34,9 @@ namespace Ripple.AST.Info.Types
         {
             if(arg is FuncPtrInfo other)
             {
+                if (funcPtrInfo.LifetimeCount != other.LifetimeCount)
+                    return false;
+
                 if (funcPtrInfo.Parameters.Count != other.Parameters.Count)
                     return false;
 

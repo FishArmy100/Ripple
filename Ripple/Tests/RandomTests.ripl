@@ -1,5 +1,24 @@
 ﻿
-func Add<'a>(int&'a a, int&'a b) -> int
+
+func Add<'a, 'b>(int&'a a, int&'b b) -> int
 {
-	return *a + *b;
+    return *a + *b;
+}
+
+func<'a> Id(int&'a a) -> int&'a { return a; }
+
+func Main() -> void
+{
+	func<'a, 'b>(int&'a, int&'b)->int f = Add;
+	f(&1, &2); // works with any lifetimes
+
+	{
+		f(&1, &2);
+	}
+
+	int mut& r1 = &4;
+	{
+		int& r2 = &5;
+		// r1 = Id(r2); // should not compile
+	}
 }

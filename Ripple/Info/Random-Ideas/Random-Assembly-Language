@@ -1,0 +1,40 @@
+# Random Assembly Langauge
+
+```
+# A simple program
+
+FUNCTION FizzBuzz(c):
+    REGISTER resultFizz
+    REGISTER resultBuzz
+    REGISTER resultFizzBuzz
+
+    Remainder c 3 resultfizz
+    Remainder c 5 resultbuzz
+    
+    Add resultFizz resultBuzz resultRizzBuzz
+
+    JUMPIF resultFizzBuzz fizzbuzz
+    JUMPIF resultFizz fizz
+    JUMPIF resultBuzz buzz
+    JUMP end
+
+    LABEL fizz
+    PRINT("Fizz")
+    JUMP end
+
+    LABEL buzz
+    PRINT("Buzz")
+    JUMP end
+
+    LABEL fizzbuzz
+    PRINT("FizzBuzz")
+    JUMP end
+
+    LABEL end
+END
+
+REGISTER number
+SET number 12
+
+FizzBuzz number # prints out Fizz
+```

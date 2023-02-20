@@ -23,7 +23,7 @@ namespace Ripple.AST.Info
 
         public ValueInfo(TypeInfo type, int lifetime) : this(type, new LifetimeInfo(lifetime)) { }
 
-        public static Result<ValueInfo, List<ASTInfoError>> FromExpression(Expression expression, ASTInfo ast, LocalVariableStack variableStack, SafetyContext safetyContext, List<LifetimeInfo> activeLifetimes, Option<TypeInfo> expected = default)
+        public static Result<ValueInfo, List<ASTInfoError>> FromExpression(Expression expression, ASTInfo ast, LocalVariableStack variableStack, SafetyContext safetyContext, List<string> activeLifetimes, Option<TypeInfo> expected = default)
         {
             ValueOfExpressionVisitor visitor = new ValueOfExpressionVisitor(ast, variableStack, activeLifetimes, safetyContext);
             return FromExpression(expression, visitor, expected);

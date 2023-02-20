@@ -72,5 +72,5 @@ namespace Ripple.Utils
             else
                 throw new ArgumentException("This should never be called, and if it is, you've done messed up.");
         }
-    }
+	}
 }
