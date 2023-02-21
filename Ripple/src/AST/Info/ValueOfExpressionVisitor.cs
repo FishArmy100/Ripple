@@ -104,25 +104,6 @@ namespace Ripple.AST.Info
             }
 
             ValueInfo callee = call.Callee.Accept(this, new Option<TypeInfo>());
-
-            if (callee.Type is FuncPtrInfo fp)
-            {
-                if (call.Args.Count > fp.Parameters.Count)
-                    throw new ValueOfExpressionExeption("Too many arguments for this function pointer type.", call.OpenParen);
-                if (call.Args.Count < fp.Parameters.Count)
-                    throw new ValueOfExpressionExeption("Too few arguments for this function pointer type.", call.OpenParen);
-
-                for (int i = 0; i < call.Args.Count; i++)
-                {
-                    TypeInfo param = fp.Parameters[i];
-                    ValueInfo arg = call.Args[i].Accept(this, param);
-                    if (!arg.Type.EqualsWithoutFirstMutable(param))
-                        throw new ValueOfExpressionExeption("Expected type: " + param + ", but found type: " + arg + ".", call.OpenParen);
-                }
-
-                return new ValueInfo(fp.Returned, m_VariableStack.CurrentLifetime);
-            }
-
             List<ValueInfo> args = call.Args.ConvertAll(a => a.Accept(this, new Option<TypeInfo>()));
             return m_OperatorLibrary.Calls.Evaluate(callee, args, m_VariableStack.CurrentLifetime, call.OpenParen).Match(
                 ok => ok,
@@ -157,7 +138,7 @@ namespace Ripple.AST.Info
                 {
                     Option<TypeInfo> argInfo = arguments[i].MatchOrConstruct(ok => new Option<TypeInfo>(ok.Type));
                     TypeInfo expectedParam = info.Parameters[i].Type;
-                    if (argInfo.HasValue() && !argInfo.Value.EqualsWithoutFirstMutable(expectedParam))
+                    if (argInfo.HasValue() && !argInfo.Value.SetFirstMutable(false).EqualsWithoutLifetimes(expectedParam.SetFirstMutable(false)))
                     {
                         isValid = false;
                         break;
@@ -259,9 +240,6 @@ namespace Ripple.AST.Info
                         if (funcInfo.IsUnsafe && m_SafetyContext.IsSafe)
                             ThrowError("Use of unsafe function '" + funcInfo.Name + "' in a safe context.", identifier.Name);
 
-                        if (funcInfo.Lifetimes.Count > 0)
-                            ThrowError("Function with lifetime paramaters must have them specified as arguments.", identifier.Name);
-
                         return new ValueInfo(expected.Value, LifetimeInfo.Static);
                     }
                 }
@@ -303,9 +281,9 @@ namespace Ripple.AST.Info
                     if (!info.IsEquatableTo(array.Contained))
                     {
                         string message = "Expected an array of: " +
-                            array.Contained +
+                            array.Contained.ToPrettyString() +
                             ", but found an expression for: " +
-                            info + ".";
+                            info.ToPrettyString() + ".";
 
                         throw new ValueOfExpressionExeption(message, initializerList.OpenBrace);
                     }

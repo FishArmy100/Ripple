@@ -5,7 +5,7 @@ func Add<'a, 'b>(int&'a a, int&'b b) -> int
     return *a + *b;
 }
 
-func<'a> Id(int&'a a) -> int&'a { return a; }
+func Id<'a>(int&'a a) -> int&'a { return a; }
 
 func Main() -> void
 {
@@ -19,6 +19,6 @@ func Main() -> void
 	int mut& r1 = &4;
 	{
 		int& r2 = &5;
-		// r1 = Id(r2); // should not compile
+		r1 = Id(r2); // should not compile
 	}
 }

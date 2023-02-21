@@ -56,6 +56,16 @@ namespace Ripple.AST.Info
             return HashCode.Combine(m_LifetimeValue);
         }
 
+        public void Match(Action<int> local, Action<Token> parameter)
+		{
+            m_LifetimeValue.Match(local, parameter);
+		}
+
+        public TReturn Match<TReturn>(Func<int, TReturn> local, Func<Token, TReturn> parameter)
+		{
+            return m_LifetimeValue.Match(local, parameter);
+		}
+
         public override string ToString()
         {
             return m_LifetimeValue.Match(i =>

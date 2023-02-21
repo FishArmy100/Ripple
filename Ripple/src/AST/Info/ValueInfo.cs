@@ -56,7 +56,7 @@ namespace Ripple.AST.Info
 
         public override string ToString()
         {
-            return Type.ToString() + ":(" + Lifetime.ToString() + ")";
+            return Type.ToPrettyString() + ":(" + Lifetime.ToString() + ")";
         }
     }
 }

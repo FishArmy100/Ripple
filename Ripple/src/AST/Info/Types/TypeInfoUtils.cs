@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ripple.Utils;
+using Ripple.Utils.Extensions; 
 
 namespace Ripple.AST.Info.Types
 {
@@ -20,6 +21,21 @@ namespace Ripple.AST.Info.Types
                 FuncPtrInfo     f => new FuncPtrInfo(isMutable, f.FunctionIndex, f.LifetimeCount, f.Parameters, f.Returned),
                 _ => throw new ArgumentException("No case for type: " + typeInfo.GetType())
             };
+        }
+
+        public static string ToPrettyString(this TypeInfo typeInfo)
+		{
+            string str = typeInfo switch
+            {
+                BasicTypeInfo b => $"{ReturnMutIfTrue(b.IsMutable)} {b.Name}",
+                ReferenceInfo r => WrapIfTrue(r.Contained is FuncPtrInfo, r.Contained.ToPrettyString()) + $"{ReturnMutIfTrue(r.IsMutable)}&{r.Lifetime.Match(ok => ok.ToString(), () => "")}",
+                PointerInfo p => WrapIfTrue(p.Contained is FuncPtrInfo, p.Contained.ToPrettyString()) + $"{ReturnMutIfTrue(p.IsMutable)}*",
+                ArrayInfo a => $"{a.Contained.ToPrettyString()} {ReturnMutIfTrue(a.IsMutable)}[{a.Size}]",
+                FuncPtrInfo f => $"{ReturnMutIfTrue(f.IsMutable)} func({f.Parameters.Select(p => p.ToPrettyString()).Concat(", ")})",
+                _ => throw new ArgumentException("No case for type: " + typeInfo.GetType())
+            };
+
+            return str;
         }
 
         public static bool IsMutable(this TypeInfo typeInfo)
@@ -114,5 +130,21 @@ namespace Ripple.AST.Info.Types
 
             return a.Returned.EqualsWithoutLifetimes(b.Returned);
         }
+
+        private static string ReturnMutIfTrue(bool condition)
+		{
+            if (condition)
+                return "mut";
+
+            return "";
+		}
+
+        private static string WrapIfTrue(bool condition, string str)
+		{
+            if (condition)
+                return $"({str})";
+
+            return str;
+		}
     }
 }

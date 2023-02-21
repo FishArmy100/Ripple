@@ -63,7 +63,7 @@ namespace Ripple.AST.Utils
                 if(fp.LifetimeCount == 0)
 				    return EvaluateBasicFuncPtr(fp, args, lifetime);
 
-                
+                return EvaluateFuncPtrWithLifetimes(fp, args, lifetime);
 			});
 		}
 
@@ -106,7 +106,9 @@ namespace Ripple.AST.Utils
                         if(rr.Lifetime.HasValue() && rr.Lifetime.Value.IsLifetimeInfo && 
                            rl.Lifetime.HasValue() && rl.Lifetime.Value.IsLifetimeInfo)
 						{
-                            rr.Lifetime.Value.GetLifetimeInfo().Value.IsAssignableTo(rl.Lifetime.Value.GetLifetimeInfo().Value);
+                            if (!rr.Lifetime.Value.GetLifetimeInfo().Value.IsAssignableTo(rl.Lifetime.Value.GetLifetimeInfo().Value))
+                                return new Option<ValueInfo>();
+                            
                             ValueInfo info = new ValueInfo(left.Type, lifetime);
                             return new Option<ValueInfo>(info);
                         }
@@ -302,14 +304,74 @@ namespace Ripple.AST.Utils
             if (parameters.Count != args.Count)
                 return new Option<ValueInfo>();
 
-            bool callable = parameters.Zip(args).All(t =>
-            {
-                (var p, var a) = t;
-                return p.SetFirstMutable(false).EqualsWithoutLifetimes(a.Type.SetFirstMutable(false));
-            });
+            var functionLifetimeValues = parameters.Zip(args)
+                .Select(t =>
+                {
+                    (var p, var a) = t;
+                    return GenericLifetimeValueEvaluator.GetGenericLifetimeValues(p, a.Type, fp.FunctionIndex);
+                })
+                .Aggregate((a, b) => 
+                {
+                    if (!a.HasValue() || !b.HasValue())
+                        return new Option<Dictionary<int, List<LifetimeInfo>>>();
+
+                    foreach((int index, List<LifetimeInfo> lifetimes) in b.Value)
+				    {
+                        a.Value.GetOrCreate(index).AddRange(lifetimes);
+				    }
+
+                    return a;
+                });
+
+            return functionLifetimeValues.Match(
+                ok =>
+                {
+                    List<LifetimeInfo> lifetimes = ok.OrderBy(v => v.Key)
+                        .Select(v => v.Value)
+                        .Select(v => GetSmallestLifetime(v))
+                        .ToList();
+
+                    if (lifetimes.Count != fp.LifetimeCount)
+                        return new Option<ValueInfo>();
+
+                    TypeInfo fpType = FuncPointerInstantiator.InstantiateFunctionPointer(lifetimes, fp);
+                    TypeInfo returned = (fpType as FuncPtrInfo).Returned;
+                    return new Option<ValueInfo>(new ValueInfo(returned, lifetime));
+                },
+                () => 
+                {
+                    return new Option<ValueInfo>();
+                });
         }
 
-
+        private static LifetimeInfo GetSmallestLifetime(IEnumerable<LifetimeInfo> lifetimes)
+		{
+            return lifetimes.Aggregate((a, b) =>
+            {
+                return a.Match(alocal =>
+                {
+                    return b.Match(blocal =>
+                    {
+                        return alocal > blocal ? a : b; // whichever local is highest, is the smallest lifetime
+                    },
+                    bparam =>
+                    {
+                        return a;
+                    });
+                },
+                aparam =>
+                {
+                    return b.Match(blocal =>
+                    {
+                        return b;
+                    },
+                    bparam =>
+                    {
+                        throw new ValueOfExpressionExeption(new ASTInfoError($"Cannot dicern between lifetime {aparam.Text} and {bparam.Text}.", aparam));
+                    });
+                });
+            });
+		}
         private static Token GenIdTok(string name)
         {
             return new Token(name, TokenType.Identifier, -1, -1);
