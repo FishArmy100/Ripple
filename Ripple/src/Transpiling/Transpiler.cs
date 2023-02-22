@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.Transpiling
 {
-	class Validator
+	static class Transpiler
 	{
 	}
 }
