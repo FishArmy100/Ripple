@@ -79,7 +79,8 @@ namespace ASTGeneration
                 "FuncPtr : Token? MutToken; Token FuncToken; Option<List<Token>> Lifetimes; Token OpenParen; List<TypeName> Parameters; Token CloseParen; Token Arrow; TypeName ReturnType",
             }, additionalUsings);
 
-            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Info\\Types", "Ripple.AST.Info.Types", "TypeInfo", new List<string>
+            // TypeInfo:
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Validation\\Info\\Types", "Ripple.Validation.Info.Types", "TypeInfo", new List<string>
             {
                 "BasicTypeInfo : bool IsMutable; string Name",
                 "PointerInfo : bool IsMutable; TypeInfo Contained",
