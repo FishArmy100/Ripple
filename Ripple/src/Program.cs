@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Windows.Input;
 using System.IO;
-using Ripple.AST.Info;
+using Ripple.Validation.Info;
 using Ripple.Lexing;
 using Ripple.AST.Utils;
 

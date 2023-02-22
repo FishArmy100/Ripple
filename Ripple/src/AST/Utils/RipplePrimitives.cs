@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Ripple.AST;
-using Ripple.AST.Info;
+using Ripple.Validation;
+using Ripple.Validation.Info;
 using Ripple.Lexing;
-using Ripple.AST.Info.Types;
+using Ripple.Validation.Info.Types;
 
 namespace Ripple.AST.Utils
 {

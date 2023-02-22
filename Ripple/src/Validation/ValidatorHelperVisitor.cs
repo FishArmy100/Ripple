@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Ripple.AST;
-using Ripple.AST.Info;
+using Ripple.Validation.Info;
 using Ripple.AST.Utils;
 using Ripple.Utils;
 using Ripple.Utils.Extensions;
 using Ripple.Lexing;
-using Ripple.AST.Info.Types;
+using Ripple.Validation.Info.Types;
 
 namespace Ripple.Validation
 {

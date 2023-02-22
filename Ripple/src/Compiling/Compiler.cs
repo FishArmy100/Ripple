@@ -8,7 +8,7 @@ using Ripple.Parsing;
 using Ripple.Validation;
 using Ripple.Utils;
 using Ripple.AST;
-using Ripple.AST.Info;
+using Ripple.Validation.Info;
 
 namespace Ripple.Compiling
 {
