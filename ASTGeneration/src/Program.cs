@@ -11,6 +11,7 @@ namespace ASTGeneration
         {
             //RunTests();
             GenerateRippleAst();
+            GenerateCAST();
         }
 
         private static void RunTests()
@@ -19,6 +20,47 @@ namespace ASTGeneration
             {
                 "Test : string a; string b; string c; string d; string e; string f; string g; string h; string i",
             }, new List<string>());
+        }
+
+        private static void GenerateCAST()
+		{
+            List<string> additionalUsings = new List<string>() { "System.Collections.Generic", "Ripple.Utils" };
+
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Transpiling\\C_AST\\Types", "Ripple.Transpiling.C_AST", "CType", new List<string>()
+            {
+                "Basic : string Name; bool IsConst",
+                "Pointer : CType BaseType; bool IsConst",
+                "Array : CType BaseType; Option<int> Size",
+                "FuncPtr : CType Returned; List<CType> Parameters"
+            }, additionalUsings);
+
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Transpiling\\C_AST\\Expressions", "Ripple.Transpiling.C_AST", "CExpression", new List<string>() 
+            {
+                "Binary : CExpression Left; CBinaryOperator Op; CExpression Right",
+                "Unary : CExpression Expression; CUnaryOperator Op",
+                "Index : CExpression Indexee; CExpression Argument",
+                "Call : CExpression Callee; List<CExpression> Arguments",
+                "Cast : CExpression Castee; CType Type",
+                "Identifier : string Id",
+                "SizeOf : CType Type"
+            }, additionalUsings);
+
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Transpiling\\C_AST\\Statements", "Ripple.Transpiling.C_AST", "CStatement", new List<string>()
+            {
+                "ExprStmt : CExpression Expression", 
+                "IfStmt : CExpression Condition",
+                "WhileStmt : CExpression Condition",
+                "ForStmt : VarDecl Initalizer; CExpression Condition; CExpression Iterator",
+                "BlockStmt : List<CStatement> Statements",
+                "VarDecl : CType Type; string Name; Option<CExpression> Initializer",
+                "FuncParam : CType Type; string Name",
+                "FuncDecl : CType Returned; string Name; List<FuncParam> Parameters; BlockStmt Body",
+                "StructMember : CType Type; string Name",
+                "StructDecl : string Name; List<StructMember> Members",
+                "IncludeStmt : string File",
+                "FileStmt : List<IncludeStmt> Includes; List<CStatement> Statements; CFileType FileType",
+                "ProgramStmt : List<FileStmt> Files"
+            }, additionalUsings);
         }
 
         private static void GenerateRippleAst()
