@@ -9,24 +9,24 @@ namespace Ripple.Transpiling.Source_Generation
 {
 	class CTypeSourceGeneratorVisitor : ICTypeVisitor<string>
 	{
-		public string VisitArray(C_AST.Array array)
+		public string VisitCArray(CArray cArray)
 		{
 			throw new NotImplementedException();
 		}
 
-		public string VisitBasic(Basic basic)
-		{
-			return basic.Name;
-		}
-
-		public string VisitFuncPtr(FuncPtr funcPtr)
+		public string VisitCBasicType(CBasicType cBasicType)
 		{
 			throw new NotImplementedException();
 		}
 
-		public string VisitPointer(Pointer pointer)
+		public string VisitCFuncPtr(CFuncPtr cFuncPtr)
 		{
-			return $"{pointer.BaseType.Accept(this)}*";
+			throw new NotImplementedException();
+		}
+
+		public string VisitCPointer(CPointer cPointer)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

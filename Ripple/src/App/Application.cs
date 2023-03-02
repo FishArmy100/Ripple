@@ -191,10 +191,15 @@ namespace Ripple.App
                         });
                     break;
                 case CompilerMode.Transpiling:
-                    ConsoleHelper.WriteLineError("Compiler mode has not been implemented yet");
+                    TestTranspiler();
                     break;
             }
         }
+
+        private void TestTranspiler()
+		{
+
+		}
 
         private void RunCompiler()
         {

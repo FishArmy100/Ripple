@@ -28,10 +28,10 @@ namespace ASTGeneration
 
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Transpiling\\C_AST\\Types", "Ripple.Transpiling.C_AST", "CType", new List<string>()
             {
-                "Basic : string Name; bool IsConst",
-                "Pointer : CType BaseType; bool IsConst",
-                "Array : CType BaseType; Option<int> Size",
-                "FuncPtr : CType Returned; List<CType> Parameters"
+                "CBasicType : string Name; bool IsConst",
+                "CPointer : CType BaseType; bool IsConst",
+                "CArray : CType BaseType; Option<int> Size",
+                "CFuncPtr : CType Returned; List<CType> Parameters"
             }, additionalUsings);
 
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Transpiling\\C_AST\\Expressions", "Ripple.Transpiling.C_AST", "CExpression", new List<string>() 
