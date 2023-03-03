@@ -143,19 +143,29 @@ namespace ASTGeneration
             string valName = nodeData.Name.FirstCharToLowerCase();
             builder.AppendLine("\t\t\tif(other is " + nodeData.Name + " " + valName + ")");
             builder.AppendLine("\t\t\t{");
-            builder.Append("\t\t\t\treturn ");
 
-            for(int i = 0; i < nodeData.FeildData.Count; i++)
-            {
-                if (i != 0)
-                    builder.Append(" && ");
+            if(nodeData.FeildData.Count > 0)
+			{
+                builder.Append("\t\t\t\treturn ");
 
-                string feildName = nodeData.FeildData[i].Value;
+                for (int i = 0; i < nodeData.FeildData.Count; i++)
+                {
+                    if (i != 0)
+                        builder.Append(" && ");
 
-                builder.Append(feildName + ".Equals(" + valName + "." + feildName + ")");
+                    string feildName = nodeData.FeildData[i].Value;
+
+                    builder.Append(feildName + ".Equals(" + valName + "." + feildName + ")");
+                }
+
+                builder.AppendLine(";");
             }
+			else
+			{
+                builder.AppendLine("\t\t\t\treturn true;");
+			}
 
-            builder.AppendLine(";");
+            
             builder.AppendLine("\t\t\t}");
 
             builder.AppendLine("\t\t\treturn false;");
@@ -168,11 +178,19 @@ namespace ASTGeneration
             builder.AppendLine("\t\tpublic override int GetHashCode()");
             builder.AppendLine("\t\t{");
 
-            builder.AppendLine("\t\t\tHashCode code = new HashCode();");
-            foreach (var feild in nodeData.FeildData)
-                builder.AppendLine("\t\t\tcode.Add(" + feild.Value + ");");
+            if(nodeData.FeildData.Count > 0)
+			{
+                builder.AppendLine("\t\t\tHashCode code = new HashCode();");
+                foreach (var feild in nodeData.FeildData)
+                    builder.AppendLine("\t\t\tcode.Add(" + feild.Value + ");");
 
-            builder.AppendLine("\t\t\treturn code.ToHashCode();");
+                builder.AppendLine("\t\t\treturn code.ToHashCode();");
+            }
+			else
+			{
+                builder.AppendLine($"\t\t\treturn typeof({nodeData.Name}).Name.GetHashCode();");
+			}
+            
 
             builder.AppendLine("\t\t}");
         }

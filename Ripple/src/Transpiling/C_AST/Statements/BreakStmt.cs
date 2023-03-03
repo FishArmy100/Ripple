@@ -31,15 +31,14 @@ namespace Ripple.Transpiling.C_AST
 		{
 			if(other is BreakStmt breakStmt)
 			{
-				return ;
+				return true;
 			}
 			return false;
 		}
 
 		public override int GetHashCode()
 		{
-			HashCode code = new HashCode();
-			return code.ToHashCode();
+			return typeof(BreakStmt).Name.GetHashCode();
 		}
 	}
 }
