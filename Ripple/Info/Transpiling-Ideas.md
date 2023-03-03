@@ -28,3 +28,19 @@ func main() -> int
     int i = Fib(5);
 }
 ```
+
+### Doodles
+```c++
+(4 + 5) * 6
+
+Binary Expression: *
+    Left: 
+        Binary Expression
+            Left:
+                Literal 4
+            Right:
+                Literal 5
+    Right:
+        Literal 6
+
+```

@@ -5,37 +5,37 @@ using Ripple.Utils;
 
 namespace Ripple.Transpiling.C_AST
 {
-	class Unary : CExpression
+	class CCall : CExpression
 	{
-		public readonly CExpression Expression;
-		public readonly CUnaryOperator Op;
+		public readonly CExpression Callee;
+		public readonly List<CExpression> Arguments;
 
-		public Unary(CExpression expression, CUnaryOperator op)
+		public CCall(CExpression callee, List<CExpression> arguments)
 		{
-			this.Expression = expression;
-			this.Op = op;
+			this.Callee = callee;
+			this.Arguments = arguments;
 		}
 
 		public override void Accept(ICExpressionVisitor visitor)
 		{
-			visitor.VisitUnary(this);
+			visitor.VisitCCall(this);
 		}
 
 		public override T Accept<T>(ICExpressionVisitor<T> visitor)
 		{
-			return visitor.VisitUnary(this);
+			return visitor.VisitCCall(this);
 		}
 
 		public override TReturn Accept<TReturn, TArg>(ICExpressionVisitor<TReturn, TArg> visitor, TArg arg)
 		{
-			return visitor.VisitUnary(this, arg);
+			return visitor.VisitCCall(this, arg);
 		}
 
 		public override bool Equals(object other)
 		{
-			if(other is Unary unary)
+			if(other is CCall cCall)
 			{
-				return Expression.Equals(unary.Expression) && Op.Equals(unary.Op);
+				return Callee.Equals(cCall.Callee) && Arguments.Equals(cCall.Arguments);
 			}
 			return false;
 		}
@@ -43,8 +43,8 @@ namespace Ripple.Transpiling.C_AST
 		public override int GetHashCode()
 		{
 			HashCode code = new HashCode();
-			code.Add(Expression);
-			code.Add(Op);
+			code.Add(Callee);
+			code.Add(Arguments);
 			return code.ToHashCode();
 		}
 	}

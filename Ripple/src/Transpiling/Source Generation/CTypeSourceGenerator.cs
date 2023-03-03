@@ -8,8 +8,13 @@ using Ripple.Utils;
 
 namespace Ripple.Transpiling.Source_Generation
 {
-	static class CTypeNameGenerator
+	static class CTypeSourceGenerator
 	{
+		public static string GenerateTypeName(CType type, Option<string> baseName)
+		{
+			return type.Accept(new CTypeNameGeneratorVisitor(), baseName);
+		}
+
 		private class CTypeNameGeneratorVisitor : ICTypeVisitor<string, Option<string>>
 		{
 			public string VisitCArray(CArray cArray, Option<string> arg)

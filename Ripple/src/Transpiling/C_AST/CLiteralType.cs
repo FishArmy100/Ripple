@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace Ripple.Transpiling.C_AST
 {
-	enum CFileType
+	enum CLiteralType
 	{
-		Header,
-		Source
+		String,
+		Intager,
+		Charactor,
+		Float
 	}
 }

@@ -36,13 +36,15 @@ namespace ASTGeneration
 
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Transpiling\\C_AST\\Expressions", "Ripple.Transpiling.C_AST", "CExpression", new List<string>() 
             {
-                "Binary : CExpression Left; CBinaryOperator Op; CExpression Right",
-                "Unary : CExpression Expression; CUnaryOperator Op",
-                "Index : CExpression Indexee; CExpression Argument",
-                "Call : CExpression Callee; List<CExpression> Arguments",
-                "Cast : CExpression Castee; CType Type",
-                "Identifier : string Id",
-                "SizeOf : CType Type"
+                "CBinary : CExpression Left; CBinaryOperator Op; CExpression Right",
+                "CUnary : CExpression Expression; CUnaryOperator Op",
+                "CIndex : CExpression Indexee; CExpression Argument",
+                "CCall : CExpression Callee; List<CExpression> Arguments",
+                "CCast : CExpression Castee; CType Type",
+                "CIdentifier : string Id",
+                "CSizeOf : CType Type",
+                "C" +
+                "Literal : object Value; CLiteralType Type"
             }, additionalUsings);
 
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Transpiling\\C_AST\\Statements", "Ripple.Transpiling.C_AST", "CStatement", new List<string>()
@@ -53,10 +55,14 @@ namespace ASTGeneration
                 "ForStmt : VarDecl Initalizer; CExpression Condition; CExpression Iterator",
                 "BlockStmt : List<CStatement> Statements",
                 "VarDecl : CType Type; string Name; Option<CExpression> Initializer",
+                "ReturnStmt : CExpression Expression",
+                "BreakStmt : ",
+                "ContinueStmt : ",
                 "FuncParam : CType Type; string Name",
                 "FuncDecl : CType Returned; string Name; List<FuncParam> Parameters; BlockStmt Body",
                 "StructMember : CType Type; string Name",
                 "StructDecl : string Name; List<StructMember> Members",
+                "TypeDefStmt : CType Type; string Name",
                 "IncludeStmt : string File",
                 "FileStmt : List<IncludeStmt> Includes; List<CStatement> Statements; CFileType FileType",
                 "ProgramStmt : List<FileStmt> Files"

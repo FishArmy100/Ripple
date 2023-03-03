@@ -5,13 +5,13 @@ using Ripple.Utils;
 
 namespace Ripple.Transpiling.C_AST
 {
-	class Binary : CExpression
+	class CBinary : CExpression
 	{
 		public readonly CExpression Left;
 		public readonly CBinaryOperator Op;
 		public readonly CExpression Right;
 
-		public Binary(CExpression left, CBinaryOperator op, CExpression right)
+		public CBinary(CExpression left, CBinaryOperator op, CExpression right)
 		{
 			this.Left = left;
 			this.Op = op;
@@ -20,24 +20,24 @@ namespace Ripple.Transpiling.C_AST
 
 		public override void Accept(ICExpressionVisitor visitor)
 		{
-			visitor.VisitBinary(this);
+			visitor.VisitCBinary(this);
 		}
 
 		public override T Accept<T>(ICExpressionVisitor<T> visitor)
 		{
-			return visitor.VisitBinary(this);
+			return visitor.VisitCBinary(this);
 		}
 
 		public override TReturn Accept<TReturn, TArg>(ICExpressionVisitor<TReturn, TArg> visitor, TArg arg)
 		{
-			return visitor.VisitBinary(this, arg);
+			return visitor.VisitCBinary(this, arg);
 		}
 
 		public override bool Equals(object other)
 		{
-			if(other is Binary binary)
+			if(other is CBinary cBinary)
 			{
-				return Left.Equals(binary.Left) && Op.Equals(binary.Op) && Right.Equals(binary.Right);
+				return Left.Equals(cBinary.Left) && Op.Equals(cBinary.Op) && Right.Equals(cBinary.Right);
 			}
 			return false;
 		}

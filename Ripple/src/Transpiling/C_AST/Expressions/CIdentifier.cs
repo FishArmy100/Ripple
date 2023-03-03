@@ -5,35 +5,35 @@ using Ripple.Utils;
 
 namespace Ripple.Transpiling.C_AST
 {
-	class SizeOf : CExpression
+	class CIdentifier : CExpression
 	{
-		public readonly CType Type;
+		public readonly string Id;
 
-		public SizeOf(CType type)
+		public CIdentifier(string id)
 		{
-			this.Type = type;
+			this.Id = id;
 		}
 
 		public override void Accept(ICExpressionVisitor visitor)
 		{
-			visitor.VisitSizeOf(this);
+			visitor.VisitCIdentifier(this);
 		}
 
 		public override T Accept<T>(ICExpressionVisitor<T> visitor)
 		{
-			return visitor.VisitSizeOf(this);
+			return visitor.VisitCIdentifier(this);
 		}
 
 		public override TReturn Accept<TReturn, TArg>(ICExpressionVisitor<TReturn, TArg> visitor, TArg arg)
 		{
-			return visitor.VisitSizeOf(this, arg);
+			return visitor.VisitCIdentifier(this, arg);
 		}
 
 		public override bool Equals(object other)
 		{
-			if(other is SizeOf sizeOf)
+			if(other is CIdentifier cIdentifier)
 			{
-				return Type.Equals(sizeOf.Type);
+				return Id.Equals(cIdentifier.Id);
 			}
 			return false;
 		}
@@ -41,7 +41,7 @@ namespace Ripple.Transpiling.C_AST
 		public override int GetHashCode()
 		{
 			HashCode code = new HashCode();
-			code.Add(Type);
+			code.Add(Id);
 			return code.ToHashCode();
 		}
 	}

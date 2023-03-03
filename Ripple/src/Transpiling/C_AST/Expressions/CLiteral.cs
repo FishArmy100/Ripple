@@ -5,37 +5,37 @@ using Ripple.Utils;
 
 namespace Ripple.Transpiling.C_AST
 {
-	class Cast : CExpression
+	class CLiteral : CExpression
 	{
-		public readonly CExpression Castee;
-		public readonly CType Type;
+		public readonly object Value;
+		public readonly CLiteralType Type;
 
-		public Cast(CExpression castee, CType type)
+		public CLiteral(object value, CLiteralType type)
 		{
-			this.Castee = castee;
+			this.Value = value;
 			this.Type = type;
 		}
 
 		public override void Accept(ICExpressionVisitor visitor)
 		{
-			visitor.VisitCast(this);
+			visitor.VisitCLiteral(this);
 		}
 
 		public override T Accept<T>(ICExpressionVisitor<T> visitor)
 		{
-			return visitor.VisitCast(this);
+			return visitor.VisitCLiteral(this);
 		}
 
 		public override TReturn Accept<TReturn, TArg>(ICExpressionVisitor<TReturn, TArg> visitor, TArg arg)
 		{
-			return visitor.VisitCast(this, arg);
+			return visitor.VisitCLiteral(this, arg);
 		}
 
 		public override bool Equals(object other)
 		{
-			if(other is Cast cast)
+			if(other is CLiteral cLiteral)
 			{
-				return Castee.Equals(cast.Castee) && Type.Equals(cast.Type);
+				return Value.Equals(cLiteral.Value) && Type.Equals(cLiteral.Type);
 			}
 			return false;
 		}
@@ -43,7 +43,7 @@ namespace Ripple.Transpiling.C_AST
 		public override int GetHashCode()
 		{
 			HashCode code = new HashCode();
-			code.Add(Castee);
+			code.Add(Value);
 			code.Add(Type);
 			return code.ToHashCode();
 		}

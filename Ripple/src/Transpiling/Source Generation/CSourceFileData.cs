@@ -6,9 +6,15 @@ using System.Threading.Tasks;
 
 namespace Ripple.src.Transpiling.Source_Generation
 {
-	readonly struct CSourceFileData
+	class CSourceFileData
 	{
 		public readonly string FileName;
 		public readonly string Source;
+
+		public CSourceFileData(string fileName, string source)
+		{
+			FileName = fileName;
+			Source = source;
+		}
 	}
 }

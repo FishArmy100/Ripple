@@ -26,10 +26,13 @@ namespace ASTGeneration
                 string name = nameFeildsPair[0].RemoveWhitespace();
                 List<KeyValuePair<string, string>> feilds = new List<KeyValuePair<string, string>>();
 
-                foreach (string feild in nameFeildsPair[1].Split(';'))
+                if (nameFeildsPair.Length > 1)
                 {
-                    string[] typeNamePair = feild.Split(' ').Where(x => !string.IsNullOrEmpty(x)).ToArray();
-                    feilds.Add(new KeyValuePair<string, string>(typeNamePair[0].RemoveWhitespace(), typeNamePair[1].RemoveWhitespace()));
+                    foreach (string feild in nameFeildsPair[1].Split(';'))
+                    {
+                        string[] typeNamePair = feild.Split(' ').Where(x => !string.IsNullOrEmpty(x)).ToArray();
+                        feilds.Add(new KeyValuePair<string, string>(typeNamePair[0].RemoveWhitespace(), typeNamePair[1].RemoveWhitespace()));
+                    }
                 }
 
                 nodeDatas.Add(new NodeData(namespaceName, baseName, name, feilds));

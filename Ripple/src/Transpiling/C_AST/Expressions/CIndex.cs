@@ -5,12 +5,12 @@ using Ripple.Utils;
 
 namespace Ripple.Transpiling.C_AST
 {
-	class Index : CExpression
+	class CIndex : CExpression
 	{
 		public readonly CExpression Indexee;
 		public readonly CExpression Argument;
 
-		public Index(CExpression indexee, CExpression argument)
+		public CIndex(CExpression indexee, CExpression argument)
 		{
 			this.Indexee = indexee;
 			this.Argument = argument;
@@ -18,24 +18,24 @@ namespace Ripple.Transpiling.C_AST
 
 		public override void Accept(ICExpressionVisitor visitor)
 		{
-			visitor.VisitIndex(this);
+			visitor.VisitCIndex(this);
 		}
 
 		public override T Accept<T>(ICExpressionVisitor<T> visitor)
 		{
-			return visitor.VisitIndex(this);
+			return visitor.VisitCIndex(this);
 		}
 
 		public override TReturn Accept<TReturn, TArg>(ICExpressionVisitor<TReturn, TArg> visitor, TArg arg)
 		{
-			return visitor.VisitIndex(this, arg);
+			return visitor.VisitCIndex(this, arg);
 		}
 
 		public override bool Equals(object other)
 		{
-			if(other is Index index)
+			if(other is CIndex cIndex)
 			{
-				return Indexee.Equals(index.Indexee) && Argument.Equals(index.Argument);
+				return Indexee.Equals(cIndex.Indexee) && Argument.Equals(cIndex.Argument);
 			}
 			return false;
 		}

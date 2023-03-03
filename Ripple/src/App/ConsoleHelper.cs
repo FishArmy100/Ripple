@@ -17,5 +17,10 @@ namespace Ripple.App
             Console.WriteLine(error);
             Console.BackgroundColor = DefaultColor;
         }
+
+        public static void WriteLine(string text)
+		{
+            Console.WriteLine(text);
+		}
     }
 }

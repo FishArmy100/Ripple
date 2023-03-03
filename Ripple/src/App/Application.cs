@@ -7,6 +7,8 @@ using Ripple.Lexing;
 using Sharprompt;
 using Ripple.AST.Utils;
 using Ripple.Utils.Extensions;
+using Ripple.Transpiling.C_AST;
+using Ripple.Transpiling.Source_Generation;
 
 namespace Ripple.App
 {
@@ -138,7 +140,7 @@ namespace Ripple.App
                 CurrentPath = FileBrowser.SelectFolder(CurrentPath);
         }
 
-        private void CompileSource(List<SourceFile> sourceFiles)
+        private static void CompileSource(List<SourceFile> sourceFiles)
         {
             if(string.IsNullOrEmpty(CurrentPath))
             {
@@ -196,12 +198,21 @@ namespace Ripple.App
             }
         }
 
-        private void TestTranspiler()
+        private static void TestTranspiler()
 		{
+            CExpression expr =
+                new CBinary(
+                    new CBinary(
+                        new CLiteral(5, CLiteralType.Intager),
+                        CBinaryOperator.Plus,
+                        new CLiteral(6, CLiteralType.Intager)),
+                    CBinaryOperator.Plus,
+                    new CLiteral(7, CLiteralType.Intager));
 
+            ConsoleHelper.WriteLine(CExpressionSourceGenerator.GenerateCExpressionSource(expr));
 		}
 
-        private void RunCompiler()
+		private void RunCompiler()
         {
             if(FileUtils.ReadFolder(CurrentPath, out FolderData data))
             {
