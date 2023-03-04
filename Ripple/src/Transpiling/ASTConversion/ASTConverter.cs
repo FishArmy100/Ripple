@@ -4,15 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple.Transpiling.C_AST
+namespace Ripple.Transpiling.ASTConversion
 {
-	enum CLiteralType
+	static class ASTConverter
 	{
-		String,
-		Intager,
-		Charactor,
-		Float,
-		True,
-		False,
+
 	}
 }

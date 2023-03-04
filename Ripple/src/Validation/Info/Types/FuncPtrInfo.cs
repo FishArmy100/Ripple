@@ -39,6 +39,11 @@ namespace Ripple.Validation.Info.Types
 			return visitor.VisitFuncPtrInfo(this, arg);
 		}
 
+		public override void Accept<TArg>(ITypeInfoVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitFuncPtrInfo(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is FuncPtrInfo funcPtrInfo)

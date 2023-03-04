@@ -9,29 +9,26 @@ namespace Ripple.Transpiling
 	class CSourceBuilder
 	{
 		private int m_IndentLevel = 0;
-		private StringBuilder m_Builder = new StringBuilder();
+		private readonly StringBuilder m_Builder = new StringBuilder();
 
-		public void Append(string s)
+		public void AppendLine(string src = "")
 		{
-			m_Builder.Append(s);
-		} 
-
-		public void BeginLine(string s = "")
-		{
-			m_Builder.AppendLine(new string('\t', m_IndentLevel));
-			Append(s);
+			m_Builder.AppendLine(new string('\t', m_IndentLevel) + src);
 		}
+
+		public void TabRight() { m_IndentLevel++; }
+		public void TabLeft() { m_IndentLevel--; }
 
 		public void BeginBlock()
 		{
-			BeginLine("{");
+			AppendLine("{");
 			m_IndentLevel++;
 		}
 
 		public void EndBlock()
 		{
 			m_IndentLevel--;
-			BeginLine("}");
+			AppendLine("}");
 		}
 
 		public override string ToString()

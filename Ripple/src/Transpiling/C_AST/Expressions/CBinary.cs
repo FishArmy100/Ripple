@@ -33,6 +33,11 @@ namespace Ripple.Transpiling.C_AST
 			return visitor.VisitCBinary(this, arg);
 		}
 
+		public override void Accept<TArg>(ICExpressionVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitCBinary(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is CBinary cBinary)

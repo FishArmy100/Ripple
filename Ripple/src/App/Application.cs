@@ -200,16 +200,27 @@ namespace Ripple.App
 
         private static void TestTranspiler()
 		{
-            CExpression expr =
-                new CBinary(
-                    new CBinary(
-                        new CLiteral(5, CLiteralType.Intager),
-                        CBinaryOperator.Plus,
-                        new CLiteral(6, CLiteralType.Intager)),
-                    CBinaryOperator.Plus,
-                    new CLiteral(7, CLiteralType.Intager));
+            CStatement program = new CFileStmt(
+                new List<CIncludeStmt>
+                {
+                    new CIncludeStmt("stdio.h")
+                },
+                new List<CStatement> 
+                {
+                    new CFuncDef(CPrimatives.Int, "main", new (){ }, new CBlockStmt(
+                        new List<CStatement>
+                        {
+                            new CExprStmt(new CCall(new CIdentifier("printf"), 
+                                new ()
+                                {
+                                    new CLiteral("Hello World!", CLiteralType.String)
+                                })),
 
-            ConsoleHelper.WriteLine(CExpressionSourceGenerator.GenerateCExpressionSource(expr));
+                            new CReturnStmt(new CLiteral(0, CLiteralType.Intager))
+                        }))
+                }, CFileType.Source);
+
+            ConsoleHelper.WriteLine(CStatementSourceGenerator.GenerateSource(program));
 		}
 
 		private void RunCompiler()

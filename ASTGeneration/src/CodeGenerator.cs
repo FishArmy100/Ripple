@@ -51,6 +51,9 @@ namespace ASTGeneration
             GenGenericArgAcceptVisitorMethod(nodeData, builder);
 
             builder.AppendLine();
+            GenGenericOnlyArgAcceptVisitorMethod(nodeData, builder);
+
+            builder.AppendLine();
             GenEqualsOverride(nodeData, builder);
 
             builder.AppendLine();
@@ -72,6 +75,7 @@ namespace ASTGeneration
             builder.AppendLine("\t\tpublic abstract void " + Keywords.AcceptVisitorName + "(" + visitorName + " " + visitorName.FirstCharToLowerCase() + ");");
             builder.AppendLine("\t\tpublic abstract T " + Keywords.AcceptVisitorName + "<T>(" + visitorName + "<T> " + visitorName.FirstCharToLowerCase() + ");");
             builder.AppendLine("\t\tpublic abstract TReturn " + Keywords.AcceptVisitorName + "<TReturn, TArg>(" + visitorName + "<TReturn, TArg> " + visitorName.FirstCharToLowerCase() + ", TArg arg);");
+            builder.AppendLine("\t\tpublic abstract void " + Keywords.AcceptVisitorName + "<TArg>(" + visitorName + "WithArg<TArg> " + visitorName.FirstCharToLowerCase() + ", TArg arg);");
             builder.AppendLine("\t}");
 
             EndCodeFile(builder);
@@ -84,6 +88,7 @@ namespace ASTGeneration
             StringBuilder builder = new StringBuilder();
             BeginCodeFile(namespaceName, builder, new List<string>());
 
+            // void visitor
             builder.AppendLine("\tinterface " + name);
             builder.AppendLine("\t{");
 
@@ -92,6 +97,7 @@ namespace ASTGeneration
 
             builder.AppendLine("\t}");
 
+            // return visitor
             builder.AppendLine();
 
             builder.AppendLine("\tinterface " + name + "<T>");
@@ -104,11 +110,22 @@ namespace ASTGeneration
 
             builder.AppendLine();
 
+            // argument and return visitor
             builder.AppendLine("\tinterface " + name + "<TReturn, TArg>");
             builder.AppendLine("\t{");
 
             foreach (string s in nodeNames)
                 builder.AppendLine("\t\tpublic abstract TReturn Visit" + s +
+                    "(" + s + " " + s.FirstCharToLowerCase() + ", TArg arg);");
+
+            builder.AppendLine("\t}");
+
+            // argumentVisitor
+            builder.AppendLine("\tinterface " + name + "WithArg" + "<TArg>");
+            builder.AppendLine("\t{");
+
+            foreach (string s in nodeNames)
+                builder.AppendLine("\t\tpublic abstract void Visit" + s +
                     "(" + s + " " + s.FirstCharToLowerCase() + ", TArg arg);");
 
             builder.AppendLine("\t}");
@@ -216,6 +233,14 @@ namespace ASTGeneration
             builder.AppendLine("\t\tpublic override TReturn " + Keywords.AcceptVisitorName + "<TReturn, TArg>(" + Nameing.GetVisitorName(nodeData) + "<TReturn, TArg> visitor, TArg arg)");
             builder.AppendLine("\t\t{");
             builder.AppendLine("\t\t\treturn visitor." + Nameing.GetVisitorMethodName(nodeData) + "(this, arg);");
+            builder.AppendLine("\t\t}");
+        }
+
+        private static void GenGenericOnlyArgAcceptVisitorMethod(NodeData nodeData, StringBuilder builder)
+		{
+            builder.AppendLine("\t\tpublic override void " + Keywords.AcceptVisitorName + "<TArg>(" + Nameing.GetVisitorName(nodeData) + "WithArg" + "<TArg> visitor, TArg arg)");
+            builder.AppendLine("\t\t{");
+            builder.AppendLine("\t\t\tvisitor." + Nameing.GetVisitorMethodName(nodeData) + "(this, arg);");
             builder.AppendLine("\t\t}");
         }
 

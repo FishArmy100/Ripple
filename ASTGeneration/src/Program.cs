@@ -43,29 +43,28 @@ namespace ASTGeneration
                 "CCast : CExpression Castee; CType Type",
                 "CIdentifier : string Id",
                 "CSizeOf : CType Type",
-                "C" +
-                "Literal : object Value; CLiteralType Type"
+                "CLiteral : object Value; CLiteralType Type"
             }, additionalUsings);
 
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Transpiling\\C_AST\\Statements", "Ripple.Transpiling.C_AST", "CStatement", new List<string>()
             {
-                "ExprStmt : CExpression Expression", 
-                "IfStmt : CExpression Condition",
-                "WhileStmt : CExpression Condition",
-                "ForStmt : VarDecl Initalizer; CExpression Condition; CExpression Iterator",
-                "BlockStmt : List<CStatement> Statements",
-                "VarDecl : CType Type; string Name; Option<CExpression> Initializer",
-                "ReturnStmt : CExpression Expression",
-                "BreakStmt",
-                "ContinueStmt",
-                "FuncParam : CType Type; string Name",
-                "FuncDecl : CType Returned; string Name; List<FuncParam> Parameters; BlockStmt Body",
-                "StructMember : CType Type; string Name",
-                "StructDecl : string Name; List<StructMember> Members",
-                "TypeDefStmt : CType Type; string Name",
-                "IncludeStmt : string File",
-                "FileStmt : List<IncludeStmt> Includes; List<CStatement> Statements; CFileType FileType",
-                "ProgramStmt : List<FileStmt> Files"
+                "CExprStmt : CExpression Expression", 
+                "CIfStmt : CExpression Condition; CStatement Body; Option<CStatement> ElseBody",
+                "CWhileStmt : CExpression Condition; CStatement Body",
+                "CForStmt : Option<CVarDecl> Initalizer; Option<CExpression> Condition; Option<CExpression> Iterator; CStatement Body",
+                "CBlockStmt : List<CStatement> Statements",
+                "CVarDecl : CType Type; string Name; Option<CExpression> Initializer",
+                "CReturnStmt : Option<CExpression> Expression",
+                "CBreakStmt",
+                "CContinueStmt",
+                "CFuncDef : CType Returned; string Name; List<CFuncParam> Parameters; CBlockStmt Body",
+                "CFuncDecl : CType Returned; string Name; List<CFuncParam> Parameters",
+                "CStructMember : CType Type; string Name; Option<CExpression> Initalizer",
+                "CStructDef : string Name; List<CStructMember> Members",
+                "CStructDecl : string Name",
+                "CTypeDefStmt : CType Type; string Name",
+                "CIncludeStmt : string File",
+                "CFileStmt : List<CIncludeStmt> Includes; List<CStatement> Statements; CFileType FileType",
             }, additionalUsings);
         }
 

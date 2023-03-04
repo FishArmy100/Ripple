@@ -31,6 +31,11 @@ namespace Ripple.Transpiling.C_AST
 			return visitor.VisitCArray(this, arg);
 		}
 
+		public override void Accept<TArg>(ICTypeVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitCArray(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is CArray cArray)

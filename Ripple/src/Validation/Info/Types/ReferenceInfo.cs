@@ -35,6 +35,11 @@ namespace Ripple.Validation.Info.Types
 			return visitor.VisitReferenceInfo(this, arg);
 		}
 
+		public override void Accept<TArg>(ITypeInfoVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitReferenceInfo(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is ReferenceInfo referenceInfo)

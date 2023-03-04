@@ -5,64 +5,84 @@ namespace Ripple.Transpiling.C_AST
 {
 	interface ICStatementVisitor
 	{
-		public abstract void VisitExprStmt(ExprStmt exprStmt);
-		public abstract void VisitIfStmt(IfStmt ifStmt);
-		public abstract void VisitWhileStmt(WhileStmt whileStmt);
-		public abstract void VisitForStmt(ForStmt forStmt);
-		public abstract void VisitBlockStmt(BlockStmt blockStmt);
-		public abstract void VisitVarDecl(VarDecl varDecl);
-		public abstract void VisitReturnStmt(ReturnStmt returnStmt);
-		public abstract void VisitBreakStmt(BreakStmt breakStmt);
-		public abstract void VisitContinueStmt(ContinueStmt continueStmt);
-		public abstract void VisitFuncParam(FuncParam funcParam);
-		public abstract void VisitFuncDecl(FuncDecl funcDecl);
-		public abstract void VisitStructMember(StructMember structMember);
-		public abstract void VisitStructDecl(StructDecl structDecl);
-		public abstract void VisitTypeDefStmt(TypeDefStmt typeDefStmt);
-		public abstract void VisitIncludeStmt(IncludeStmt includeStmt);
-		public abstract void VisitFileStmt(FileStmt fileStmt);
-		public abstract void VisitProgramStmt(ProgramStmt programStmt);
+		public abstract void VisitCExprStmt(CExprStmt cExprStmt);
+		public abstract void VisitCIfStmt(CIfStmt cIfStmt);
+		public abstract void VisitCWhileStmt(CWhileStmt cWhileStmt);
+		public abstract void VisitCForStmt(CForStmt cForStmt);
+		public abstract void VisitCBlockStmt(CBlockStmt cBlockStmt);
+		public abstract void VisitCVarDecl(CVarDecl cVarDecl);
+		public abstract void VisitCReturnStmt(CReturnStmt cReturnStmt);
+		public abstract void VisitCBreakStmt(CBreakStmt cBreakStmt);
+		public abstract void VisitCContinueStmt(CContinueStmt cContinueStmt);
+		public abstract void VisitCFuncDef(CFuncDef cFuncDef);
+		public abstract void VisitCFuncDecl(CFuncDecl cFuncDecl);
+		public abstract void VisitCStructMember(CStructMember cStructMember);
+		public abstract void VisitCStructDef(CStructDef cStructDef);
+		public abstract void VisitCStructDecl(CStructDecl cStructDecl);
+		public abstract void VisitCTypeDefStmt(CTypeDefStmt cTypeDefStmt);
+		public abstract void VisitCIncludeStmt(CIncludeStmt cIncludeStmt);
+		public abstract void VisitCFileStmt(CFileStmt cFileStmt);
 	}
 
 	interface ICStatementVisitor<T>
 	{
-		public abstract T VisitExprStmt(ExprStmt exprStmt);
-		public abstract T VisitIfStmt(IfStmt ifStmt);
-		public abstract T VisitWhileStmt(WhileStmt whileStmt);
-		public abstract T VisitForStmt(ForStmt forStmt);
-		public abstract T VisitBlockStmt(BlockStmt blockStmt);
-		public abstract T VisitVarDecl(VarDecl varDecl);
-		public abstract T VisitReturnStmt(ReturnStmt returnStmt);
-		public abstract T VisitBreakStmt(BreakStmt breakStmt);
-		public abstract T VisitContinueStmt(ContinueStmt continueStmt);
-		public abstract T VisitFuncParam(FuncParam funcParam);
-		public abstract T VisitFuncDecl(FuncDecl funcDecl);
-		public abstract T VisitStructMember(StructMember structMember);
-		public abstract T VisitStructDecl(StructDecl structDecl);
-		public abstract T VisitTypeDefStmt(TypeDefStmt typeDefStmt);
-		public abstract T VisitIncludeStmt(IncludeStmt includeStmt);
-		public abstract T VisitFileStmt(FileStmt fileStmt);
-		public abstract T VisitProgramStmt(ProgramStmt programStmt);
+		public abstract T VisitCExprStmt(CExprStmt cExprStmt);
+		public abstract T VisitCIfStmt(CIfStmt cIfStmt);
+		public abstract T VisitCWhileStmt(CWhileStmt cWhileStmt);
+		public abstract T VisitCForStmt(CForStmt cForStmt);
+		public abstract T VisitCBlockStmt(CBlockStmt cBlockStmt);
+		public abstract T VisitCVarDecl(CVarDecl cVarDecl);
+		public abstract T VisitCReturnStmt(CReturnStmt cReturnStmt);
+		public abstract T VisitCBreakStmt(CBreakStmt cBreakStmt);
+		public abstract T VisitCContinueStmt(CContinueStmt cContinueStmt);
+		public abstract T VisitCFuncDef(CFuncDef cFuncDef);
+		public abstract T VisitCFuncDecl(CFuncDecl cFuncDecl);
+		public abstract T VisitCStructMember(CStructMember cStructMember);
+		public abstract T VisitCStructDef(CStructDef cStructDef);
+		public abstract T VisitCStructDecl(CStructDecl cStructDecl);
+		public abstract T VisitCTypeDefStmt(CTypeDefStmt cTypeDefStmt);
+		public abstract T VisitCIncludeStmt(CIncludeStmt cIncludeStmt);
+		public abstract T VisitCFileStmt(CFileStmt cFileStmt);
 	}
 
 	interface ICStatementVisitor<TReturn, TArg>
 	{
-		public abstract TReturn VisitExprStmt(ExprStmt exprStmt, TArg arg);
-		public abstract TReturn VisitIfStmt(IfStmt ifStmt, TArg arg);
-		public abstract TReturn VisitWhileStmt(WhileStmt whileStmt, TArg arg);
-		public abstract TReturn VisitForStmt(ForStmt forStmt, TArg arg);
-		public abstract TReturn VisitBlockStmt(BlockStmt blockStmt, TArg arg);
-		public abstract TReturn VisitVarDecl(VarDecl varDecl, TArg arg);
-		public abstract TReturn VisitReturnStmt(ReturnStmt returnStmt, TArg arg);
-		public abstract TReturn VisitBreakStmt(BreakStmt breakStmt, TArg arg);
-		public abstract TReturn VisitContinueStmt(ContinueStmt continueStmt, TArg arg);
-		public abstract TReturn VisitFuncParam(FuncParam funcParam, TArg arg);
-		public abstract TReturn VisitFuncDecl(FuncDecl funcDecl, TArg arg);
-		public abstract TReturn VisitStructMember(StructMember structMember, TArg arg);
-		public abstract TReturn VisitStructDecl(StructDecl structDecl, TArg arg);
-		public abstract TReturn VisitTypeDefStmt(TypeDefStmt typeDefStmt, TArg arg);
-		public abstract TReturn VisitIncludeStmt(IncludeStmt includeStmt, TArg arg);
-		public abstract TReturn VisitFileStmt(FileStmt fileStmt, TArg arg);
-		public abstract TReturn VisitProgramStmt(ProgramStmt programStmt, TArg arg);
+		public abstract TReturn VisitCExprStmt(CExprStmt cExprStmt, TArg arg);
+		public abstract TReturn VisitCIfStmt(CIfStmt cIfStmt, TArg arg);
+		public abstract TReturn VisitCWhileStmt(CWhileStmt cWhileStmt, TArg arg);
+		public abstract TReturn VisitCForStmt(CForStmt cForStmt, TArg arg);
+		public abstract TReturn VisitCBlockStmt(CBlockStmt cBlockStmt, TArg arg);
+		public abstract TReturn VisitCVarDecl(CVarDecl cVarDecl, TArg arg);
+		public abstract TReturn VisitCReturnStmt(CReturnStmt cReturnStmt, TArg arg);
+		public abstract TReturn VisitCBreakStmt(CBreakStmt cBreakStmt, TArg arg);
+		public abstract TReturn VisitCContinueStmt(CContinueStmt cContinueStmt, TArg arg);
+		public abstract TReturn VisitCFuncDef(CFuncDef cFuncDef, TArg arg);
+		public abstract TReturn VisitCFuncDecl(CFuncDecl cFuncDecl, TArg arg);
+		public abstract TReturn VisitCStructMember(CStructMember cStructMember, TArg arg);
+		public abstract TReturn VisitCStructDef(CStructDef cStructDef, TArg arg);
+		public abstract TReturn VisitCStructDecl(CStructDecl cStructDecl, TArg arg);
+		public abstract TReturn VisitCTypeDefStmt(CTypeDefStmt cTypeDefStmt, TArg arg);
+		public abstract TReturn VisitCIncludeStmt(CIncludeStmt cIncludeStmt, TArg arg);
+		public abstract TReturn VisitCFileStmt(CFileStmt cFileStmt, TArg arg);
+	}
+	interface ICStatementVisitorWithArg<TArg>
+	{
+		public abstract void VisitCExprStmt(CExprStmt cExprStmt, TArg arg);
+		public abstract void VisitCIfStmt(CIfStmt cIfStmt, TArg arg);
+		public abstract void VisitCWhileStmt(CWhileStmt cWhileStmt, TArg arg);
+		public abstract void VisitCForStmt(CForStmt cForStmt, TArg arg);
+		public abstract void VisitCBlockStmt(CBlockStmt cBlockStmt, TArg arg);
+		public abstract void VisitCVarDecl(CVarDecl cVarDecl, TArg arg);
+		public abstract void VisitCReturnStmt(CReturnStmt cReturnStmt, TArg arg);
+		public abstract void VisitCBreakStmt(CBreakStmt cBreakStmt, TArg arg);
+		public abstract void VisitCContinueStmt(CContinueStmt cContinueStmt, TArg arg);
+		public abstract void VisitCFuncDef(CFuncDef cFuncDef, TArg arg);
+		public abstract void VisitCFuncDecl(CFuncDecl cFuncDecl, TArg arg);
+		public abstract void VisitCStructMember(CStructMember cStructMember, TArg arg);
+		public abstract void VisitCStructDef(CStructDef cStructDef, TArg arg);
+		public abstract void VisitCStructDecl(CStructDecl cStructDecl, TArg arg);
+		public abstract void VisitCTypeDefStmt(CTypeDefStmt cTypeDefStmt, TArg arg);
+		public abstract void VisitCIncludeStmt(CIncludeStmt cIncludeStmt, TArg arg);
+		public abstract void VisitCFileStmt(CFileStmt cFileStmt, TArg arg);
 	}
 }

@@ -5,14 +5,14 @@ using Ripple.Utils;
 
 namespace Ripple.Transpiling.C_AST
 {
-	class FuncDecl : CStatement
+	class CFuncDef : CStatement
 	{
 		public readonly CType Returned;
 		public readonly string Name;
-		public readonly List<FuncParam> Parameters;
-		public readonly BlockStmt Body;
+		public readonly List<CFuncParam> Parameters;
+		public readonly CBlockStmt Body;
 
-		public FuncDecl(CType returned, string name, List<FuncParam> parameters, BlockStmt body)
+		public CFuncDef(CType returned, string name, List<CFuncParam> parameters, CBlockStmt body)
 		{
 			this.Returned = returned;
 			this.Name = name;
@@ -22,24 +22,29 @@ namespace Ripple.Transpiling.C_AST
 
 		public override void Accept(ICStatementVisitor visitor)
 		{
-			visitor.VisitFuncDecl(this);
+			visitor.VisitCFuncDef(this);
 		}
 
 		public override T Accept<T>(ICStatementVisitor<T> visitor)
 		{
-			return visitor.VisitFuncDecl(this);
+			return visitor.VisitCFuncDef(this);
 		}
 
 		public override TReturn Accept<TReturn, TArg>(ICStatementVisitor<TReturn, TArg> visitor, TArg arg)
 		{
-			return visitor.VisitFuncDecl(this, arg);
+			return visitor.VisitCFuncDef(this, arg);
+		}
+
+		public override void Accept<TArg>(ICStatementVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitCFuncDef(this, arg);
 		}
 
 		public override bool Equals(object other)
 		{
-			if(other is FuncDecl funcDecl)
+			if(other is CFuncDef cFuncDef)
 			{
-				return Returned.Equals(funcDecl.Returned) && Name.Equals(funcDecl.Name) && Parameters.Equals(funcDecl.Parameters) && Body.Equals(funcDecl.Body);
+				return Returned.Equals(cFuncDef.Returned) && Name.Equals(cFuncDef.Name) && Parameters.Equals(cFuncDef.Parameters) && Body.Equals(cFuncDef.Body);
 			}
 			return false;
 		}

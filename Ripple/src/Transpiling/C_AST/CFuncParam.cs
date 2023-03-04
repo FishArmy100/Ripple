@@ -5,35 +5,20 @@ using Ripple.Utils;
 
 namespace Ripple.Transpiling.C_AST
 {
-	class FuncParam : CStatement
+	class CFuncParam
 	{
 		public readonly CType Type;
 		public readonly string Name;
 
-		public FuncParam(CType type, string name)
+		public CFuncParam(CType type, string name)
 		{
 			this.Type = type;
 			this.Name = name;
 		}
 
-		public override void Accept(ICStatementVisitor visitor)
-		{
-			visitor.VisitFuncParam(this);
-		}
-
-		public override T Accept<T>(ICStatementVisitor<T> visitor)
-		{
-			return visitor.VisitFuncParam(this);
-		}
-
-		public override TReturn Accept<TReturn, TArg>(ICStatementVisitor<TReturn, TArg> visitor, TArg arg)
-		{
-			return visitor.VisitFuncParam(this, arg);
-		}
-
 		public override bool Equals(object other)
 		{
-			if(other is FuncParam funcParam)
+			if(other is CFuncParam funcParam)
 			{
 				return Type.Equals(funcParam.Type) && Name.Equals(funcParam.Name);
 			}

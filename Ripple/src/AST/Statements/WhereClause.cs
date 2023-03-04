@@ -33,6 +33,11 @@ namespace Ripple.AST
 			return visitor.VisitWhereClause(this, arg);
 		}
 
+		public override void Accept<TArg>(IStatementVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitWhereClause(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is WhereClause whereClause)

@@ -38,4 +38,15 @@ namespace Ripple.Transpiling.C_AST
 		public abstract TReturn VisitCSizeOf(CSizeOf cSizeOf, TArg arg);
 		public abstract TReturn VisitCLiteral(CLiteral cLiteral, TArg arg);
 	}
+	interface ICExpressionVisitorWithArg<TArg>
+	{
+		public abstract void VisitCBinary(CBinary cBinary, TArg arg);
+		public abstract void VisitCUnary(CUnary cUnary, TArg arg);
+		public abstract void VisitCIndex(CIndex cIndex, TArg arg);
+		public abstract void VisitCCall(CCall cCall, TArg arg);
+		public abstract void VisitCCast(CCast cCast, TArg arg);
+		public abstract void VisitCIdentifier(CIdentifier cIdentifier, TArg arg);
+		public abstract void VisitCSizeOf(CSizeOf cSizeOf, TArg arg);
+		public abstract void VisitCLiteral(CLiteral cLiteral, TArg arg);
+	}
 }

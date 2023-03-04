@@ -35,6 +35,11 @@ namespace Ripple.AST
 			return visitor.VisitParameters(this, arg);
 		}
 
+		public override void Accept<TArg>(IStatementVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitParameters(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is Parameters parameters)

@@ -37,6 +37,11 @@ namespace Ripple.AST
 			return visitor.VisitUnsafeBlock(this, arg);
 		}
 
+		public override void Accept<TArg>(IStatementVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitUnsafeBlock(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is UnsafeBlock unsafeBlock)

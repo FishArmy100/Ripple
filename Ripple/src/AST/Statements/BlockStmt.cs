@@ -35,6 +35,11 @@ namespace Ripple.AST
 			return visitor.VisitBlockStmt(this, arg);
 		}
 
+		public override void Accept<TArg>(IStatementVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitBlockStmt(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is BlockStmt blockStmt)

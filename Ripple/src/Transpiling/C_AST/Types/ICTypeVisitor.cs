@@ -26,4 +26,11 @@ namespace Ripple.Transpiling.C_AST
 		public abstract TReturn VisitCArray(CArray cArray, TArg arg);
 		public abstract TReturn VisitCFuncPtr(CFuncPtr cFuncPtr, TArg arg);
 	}
+	interface ICTypeVisitorWithArg<TArg>
+	{
+		public abstract void VisitCBasicType(CBasicType cBasicType, TArg arg);
+		public abstract void VisitCPointer(CPointer cPointer, TArg arg);
+		public abstract void VisitCArray(CArray cArray, TArg arg);
+		public abstract void VisitCFuncPtr(CFuncPtr cFuncPtr, TArg arg);
+	}
 }

@@ -5,37 +5,44 @@ using Ripple.Utils;
 
 namespace Ripple.Transpiling.C_AST
 {
-	class TypeDefStmt : CStatement
+	class CVarDecl : CStatement
 	{
 		public readonly CType Type;
 		public readonly string Name;
+		public readonly Option<CExpression> Initializer;
 
-		public TypeDefStmt(CType type, string name)
+		public CVarDecl(CType type, string name, Option<CExpression> initializer)
 		{
 			this.Type = type;
 			this.Name = name;
+			this.Initializer = initializer;
 		}
 
 		public override void Accept(ICStatementVisitor visitor)
 		{
-			visitor.VisitTypeDefStmt(this);
+			visitor.VisitCVarDecl(this);
 		}
 
 		public override T Accept<T>(ICStatementVisitor<T> visitor)
 		{
-			return visitor.VisitTypeDefStmt(this);
+			return visitor.VisitCVarDecl(this);
 		}
 
 		public override TReturn Accept<TReturn, TArg>(ICStatementVisitor<TReturn, TArg> visitor, TArg arg)
 		{
-			return visitor.VisitTypeDefStmt(this, arg);
+			return visitor.VisitCVarDecl(this, arg);
+		}
+
+		public override void Accept<TArg>(ICStatementVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitCVarDecl(this, arg);
 		}
 
 		public override bool Equals(object other)
 		{
-			if(other is TypeDefStmt typeDefStmt)
+			if(other is CVarDecl cVarDecl)
 			{
-				return Type.Equals(typeDefStmt.Type) && Name.Equals(typeDefStmt.Name);
+				return Type.Equals(cVarDecl.Type) && Name.Equals(cVarDecl.Name) && Initializer.Equals(cVarDecl.Initializer);
 			}
 			return false;
 		}
@@ -45,6 +52,7 @@ namespace Ripple.Transpiling.C_AST
 			HashCode code = new HashCode();
 			code.Add(Type);
 			code.Add(Name);
+			code.Add(Initializer);
 			return code.ToHashCode();
 		}
 	}

@@ -10,7 +10,7 @@ namespace Ripple.Transpiling.Source_Generation
 {
 	static class CTypeSourceGenerator
 	{
-		public static string GenerateTypeName(CType type, Option<string> baseName)
+		public static string GenerateSource(CType type, Option<string> baseName)
 		{
 			return type.Accept(new CTypeNameGeneratorVisitor(), baseName);
 		}

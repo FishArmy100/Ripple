@@ -19,9 +19,11 @@ namespace Ripple.Transpiling.Source_Generation
 		public const string DOUBLE = "double";
 		public const string ELSE = "else";
 		public const string ENUM = "enum";
+		public const string FALSE = "false";
 		public const string IF = "if";
 		public const string GOTO = "goto";
 		public const string FLOAT = "float";
+		public const string FOR = "for";
 		public const string INT = "int";
 		public const string LONG = "long";
 		public const string REGISTER = "register";
@@ -32,6 +34,7 @@ namespace Ripple.Transpiling.Source_Generation
 		public const string SHORT = "short";
 		public const string STRUCT = "struct";
 		public const string SWITCH = "switch";
+		public const string TRUE = "true";
 		public const string TYPEDEF = "typedef";
 		public const string UNION = "union";
 		public const string VOID = "void";

@@ -29,6 +29,11 @@ namespace Ripple.Transpiling.C_AST
 			return visitor.VisitCIdentifier(this, arg);
 		}
 
+		public override void Accept<TArg>(ICExpressionVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitCIdentifier(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is CIdentifier cIdentifier)

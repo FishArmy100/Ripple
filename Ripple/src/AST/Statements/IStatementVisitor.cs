@@ -65,4 +65,24 @@ namespace Ripple.AST
 		public abstract TReturn VisitFileStmt(FileStmt fileStmt, TArg arg);
 		public abstract TReturn VisitProgramStmt(ProgramStmt programStmt, TArg arg);
 	}
+	interface IStatementVisitorWithArg<TArg>
+	{
+		public abstract void VisitExprStmt(ExprStmt exprStmt, TArg arg);
+		public abstract void VisitBlockStmt(BlockStmt blockStmt, TArg arg);
+		public abstract void VisitIfStmt(IfStmt ifStmt, TArg arg);
+		public abstract void VisitForStmt(ForStmt forStmt, TArg arg);
+		public abstract void VisitWhileStmt(WhileStmt whileStmt, TArg arg);
+		public abstract void VisitVarDecl(VarDecl varDecl, TArg arg);
+		public abstract void VisitReturnStmt(ReturnStmt returnStmt, TArg arg);
+		public abstract void VisitContinueStmt(ContinueStmt continueStmt, TArg arg);
+		public abstract void VisitBreakStmt(BreakStmt breakStmt, TArg arg);
+		public abstract void VisitParameters(Parameters parameters, TArg arg);
+		public abstract void VisitGenericParameters(GenericParameters genericParameters, TArg arg);
+		public abstract void VisitWhereClause(WhereClause whereClause, TArg arg);
+		public abstract void VisitUnsafeBlock(UnsafeBlock unsafeBlock, TArg arg);
+		public abstract void VisitFuncDecl(FuncDecl funcDecl, TArg arg);
+		public abstract void VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl, TArg arg);
+		public abstract void VisitFileStmt(FileStmt fileStmt, TArg arg);
+		public abstract void VisitProgramStmt(ProgramStmt programStmt, TArg arg);
+	}
 }

@@ -33,6 +33,11 @@ namespace Ripple.Validation.Info.Types
 			return visitor.VisitPointerInfo(this, arg);
 		}
 
+		public override void Accept<TArg>(ITypeInfoVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitPointerInfo(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is PointerInfo pointerInfo)

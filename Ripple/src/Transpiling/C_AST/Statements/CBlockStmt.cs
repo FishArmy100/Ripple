@@ -5,35 +5,40 @@ using Ripple.Utils;
 
 namespace Ripple.Transpiling.C_AST
 {
-	class IfStmt : CStatement
+	class CBlockStmt : CStatement
 	{
-		public readonly CExpression Condition;
+		public readonly List<CStatement> Statements;
 
-		public IfStmt(CExpression condition)
+		public CBlockStmt(List<CStatement> statements)
 		{
-			this.Condition = condition;
+			this.Statements = statements;
 		}
 
 		public override void Accept(ICStatementVisitor visitor)
 		{
-			visitor.VisitIfStmt(this);
+			visitor.VisitCBlockStmt(this);
 		}
 
 		public override T Accept<T>(ICStatementVisitor<T> visitor)
 		{
-			return visitor.VisitIfStmt(this);
+			return visitor.VisitCBlockStmt(this);
 		}
 
 		public override TReturn Accept<TReturn, TArg>(ICStatementVisitor<TReturn, TArg> visitor, TArg arg)
 		{
-			return visitor.VisitIfStmt(this, arg);
+			return visitor.VisitCBlockStmt(this, arg);
+		}
+
+		public override void Accept<TArg>(ICStatementVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitCBlockStmt(this, arg);
 		}
 
 		public override bool Equals(object other)
 		{
-			if(other is IfStmt ifStmt)
+			if(other is CBlockStmt cBlockStmt)
 			{
-				return Condition.Equals(ifStmt.Condition);
+				return Statements.Equals(cBlockStmt.Statements);
 			}
 			return false;
 		}
@@ -41,7 +46,7 @@ namespace Ripple.Transpiling.C_AST
 		public override int GetHashCode()
 		{
 			HashCode code = new HashCode();
-			code.Add(Condition);
+			code.Add(Statements);
 			return code.ToHashCode();
 		}
 	}

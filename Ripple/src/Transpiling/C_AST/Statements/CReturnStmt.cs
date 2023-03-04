@@ -5,35 +5,40 @@ using Ripple.Utils;
 
 namespace Ripple.Transpiling.C_AST
 {
-	class ReturnStmt : CStatement
+	class CReturnStmt : CStatement
 	{
-		public readonly CExpression Expression;
+		public readonly Option<CExpression> Expression;
 
-		public ReturnStmt(CExpression expression)
+		public CReturnStmt(Option<CExpression> expression)
 		{
 			this.Expression = expression;
 		}
 
 		public override void Accept(ICStatementVisitor visitor)
 		{
-			visitor.VisitReturnStmt(this);
+			visitor.VisitCReturnStmt(this);
 		}
 
 		public override T Accept<T>(ICStatementVisitor<T> visitor)
 		{
-			return visitor.VisitReturnStmt(this);
+			return visitor.VisitCReturnStmt(this);
 		}
 
 		public override TReturn Accept<TReturn, TArg>(ICStatementVisitor<TReturn, TArg> visitor, TArg arg)
 		{
-			return visitor.VisitReturnStmt(this, arg);
+			return visitor.VisitCReturnStmt(this, arg);
+		}
+
+		public override void Accept<TArg>(ICStatementVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitCReturnStmt(this, arg);
 		}
 
 		public override bool Equals(object other)
 		{
-			if(other is ReturnStmt returnStmt)
+			if(other is CReturnStmt cReturnStmt)
 			{
-				return Expression.Equals(returnStmt.Expression);
+				return Expression.Equals(cReturnStmt.Expression);
 			}
 			return false;
 		}

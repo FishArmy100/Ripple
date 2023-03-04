@@ -5,35 +5,40 @@ using Ripple.Utils;
 
 namespace Ripple.Transpiling.C_AST
 {
-	class IncludeStmt : CStatement
+	class CStructDecl : CStatement
 	{
-		public readonly string File;
+		public readonly string Name;
 
-		public IncludeStmt(string file)
+		public CStructDecl(string name)
 		{
-			this.File = file;
+			this.Name = name;
 		}
 
 		public override void Accept(ICStatementVisitor visitor)
 		{
-			visitor.VisitIncludeStmt(this);
+			visitor.VisitCStructDecl(this);
 		}
 
 		public override T Accept<T>(ICStatementVisitor<T> visitor)
 		{
-			return visitor.VisitIncludeStmt(this);
+			return visitor.VisitCStructDecl(this);
 		}
 
 		public override TReturn Accept<TReturn, TArg>(ICStatementVisitor<TReturn, TArg> visitor, TArg arg)
 		{
-			return visitor.VisitIncludeStmt(this, arg);
+			return visitor.VisitCStructDecl(this, arg);
+		}
+
+		public override void Accept<TArg>(ICStatementVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitCStructDecl(this, arg);
 		}
 
 		public override bool Equals(object other)
 		{
-			if(other is IncludeStmt includeStmt)
+			if(other is CStructDecl cStructDecl)
 			{
-				return File.Equals(includeStmt.File);
+				return Name.Equals(cStructDecl.Name);
 			}
 			return false;
 		}
@@ -41,7 +46,7 @@ namespace Ripple.Transpiling.C_AST
 		public override int GetHashCode()
 		{
 			HashCode code = new HashCode();
-			code.Add(File);
+			code.Add(Name);
 			return code.ToHashCode();
 		}
 	}

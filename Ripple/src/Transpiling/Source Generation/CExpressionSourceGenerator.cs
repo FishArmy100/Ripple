@@ -10,7 +10,7 @@ namespace Ripple.Transpiling.Source_Generation
 {
 	static class CExpressionSourceGenerator
 	{
-		public static string GenerateCExpressionSource(CExpression expression)
+		public static string GenerateSource(CExpression expression)
 		{
 			return expression.Accept(new CExpressionSourceGeneratorVisitor());
 		}
@@ -46,7 +46,7 @@ namespace Ripple.Transpiling.Source_Generation
 
 			public string VisitCCast(CCast cast)
 			{
-				string typeName = CTypeSourceGenerator.GenerateTypeName(cast.Type, new Option<string>());
+				string typeName = CTypeSourceGenerator.GenerateSource(cast.Type, new Option<string>());
 				string arg = GroupIfTrue(cast.Castee, cast.Castee is CBinary);
 				return $"({typeName}){arg}";
 			}
@@ -71,13 +71,15 @@ namespace Ripple.Transpiling.Source_Generation
 					CLiteralType.Intager => $"{(int)literal.Value}",
 					CLiteralType.Charactor => $"\'{(char)literal.Value}\'",
 					CLiteralType.Float => $"{(int)literal.Value}",
+					CLiteralType.True => CKeywords.TRUE,
+					CLiteralType.False => CKeywords.FALSE,
 					_ => throw new ArgumentException("Unknown literal type " + literal.Type),
 				};
 			}
 
 			public string VisitCSizeOf(CSizeOf sizeOf)
 			{
-				string typeName = CTypeSourceGenerator.GenerateTypeName(sizeOf.Type, new Option<string>());
+				string typeName = CTypeSourceGenerator.GenerateSource(sizeOf.Type, new Option<string>());
 				return CKeywords.SIZEOF + Group(typeName);
 			}
 

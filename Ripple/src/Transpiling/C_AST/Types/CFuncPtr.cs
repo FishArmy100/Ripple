@@ -31,6 +31,11 @@ namespace Ripple.Transpiling.C_AST
 			return visitor.VisitCFuncPtr(this, arg);
 		}
 
+		public override void Accept<TArg>(ICTypeVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitCFuncPtr(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is CFuncPtr cFuncPtr)

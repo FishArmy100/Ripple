@@ -5,39 +5,42 @@ using Ripple.Utils;
 
 namespace Ripple.Transpiling.C_AST
 {
-	class ForStmt : CStatement
+	class CWhileStmt : CStatement
 	{
-		public readonly VarDecl Initalizer;
 		public readonly CExpression Condition;
-		public readonly CExpression Iterator;
+		public readonly CStatement Body;
 
-		public ForStmt(VarDecl initalizer, CExpression condition, CExpression iterator)
+		public CWhileStmt(CExpression condition, CStatement body)
 		{
-			this.Initalizer = initalizer;
 			this.Condition = condition;
-			this.Iterator = iterator;
+			this.Body = body;
 		}
 
 		public override void Accept(ICStatementVisitor visitor)
 		{
-			visitor.VisitForStmt(this);
+			visitor.VisitCWhileStmt(this);
 		}
 
 		public override T Accept<T>(ICStatementVisitor<T> visitor)
 		{
-			return visitor.VisitForStmt(this);
+			return visitor.VisitCWhileStmt(this);
 		}
 
 		public override TReturn Accept<TReturn, TArg>(ICStatementVisitor<TReturn, TArg> visitor, TArg arg)
 		{
-			return visitor.VisitForStmt(this, arg);
+			return visitor.VisitCWhileStmt(this, arg);
+		}
+
+		public override void Accept<TArg>(ICStatementVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitCWhileStmt(this, arg);
 		}
 
 		public override bool Equals(object other)
 		{
-			if(other is ForStmt forStmt)
+			if(other is CWhileStmt cWhileStmt)
 			{
-				return Initalizer.Equals(forStmt.Initalizer) && Condition.Equals(forStmt.Condition) && Iterator.Equals(forStmt.Iterator);
+				return Condition.Equals(cWhileStmt.Condition) && Body.Equals(cWhileStmt.Body);
 			}
 			return false;
 		}
@@ -45,9 +48,8 @@ namespace Ripple.Transpiling.C_AST
 		public override int GetHashCode()
 		{
 			HashCode code = new HashCode();
-			code.Add(Initalizer);
 			code.Add(Condition);
-			code.Add(Iterator);
+			code.Add(Body);
 			return code.ToHashCode();
 		}
 	}

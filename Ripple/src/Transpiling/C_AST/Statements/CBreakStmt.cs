@@ -5,31 +5,36 @@ using Ripple.Utils;
 
 namespace Ripple.Transpiling.C_AST
 {
-	class BreakStmt : CStatement
+	class CBreakStmt : CStatement
 	{
 
-		public BreakStmt()
+		public CBreakStmt()
 		{
 		}
 
 		public override void Accept(ICStatementVisitor visitor)
 		{
-			visitor.VisitBreakStmt(this);
+			visitor.VisitCBreakStmt(this);
 		}
 
 		public override T Accept<T>(ICStatementVisitor<T> visitor)
 		{
-			return visitor.VisitBreakStmt(this);
+			return visitor.VisitCBreakStmt(this);
 		}
 
 		public override TReturn Accept<TReturn, TArg>(ICStatementVisitor<TReturn, TArg> visitor, TArg arg)
 		{
-			return visitor.VisitBreakStmt(this, arg);
+			return visitor.VisitCBreakStmt(this, arg);
+		}
+
+		public override void Accept<TArg>(ICStatementVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitCBreakStmt(this, arg);
 		}
 
 		public override bool Equals(object other)
 		{
-			if(other is BreakStmt breakStmt)
+			if(other is CBreakStmt cBreakStmt)
 			{
 				return true;
 			}
@@ -38,7 +43,7 @@ namespace Ripple.Transpiling.C_AST
 
 		public override int GetHashCode()
 		{
-			return typeof(BreakStmt).Name.GetHashCode();
+			return typeof(CBreakStmt).Name.GetHashCode();
 		}
 	}
 }
