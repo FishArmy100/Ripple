@@ -8,7 +8,9 @@ using Sharprompt;
 using Ripple.AST.Utils;
 using Ripple.Utils.Extensions;
 using Ripple.Transpiling.C_AST;
-using Ripple.Transpiling.Source_Generation;
+using Ripple.Transpiling.SourceGeneration;
+using Ripple.Transpiling.ASTConversion;
+using Ripple.Transpiling.ASTConversion.SimplifiedTypes;
 
 namespace Ripple.App
 {
@@ -200,27 +202,12 @@ namespace Ripple.App
 
         private static void TestTranspiler()
 		{
-            CStatement program = new CFileStmt(
-                new List<CIncludeStmt>
-                {
-                    new CIncludeStmt("stdio.h")
-                },
-                new List<CStatement> 
-                {
-                    new CFuncDef(CPrimatives.Int, "main", new (){ }, new CBlockStmt(
-                        new List<CStatement>
-                        {
-                            new CExprStmt(new CCall(new CIdentifier("printf"), 
-                                new ()
-                                {
-                                    new CLiteral("Hello World!", CLiteralType.String)
-                                })),
+            CArrayRegistry registry = new CArrayRegistry();
+            SArray type = new SArray(false, new SArray(false, new SBasicType(false, "int"), 4), 4);
+            registry.GetArrayAlias(type);
+            CFileStmt file = new CFileStmt(new List<CIncludeStmt>(), registry.GetArrayAliasStructs().ConvertAll(a => a as CStatement), "", CFileType.Header);
 
-                            new CReturnStmt(new CLiteral(0, CLiteralType.Intager))
-                        }))
-                }, CFileType.Source);
-
-            ConsoleHelper.WriteLine(CStatementSourceGenerator.GenerateSource(program));
+            ConsoleHelper.WriteLine(CStatementSourceGenerator.GenerateSource(file));
 		}
 
 		private void RunCompiler()

@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple.Source_Generation.Transpiling
+namespace Ripple.SourceGeneration.Transpiling
 {
 	static class CCodeGenerator
 	{
+
 	}
 }

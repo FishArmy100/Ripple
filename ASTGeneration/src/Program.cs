@@ -3,8 +3,6 @@ using System.Collections.Generic;
 
 namespace ASTGeneration
 {
-    struct Token { }
-
     class Program
     {
         static void Main(string[] args)
@@ -64,7 +62,7 @@ namespace ASTGeneration
                 "CStructDecl : string Name",
                 "CTypeDefStmt : CType Type; string Name",
                 "CIncludeStmt : string File",
-                "CFileStmt : List<CIncludeStmt> Includes; List<CStatement> Statements; CFileType FileType",
+                "CFileStmt : List<CIncludeStmt> Includes; List<CStatement> Statements; string RelativePath; CFileType FileType",
             }, additionalUsings);
         }
 
@@ -134,6 +132,16 @@ namespace ASTGeneration
                 "ReferenceInfo : bool IsMutable; TypeInfo Contained; Option<ReferenceLifetime> Lifetime",
                 "ArrayInfo : bool IsMutable; TypeInfo Contained; int Size",
                 "FuncPtrInfo : bool IsMutable; int FunctionIndex; int LifetimeCount; List<TypeInfo> Parameters; TypeInfo Returned"
+            }, additionalUsings);
+
+            // Simplified types
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Transpiling\\ASTConversion\\SimplifiedTypes", "Ripple.Transpiling.ASTConversion.SimplifiedTypes", "SimplifiedType", new List<string>
+            {
+                "SBasicType : bool IsMutable; string Name",
+                "SPointer : bool IsMutable; SimplifiedType Contained",
+                "SReference : bool IsMutable; SimplifiedType Contained",
+                "SArray : bool IsMutable; SimplifiedType Contained; int Size",
+                "SFuncPtr : bool IsMutable; List<SimplifiedType> Parameters; SimplifiedType Returned"
             }, additionalUsings);
         }
     }

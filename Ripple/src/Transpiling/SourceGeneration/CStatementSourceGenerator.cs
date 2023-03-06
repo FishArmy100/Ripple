@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Transpiling.C_AST;
 
-namespace Ripple.Transpiling.Source_Generation
+namespace Ripple.Transpiling.SourceGeneration
 {
 	static class CStatementSourceGenerator
 	{

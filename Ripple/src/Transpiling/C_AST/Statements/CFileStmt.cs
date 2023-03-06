@@ -9,12 +9,14 @@ namespace Ripple.Transpiling.C_AST
 	{
 		public readonly List<CIncludeStmt> Includes;
 		public readonly List<CStatement> Statements;
+		public readonly string RelativePath;
 		public readonly CFileType FileType;
 
-		public CFileStmt(List<CIncludeStmt> includes, List<CStatement> statements, CFileType fileType)
+		public CFileStmt(List<CIncludeStmt> includes, List<CStatement> statements, string relativePath, CFileType fileType)
 		{
 			this.Includes = includes;
 			this.Statements = statements;
+			this.RelativePath = relativePath;
 			this.FileType = fileType;
 		}
 
@@ -42,7 +44,7 @@ namespace Ripple.Transpiling.C_AST
 		{
 			if(other is CFileStmt cFileStmt)
 			{
-				return Includes.Equals(cFileStmt.Includes) && Statements.Equals(cFileStmt.Statements) && FileType.Equals(cFileStmt.FileType);
+				return Includes.Equals(cFileStmt.Includes) && Statements.Equals(cFileStmt.Statements) && RelativePath.Equals(cFileStmt.RelativePath) && FileType.Equals(cFileStmt.FileType);
 			}
 			return false;
 		}
@@ -52,6 +54,7 @@ namespace Ripple.Transpiling.C_AST
 			HashCode code = new HashCode();
 			code.Add(Includes);
 			code.Add(Statements);
+			code.Add(RelativePath);
 			code.Add(FileType);
 			return code.ToHashCode();
 		}

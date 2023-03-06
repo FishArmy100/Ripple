@@ -30,17 +30,19 @@ func main() -> int
 ```
 
 ### Doodles
-```c++
-(4 + 5) * 6
+```c
+int[4][4] array; // in ripple
 
-Binary Expression: *
-    Left: 
-        Binary Expression
-            Left:
-                Literal 4
-            Right:
-                Literal 5
-    Right:
-        Literal 6
+// Would become:
+
+struct int_array_4
+{
+    int Data[4];
+}
+
+struct int_array_4_array_4
+{
+    _int_array_4 Data[4];
+}
 
 ```

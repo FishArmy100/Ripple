@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Ripple.Transpiling.C_AST;
 using Ripple.Utils;
 
-namespace Ripple.Transpiling.Source_Generation
+namespace Ripple.Transpiling.SourceGeneration
 {
 	static class CExpressionSourceGenerator
 	{
