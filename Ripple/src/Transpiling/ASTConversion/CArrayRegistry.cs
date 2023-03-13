@@ -18,6 +18,7 @@ namespace Ripple.Transpiling.ASTConversion
 
 		public List<CStructDef> GetArrayAliasStructs() => m_OrderedArrayStructs;
 
+
 		public CStructDef GetArrayAlias(SArray array)
 		{
 			if(m_ArrayStructs.TryGetValue(array, out CStructDef alias))

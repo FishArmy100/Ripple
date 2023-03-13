@@ -41,6 +41,7 @@ namespace ASTGeneration
                 "CCast : CExpression Castee; CType Type",
                 "CIdentifier : string Id",
                 "CSizeOf : CType Type",
+                "CMemberAccess : CExpression Expression; string Identifier",
                 "CLiteral : object Value; CLiteralType Type"
             }, additionalUsings);
 

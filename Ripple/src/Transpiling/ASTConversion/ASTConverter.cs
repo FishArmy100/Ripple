@@ -7,6 +7,7 @@ using Ripple.Transpiling.C_AST;
 using Ripple.AST;
 using Ripple.Transpiling.ASTConversion.SimplifiedTypes;
 using Ripple.Utils;
+using Ripple.Transpiling.SourceGeneration;
 
 namespace Ripple.Transpiling.ASTConversion
 {
@@ -20,111 +21,147 @@ namespace Ripple.Transpiling.ASTConversion
 		public static CType ConvertToCType(TypeName name, ref CArrayRegistry registry)
 		{
 			SimplifiedType simplified = SimplifiedTypeGenerator.Generate(name);
-			return simplified.Accept(new TypeNameToCTypeConverterVisitor(registry));
+			return simplified.Accept(new SimplifiedTypeToCTypeConverterVisitor(registry));
 		}
+
+		public static CType ConvertToCType(SimplifiedType type, ref CArrayRegistry registry)
+        {
+			return type.Accept(new SimplifiedTypeToCTypeConverterVisitor(registry));
+        }
 
 		public static Pair<CExpression, List<CVarDecl>> ConvertToCExpression(Expression expression, string varPrefix, ref CArrayRegistry registry)
 		{
-			
+			 
 		}
 
 		private class ExpressionToCExpressionConverterVisitor : IExpressionVisitor<Pair<ReturnedValue, CExpression>>
 		{
 			public readonly List<CVarDecl> PromotedTempararyVariables = new List<CVarDecl>();
+			public readonly ListStack<KeyValuePair<string, SimplifiedType>> m_Variables;
+			public readonly Dictionary<string, >
 			private CArrayRegistry m_Regsitry;
 
-			public ExpressionToCExpressionConverterVisitor(CArrayRegistry regsitry)
+			public ExpressionToCExpressionConverterVisitor(CArrayRegistry regsitry, ListStack<KeyValuePair<string, CType>> variables)
 			{
 				m_Regsitry = regsitry;
+				m_Variables = variables;
 			}
 
-			public Pair<ReturnedValue, CExpression> VisitBinary(Binary binary)
-			{
-				CExpression left = binary.Left.Accept(this).Second;
-				CExpression right = binary.Right.Accept(this).Second;
+            public Pair<ReturnedValue, CExpression> VisitBinary(Binary binary)
+            {
+				var left = binary.Left.Accept(this);
+				var right = binary.Right.Accept(this);
 				CBinaryOperator op = RippleToCConversionUtils.ToBinary(binary.Op.Type);
-				return new Pair<ReturnedValue, CExpression>(new ReturnedValue(true), new CBinary(left, op, right));
+				CBinary cBinary = new CBinary(left.Second, op, right.Second);
+
+				if (left.First.Type is SPointer ptr1)
+                {
+					ReturnedValue value = new ReturnedValue(ValueType.Temp, ptr1);
+					return new Pair<ReturnedValue, CExpression>(value, cBinary);
+                }
+				else if(right.First.Type is SPointer ptr2)
+                {
+					ReturnedValue value = new ReturnedValue(ValueType.Temp, ptr2);
+					return new Pair<ReturnedValue, CExpression>(value, cBinary);
+				}
+
+				ReturnedValue returned = new ReturnedValue(ValueType.Temp, left.First.Type);
+				return new Pair<ReturnedValue, CExpression>(returned, cBinary);
 			}
 
-			public Pair<ReturnedValue, CExpression> VisitCall(Call call)
-			{
-				List<CExpression> args = call.Args.Select(a => a.Accept(this)).Select(a => a.Second).ToList();
-				CExpression callee = call.Callee.Accept(this).Second;
-				CCall ccall = new CCall(callee, args);
-				return new Pair<ReturnedValue, CExpression>(new ReturnedValue(true), ccall);
-			}
+            public Pair<ReturnedValue, CExpression> VisitCall(Call call)
+            {
+				var callee = call.Callee.Accept(this);
+				if(callee.First.Type is SFuncPtr ptr)
+                {
+					var args = call.Args.Select(a => a.Accept(this));
+					CCall cCall = new CCall(callee.Second, args.Select(a => a.Second).ToList());
+					ReturnedValue returned = new ReturnedValue(ValueType.Temp, ptr.Returned);
+					return new Pair<ReturnedValue, CExpression>(returned, cCall);
+                }
 
-			public Pair<ReturnedValue, CExpression> VisitCast(Cast cast)
-			{
-				CType type = ConvertToCType(cast.TypeToCastTo, ref m_Regsitry);
-				CExpression castee = cast.Castee.Accept(this).Second;
-				CCast ccast = new CCast(castee, type);
-				return new Pair<ReturnedValue, CExpression>(new ReturnedValue(true), ccast);
-			}
+				throw new TranspilingException("Called type is not of type function pointer");
+            }
 
-			public Pair<ReturnedValue, CExpression> VisitGrouping(Grouping grouping)
-			{
+            public Pair<ReturnedValue, CExpression> VisitCast(Cast cast)
+            {
+				var castee = cast.Castee.Accept(this);
+				SimplifiedType type = SimplifiedTypeGenerator.Generate(cast.TypeToCastTo);
+				CCast cCast = new CCast(castee.Second, ConvertToCType(type, ref m_Regsitry));
+				ReturnedValue returned = new ReturnedValue(ValueType.Temp, type);
+				return new Pair<ReturnedValue, CExpression>(returned, cCast);
+            }
+
+            public Pair<ReturnedValue, CExpression> VisitGrouping(Grouping grouping)
+            {
 				return grouping.Expr.Accept(this);
-			}
+            }
 
-			public Pair<ReturnedValue, CExpression> VisitIdentifier(Identifier identifier)
-			{
-				CIdentifier id = new CIdentifier(identifier.Name.Text);
-				return new Pair<ReturnedValue, CExpression>(new ReturnedValue(false), id);
-			}
+            public Pair<ReturnedValue, CExpression> VisitIdentifier(Identifier identifier)
+            {
+                throw new NotImplementedException();
+            }
 
-			public Pair<ReturnedValue, CExpression> VisitIndex(AST.Index index)
-			{
-				CExpression arg = index.Argument.Accept(this).Second;
-				CExpression indexee = index.Indexed.Accept(this).Second;
-				CIndex cIndex = new CIndex(indexee, arg);
-				return new Pair<ReturnedValue, CExpression>(new ReturnedValue(false), cIndex);
-			}
+            public Pair<ReturnedValue, CExpression> VisitIndex(AST.Index index)
+            {
+                throw new NotImplementedException();
+            }
 
-			public Pair<ReturnedValue, CExpression> VisitInitializerList(InitializerList initializerList)
-			{
-				throw new NotImplementedException();
-			}
+            public Pair<ReturnedValue, CExpression> VisitInitializerList(InitializerList initializerList)
+            {
+                throw new NotImplementedException();
+            }
 
-			public Pair<ReturnedValue, CExpression> VisitLiteral(Literal literal)
-			{
-				CLiteral cLiteral = RippleToCConversionUtils.ToLiteral(literal);
-				return new Pair<ReturnedValue, CExpression>(new ReturnedValue(true), cLiteral);
-			}
+            public Pair<ReturnedValue, CExpression> VisitLiteral(Literal literal)
+            {
+                throw new NotImplementedException();
+            }
 
-			public Pair<ReturnedValue, CExpression> VisitSizeOf(SizeOf sizeOf)
-			{
-				CType type = ConvertToCType(sizeOf.Type, ref m_Regsitry);
-				CSizeOf cSizeOf = new CSizeOf(type);
-				return new Pair<ReturnedValue, CExpression>(new ReturnedValue(true), cSizeOf);
-			}
+            public Pair<ReturnedValue, CExpression> VisitSizeOf(SizeOf sizeOf)
+            {
+                throw new NotImplementedException();
+            }
 
-			public Pair<ReturnedValue, CExpression> VisitTypeExpression(TypeExpression typeExpression)
-			{
-				throw new NotImplementedException();
-			}
+            public Pair<ReturnedValue, CExpression> VisitTypeExpression(TypeExpression typeExpression)
+            {
+                throw new NotImplementedException();
+            }
 
-			public Pair<ReturnedValue, CExpression> VisitUnary(Unary unary)
+            public Pair<ReturnedValue, CExpression> VisitUnary(Unary unary)
+            {
+                throw new NotImplementedException();
+            }
+
+            private CVarDecl GenerateCVarDecl(int id, string prefix, CExpression initalizer)
 			{
-				throw new NotImplementedException();
+				string name = $"{prefix}_temp_{id}";
+				return new CVarDecl(new CBasicType(CKeywords.AUTO, false), name, initalizer);
 			}
 		}
+
+		private enum ValueType
+        {
+			Temp,
+			Var
+        }
 
 		private readonly struct ReturnedValue
 		{
-			public readonly bool IsTemparary;
+			public readonly ValueType ValueType;
+			public readonly SimplifiedType Type;
 
-			public ReturnedValue(bool isTemp)
-			{
-				IsTemparary = isTemp;
-			}
-		}
+            public ReturnedValue(ValueType isTemparary, SimplifiedType type)
+            {
+                ValueType = isTemparary;
+                Type = type;
+            }
+        }
 
-		private class TypeNameToCTypeConverterVisitor : ISimplifiedTypeVisitor<CType>
+		private class SimplifiedTypeToCTypeConverterVisitor : ISimplifiedTypeVisitor<CType>
 		{
 			private readonly CArrayRegistry m_Registry;
 
-			public TypeNameToCTypeConverterVisitor(CArrayRegistry registry)
+			public SimplifiedTypeToCTypeConverterVisitor(CArrayRegistry registry)
 			{
 				m_Registry = registry;
 			}

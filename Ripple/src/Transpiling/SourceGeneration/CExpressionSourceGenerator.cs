@@ -62,6 +62,11 @@ namespace Ripple.Transpiling.SourceGeneration
 				string callee = GroupIfTrue(index.Indexee, index.Indexee is CBinary || index.Indexee is CCast || index.Indexee is CUnary);
 				return $"{callee}[{arg}]";
 			}
+			public string VisitCMemberAccess(CMemberAccess cMemberAccess)
+			{
+				string expr = cMemberAccess.Expression.Accept(this);
+				return $"{expr}.{cMemberAccess.Identifier}";
+			}
 
 			public string VisitCLiteral(CLiteral literal)
 			{
@@ -133,6 +138,6 @@ namespace Ripple.Transpiling.SourceGeneration
 					_ => throw new ArgumentException("Unknown C binary operator " + op),
 				};
 			}
-		}
+        }
 	}
 }

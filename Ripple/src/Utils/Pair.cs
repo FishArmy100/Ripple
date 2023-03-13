@@ -24,6 +24,12 @@ namespace Ripple.Utils
 				   EqualityComparer<TSecond>.Default.Equals(Second, pair.Second);
 		}
 
+		public void Deconstruct(out TFirst first, out TSecond second)
+		{
+			first = First;
+			second = Second;
+		}
+
 		public override int GetHashCode()
 		{
 			return HashCode.Combine(First, Second);

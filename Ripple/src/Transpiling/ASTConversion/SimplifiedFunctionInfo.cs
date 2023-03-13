@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple.Transpiling.SourceGeneration
+namespace Ripple.Transpiling.ASTConversion
 {
-	static class CCodeGenerator
-	{
+    class SimplifiedFunctionInfo
+    {
 
-	}
+    }
 }
