@@ -9,6 +9,7 @@ namespace ASTGeneration
         {
             //RunTests();
             GenerateRippleAst();
+            GenerateTypedAST();
             GenerateCAST();
         }
 
@@ -125,16 +126,6 @@ namespace ASTGeneration
                 "FuncPtr : Token? MutToken; Token FuncToken; Option<List<Token>> Lifetimes; Token OpenParen; List<TypeName> Parameters; Token CloseParen; Token Arrow; TypeName ReturnType",
             }, additionalUsings);
 
-            // TypeInfo:
-            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Validation\\Info\\Types", "Ripple.Validation.Info.Types", "TypeInfo", new List<string>
-            {
-                "BasicTypeInfo : bool IsMutable; string Name",
-                "PointerInfo : bool IsMutable; TypeInfo Contained",
-                "ReferenceInfo : bool IsMutable; TypeInfo Contained; Option<ReferenceLifetime> Lifetime",
-                "ArrayInfo : bool IsMutable; TypeInfo Contained; int Size",
-                "FuncPtrInfo : bool IsMutable; int FunctionIndex; int LifetimeCount; List<TypeInfo> Parameters; TypeInfo Returned"
-            }, additionalUsings);
-
             // Simplified types
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Transpiling\\ASTConversion\\SimplifiedTypes", "Ripple.Transpiling.ASTConversion.SimplifiedTypes", "SimplifiedType", new List<string>
             {
@@ -143,6 +134,27 @@ namespace ASTGeneration
                 "SReference : bool IsMutable; SimplifiedType Contained",
                 "SArray : bool IsMutable; SimplifiedType Contained; int Size",
                 "SFuncPtr : bool IsMutable; List<SimplifiedType> Parameters; SimplifiedType Returned"
+            }, additionalUsings);
+        }
+
+        private static void GenerateTypedAST()
+        {
+            List<string> additionalUsings = new List<string>() { "System.Collections.Generic", "Ripple.Utils" };
+
+            // TypedExpression
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Validation\\Info\\TypedExpression", "Ripple.Validation.Info.TypedExpression", "TypedExpression", new List<string>
+            { 
+
+            }, additionalUsings);
+
+            // TypeInfo:
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Validation\\Info\\Types", "Ripple.Validation.Info.Types", "TypeInfo", new List<string>
+            {
+                "BasicTypeInfo : bool IsMutable; string Name",
+                "PointerInfo : bool IsMutable; TypeInfo Contained",
+                "ReferenceInfo : bool IsMutable; TypeInfo Contained; Option<ReferenceLifetime> Lifetime",
+                "ArrayInfo : bool IsMutable; TypeInfo Contained; int Size",
+                "FuncPtrInfo : bool IsMutable; int FunctionIndex; int LifetimeCount; List<TypeInfo> Parameters; TypeInfo Returned"
             }, additionalUsings);
         }
     }
