@@ -38,14 +38,15 @@ namespace Ripple.Transpiling.ASTConversion
 		{
 			public readonly List<CVarDecl> PromotedTempararyVariables = new List<CVarDecl>();
 			public readonly ListStack<KeyValuePair<string, SimplifiedType>> m_Variables;
-			public readonly Dictionary<string, >
+			public readonly Dictionary<string, SimplifiedFunctionInfo> m_Functions;
 			private CArrayRegistry m_Regsitry;
 
-			public ExpressionToCExpressionConverterVisitor(CArrayRegistry regsitry, ListStack<KeyValuePair<string, CType>> variables)
-			{
-				m_Regsitry = regsitry;
-				m_Variables = variables;
-			}
+            public ExpressionToCExpressionConverterVisitor(ListStack<KeyValuePair<string, SimplifiedType>> variables, Dictionary<string, SimplifiedFunctionInfo> functions, CArrayRegistry regsitry)
+            {
+                m_Variables = variables;
+                m_Functions = functions;
+                m_Regsitry = regsitry;
+            }
 
             public Pair<ReturnedValue, CExpression> VisitBinary(Binary binary)
             {
@@ -99,7 +100,18 @@ namespace Ripple.Transpiling.ASTConversion
 
             public Pair<ReturnedValue, CExpression> VisitIdentifier(Identifier identifier)
             {
-                throw new NotImplementedException();
+				string idName = identifier.Name.Text;
+                foreach(var (name, type) in m_Variables)
+                {
+					if(identifier.Name.Text == name)
+                    {
+						ReturnedValue value = new ReturnedValue(ValueType.Var, type);
+						CIdentifier id = new CIdentifier(name);
+						return new Pair<ReturnedValue, CExpression>(value, id);
+                    }
+                }
+
+				if(m_Functions.TryGetValue())
             }
 
             public Pair<ReturnedValue, CExpression> VisitIndex(AST.Index index)
