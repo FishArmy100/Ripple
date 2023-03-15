@@ -4,16 +4,27 @@ using System.Text;
 using System.IO;
 using System.Linq;
 using ASTGeneration.Utils.Extensions;
+using ASTGeneration.Utils;
 
 namespace ASTGeneration
 {
     static class AstGenerator
     {
-        public static void Generate(string directoryName, string namespaceName, string baseName, List<string> nodeNames, List<string> additionalUsings)
+        public static void Generate(string directoryName, string namespaceName, string baseName, string baseProperties, List<string> nodeNames, List<string> additionalUsings)
         {
             var nodes = GenerateNodeData(namespaceName, baseName, nodeNames);
-            BasicCodeData codeData = new BasicCodeData(directoryName, namespaceName, baseName);
+            var props = ParseBaseProperties(baseProperties);
+            BasicCodeData codeData = new BasicCodeData(directoryName, namespaceName, baseName, props);
             CodeGenerator.GenerateCode(codeData, nodes, additionalUsings);
+        }
+
+        private static List<Pair<string, string>> ParseBaseProperties(string baseProperties)
+        {
+            return baseProperties.Split(';').Where(s => !string.IsNullOrEmpty(s)).Select(p =>
+            {
+                string[] param = p.Trim().Split(' ');
+                return new Pair<string, string>(param[0], param[1]);
+            }).ToList();
         }
 
         private static List<NodeData> GenerateNodeData(string namespaceName, string baseName, List<string> nodes)
