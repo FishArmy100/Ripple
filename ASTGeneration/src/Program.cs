@@ -7,10 +7,10 @@ namespace ASTGeneration
     {
         static void Main(string[] args)
         {
-            RunTests();
-            //GenerateRippleAst();
-            //GenerateTypedAST();
-            //GenerateCAST();
+            //RunTests();
+            GenerateRippleAst();
+            GenerateTypedAST();
+            GenerateCAST();
         }
 
         private static void RunTests()
@@ -141,13 +141,51 @@ namespace ASTGeneration
 
         private static void GenerateTypedAST()
         {
-            List<string> additionalUsings = new List<string>() { "System.Collections.Generic", "Ripple.Utils" };
+            List<string> additionalUsings = new List<string>()
+            {
+                "System.Collections.Generic",
+                "Ripple.Utils",
+                "Ripple.Validation.Info.Types",
+                "Ripple.Validation.Info",
+                "Ripple.Validation.Info.Expressions"
+            };
+
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Validation\\Info\\Statements", "Ripple.Validation.Info.Statements", "TypedStatement",
+                "", new List<string>
+                {
+                    "TypedExprStmt : TypedExpression Expression",
+                    "TypedBlockStmt : List<TypedStatement> Statements",
+                    "TypedIfStmt : TypedExpression Condition; TypedStatement Body; Option<TypedStatement> ElseBody",
+                    "TypedForStmt : Option<TypedStatement> Initalizer; Option<TypedExpression> Condition; Option<TypedExpression> Iterator; TypedStatement Body",
+                    "TypedWhileStmt : TypedExpression Condition; TypedStatement Body",
+                    "TypedVarDecl : bool IsUnsafe; TypeInfo Type; List<string> VariableNames; TypedExpression Initalizer",
+                    "TypedReturnStmt : Option<TypedExpression> Expression",
+
+                    "TypedContinueStmt",
+                    "TypedBreakStmt",
+
+                    "TypedUnsafeBlock : List<TypedStatement> Statements",
+
+                    "TypedFuncDecl : FunctionInfo Info; TypedBlockStmt Body",
+                    "TypedExternalFuncDecl : FunctionInfo Info",
+
+                    "TypedFileStmt : List<TypedStatement> Statements; string FilePath",
+                    "TypedProgramStmt : List<TypedFileStmt> Files"
+                }, additionalUsings);
 
             // TypedExpression
-            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Validation\\Info\\TypedExpression", "Ripple.Validation.Info.TypedExpression", "TypedExpression", 
-                "", new List<string>
-                { 
-
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Validation\\Info\\Expressions", "Ripple.Validation.Info.Expressions", "TypedExpression", 
+                "TypeInfo Returned", new List<string>
+                {
+                    "TypedIdentifier : string Name; Either<FunctionInfo, VariableInfo> Value",
+                    "TypedInitalizerList : List<TypedExpression> Expressions",
+                    "TypedLiteral : string Value",
+                    "TypedSizeOf : TypeInfo SizedType",
+                    "TypedCall : TypedExpression Callee; List<TypedExpression> Arguments",
+                    "TypedIndex : TypedExpression Indexee; TypedExpression Argument",
+                    "TypedCast : TypedExpression Casted; TypeInfo TypeToCastTo",
+                    "TypedBinary : TypedExpression Left; TokenType Op; TypedExpression Right",
+                    "TypedUnary : TypedExpression Operand; TokenType Op"
                 }, additionalUsings);
 
             // TypeInfo:

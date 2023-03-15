@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Ripple.Lexing;
-using Ripple.Parsing;
 using Ripple.Utils;
+using Ripple.Validation.Info.Types;
+using Ripple.Validation.Info;
+using Ripple.Validation.Info.Expressions;
 
 
 namespace Ripple.Validation.Info.Types

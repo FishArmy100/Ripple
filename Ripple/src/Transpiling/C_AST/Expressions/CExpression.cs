@@ -1,10 +1,17 @@
 using System;
+using System.Collections.Generic;
+using Ripple.Utils;
 
 
 namespace Ripple.Transpiling.C_AST
 {
 	abstract class CExpression
 	{
+
+		public CExpression()
+		{
+		}
+
 		public abstract void Accept(ICExpressionVisitor iCExpressionVisitor);
 		public abstract T Accept<T>(ICExpressionVisitor<T> iCExpressionVisitor);
 		public abstract TReturn Accept<TReturn, TArg>(ICExpressionVisitor<TReturn, TArg> iCExpressionVisitor, TArg arg);
