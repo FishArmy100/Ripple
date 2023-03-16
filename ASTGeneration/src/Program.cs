@@ -147,7 +147,8 @@ namespace ASTGeneration
                 "Ripple.Utils",
                 "Ripple.Validation.Info.Types",
                 "Ripple.Validation.Info",
-                "Ripple.Validation.Info.Expressions"
+                "Ripple.Validation.Info.Expressions",
+                "Ripple.Lexing"
             };
 
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Validation\\Info\\Statements", "Ripple.Validation.Info.Statements", "TypedStatement",

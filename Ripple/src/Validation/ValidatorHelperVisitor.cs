@@ -122,7 +122,7 @@ namespace Ripple.Validation
         {
             if(!m_IsGlobal)
             {
-                ValueOfExpressionVisitor visitor = new ValueOfExpressionVisitor(m_ASTInfo, m_VariableStack, GetActiveLifetimesList(), GetSafetyContext());
+                ExpressionCheckerVisitor visitor = new ExpressionCheckerVisitor(m_ASTInfo, m_VariableStack, GetActiveLifetimesList(), GetSafetyContext());
                 var result = VariableInfo.FromVarDecl(varDecl, visitor, m_ASTInfo.PrimaryTypes, GetActiveLifetimesList(), m_VariableStack.CurrentLifetime, GetSafetyContext());
                 result.Match(ok =>
                 {

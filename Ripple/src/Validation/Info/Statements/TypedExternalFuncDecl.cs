@@ -4,6 +4,7 @@ using Ripple.Utils;
 using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info;
 using Ripple.Validation.Info.Expressions;
+using Ripple.Lexing;
 
 
 namespace Ripple.Validation.Info.Statements

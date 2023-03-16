@@ -4,21 +4,21 @@ using System.Collections.Generic;
 
 namespace Ripple.Validation.Info
 {
-    class ValueOfExpressionExeption : Exception
+    class ExpressionCheckerException : Exception
     {
         public readonly IReadOnlyList<ASTInfoError> Errors;
 
-        public ValueOfExpressionExeption(IReadOnlyList<ASTInfoError> errors)
+        public ExpressionCheckerException(IReadOnlyList<ASTInfoError> errors)
         {
             Errors = errors;
         }
 
-        public ValueOfExpressionExeption(ASTInfoError error)
+        public ExpressionCheckerException(ASTInfoError error)
         {
             Errors = new List<ASTInfoError> { error };
         }
 
-        public ValueOfExpressionExeption(string message, Token errorToken)
+        public ExpressionCheckerException(string message, Token errorToken)
         {
             Errors = new List<ASTInfoError> { new ASTInfoError(message, errorToken) };
         }

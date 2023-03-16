@@ -9,12 +9,13 @@ using Ripple.Parsing;
 using Ripple.Utils;
 using Ripple.AST.Utils;
 using Ripple.Validation.Info;
+using Ripple.Validation.Info.Statements;
 
 namespace Ripple.Validation
 {
     static class Validator
     {
-        public static Result<ASTInfo, List<ValidationError>> ValidateAst(ProgramStmt programStmt)
+        public static Result<TypedProgramStmt, List<ValidationError>> ValidateAst(ProgramStmt programStmt)
         {
             ASTInfo info = GenerateASTInfo(programStmt);
             List<ValidationError> errors = new List<ValidationError>();
@@ -26,7 +27,7 @@ namespace Ripple.Validation
             errors.AddRange(visitor.Errors);
 
             if (errors.Count > 0)
-                return new Result<ASTInfo, List<ValidationError>>(errors);
+                return errors;
 
             return info;
         }

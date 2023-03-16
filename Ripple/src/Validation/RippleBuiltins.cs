@@ -368,7 +368,7 @@ namespace Ripple.Validation
                     },
                     bparam =>
                     {
-                        throw new ValueOfExpressionExeption(new ASTInfoError($"Cannot dicern between lifetime {aparam.Text} and {bparam.Text}.", aparam));
+                        throw new ExpressionCheckerException(new ASTInfoError($"Cannot dicern between lifetime {aparam.Text} and {bparam.Text}.", aparam));
                     });
                 });
             });

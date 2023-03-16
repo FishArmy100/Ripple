@@ -42,7 +42,7 @@ namespace Ripple.Validation.Info
             });
         }
 
-        public static Result<List<VariableInfo>, List<ASTInfoError>> FromVarDecl(VarDecl varDecl, ValueOfExpressionVisitor visitor, List<string> primaries, List<string> lifetimes, LifetimeInfo lifetime, SafetyContext safetyContext)
+        public static Result<List<VariableInfo>, List<ASTInfoError>> FromVarDecl(VarDecl varDecl, ExpressionCheckerVisitor visitor, List<string> primaries, List<string> lifetimes, LifetimeInfo lifetime, SafetyContext safetyContext)
         {
             if (safetyContext.IsSafe && varDecl.UnsafeToken.HasValue)
                 safetyContext = new SafetyContext(false);
@@ -74,13 +74,13 @@ namespace Ripple.Validation.Info
             });
         }
 
-        private static Result<TypeInfo, List<ASTInfoError>> GetTypeFromExpression(Expression expression, ValueOfExpressionVisitor visitor, Option<TypeInfo> expected)
+        private static Result<TypeInfo, List<ASTInfoError>> GetTypeFromExpression(Expression expression, ExpressionCheckerVisitor visitor, Option<TypeInfo> expected)
         {
             try
             {
                 return expression.Accept(visitor, expected).Type;
             }
-            catch (ValueOfExpressionExeption e)
+            catch (ExpressionCheckerException e)
             {
                 return e.Errors.ToList();
             }
