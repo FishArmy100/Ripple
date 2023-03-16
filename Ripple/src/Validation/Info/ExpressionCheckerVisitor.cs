@@ -81,17 +81,21 @@ namespace Ripple.Validation.Info
                 }
             });
 
-            ValueInfo operand = unary.Expr.Accept(this, innerExpected);
+            var operand = unary.Expr.Accept(this, innerExpected);
 
-            return m_OperatorLibrary.Unaries.Evaluate(operatorType, operand, m_VariableStack.CurrentLifetime, unary.Op).Match(
+            return m_OperatorLibrary.Unaries.Evaluate(operatorType, operand.First, m_VariableStack.CurrentLifetime, unary.Op).Match(
                 ok => 
                 {
                     if(operatorType.IsType(TokenType.Ampersand, TokenType.RefMut))
                     {
-                        return new ValueInfo(ok.Type.SetFirstMutable(expectedMutable), ok.Lifetime);
+                        ValueInfo expectedValue = new ValueInfo(ok.Type.SetFirstMutable(expectedMutable), ok.Lifetime);
+                        TypedUnary expectedTypedUnary = new TypedUnary(operand.Second, operatorType, ok.Type.SetFirstMutable(expectedMutable));
+                        return new Pair<ValueInfo, TypedExpression>(expectedValue, expectedTypedUnary);
                     }
 
-                    return ok;
+                    ValueInfo value = new ValueInfo(ok.Type, ok.Lifetime);
+                    TypedUnary typedUnary = new TypedUnary(operand.Second, operatorType, ok.Type);
+                    return new Pair<ValueInfo, TypedExpression>(value, typedUnary);
                 },
                 fail =>
                 {
@@ -109,10 +113,14 @@ namespace Ripple.Validation.Info
                 return CallFunction(call, id);
             }
 
-            ValueInfo callee = call.Callee.Accept(this, new Option<TypeInfo>());
-            List<ValueInfo> args = call.Args.ConvertAll(a => a.Accept(this, new Option<TypeInfo>()));
-            return m_OperatorLibrary.Calls.Evaluate(callee, args, m_VariableStack.CurrentLifetime, call.OpenParen).Match(
-                ok => ok,
+            var callee = call.Callee.Accept(this, new Option<TypeInfo>());
+            var args = call.Args.Select(a => a.Accept(this, new Option<TypeInfo>()));
+            return m_OperatorLibrary.Calls.Evaluate(callee.First, args.Select(a => a.First), m_VariableStack.CurrentLifetime, call.OpenParen).Match(
+                ok => 
+                {
+                    TypedCall typedCall = new TypedCall(callee.Second, args.Select(a => a.Second).ToList(), ok.Type);
+                    return new Pair<ValueInfo, TypedExpression>(ok, typedCall);
+                },
                 fail => throw new ExpressionCheckerException(fail.Message, fail.Token));
         }
 
@@ -125,7 +133,7 @@ namespace Ripple.Validation.Info
             {
                 try
                 {
-                    arguments.Add(expression.Accept(this, new Option<TypeInfo>()));
+                    arguments.Add(expression.Accept(this, new Option<TypeInfo>()).First);
                 }
                 catch (ExpressionCheckerException)
                 {
@@ -170,14 +178,17 @@ namespace Ripple.Validation.Info
             FunctionInfo funcInfo = possibleCalled[0];
 
             if (funcInfo.IsUnsafe && m_SafetyContext.IsSafe)
-                ThrowError("Use of unsafe function '" + funcInfo.Name + "' in a safe context.", call.OpenParen);
+				ThrowError("Use of unsafe function '" + funcInfo.Name + "' in a safe context.", call.OpenParen);
 
-            List<ValueInfo> args = arguments.Select(at => at.Match(ok => ok, () => throw new ExpressionCheckerException("Invalid expression at call.", id.Name))).ToList();
+            IEnumerable<ValueInfo> args = arguments.Select(at => at.Match(ok => ok, () => throw new ExpressionCheckerException("Invalid expression at call.", id.Name)));
+            
+            
             return m_OperatorLibrary.Calls.Evaluate(new ValueInfo(funcInfo.FunctionType, LifetimeInfo.Static), args, m_VariableStack.CurrentLifetime, id.Name)
                 .Match(
                 ok =>
                 {
-                    return ok;
+                    TypedIdentifier id = new TypedIdentifier(funcInfo.Name, funcInfo, funcInfo.FunctionType);
+                    TypedCall typedCall = new TypedCall(id, args.Select(a => a))
                 },
                 fail => 
                 {
@@ -200,15 +211,23 @@ namespace Ripple.Validation.Info
                     {
                         FuncPtrInfo type = overload.FunctionType;
                         if (type.IsEquatableTo(typeToCastTo))
-                            return new ValueInfo(type, LifetimeInfo.Static);
+						{
+                            ValueInfo value = new ValueInfo(type, LifetimeInfo.Static);
+                            TypedIdentifier functionId = new TypedIdentifier(name, overload, type);
+                            return new Pair<ValueInfo, TypedExpression>(value, functionId);
+                        }
                     }
                 }
             }
 
-            ValueInfo castee = cast.Castee.Accept(this, typeToCastTo);
+            var castee = cast.Castee.Accept(this, typeToCastTo);
 
-            return m_OperatorLibrary.Casts.Evaluate(typeToCastTo, castee, m_VariableStack.CurrentLifetime, cast.AsToken).Match(
-                ok => ok,
+            return m_OperatorLibrary.Casts.Evaluate(typeToCastTo, castee.First, m_VariableStack.CurrentLifetime, cast.AsToken).Match(
+                ok =>
+                {
+                    TypedCast typedCast = new TypedCast(castee.Second, typeToCastTo, ok.Type);
+                    return new Pair<ValueInfo, TypedExpression>(ok, typedCast);
+                },
                 fail => throw new ExpressionCheckerException(fail));
         }
 
@@ -223,15 +242,15 @@ namespace Ripple.Validation.Info
             if (m_VariableStack.TryGetVariable(name, out VariableInfo info))
             {
                 if(info.IsUnsafe && m_SafetyContext.IsSafe)
-                    ThrowError("Use of unsafe local variable '" + info.Name + "' in a safe context.", identifier.Name);
-                return new ValueInfo(info.Type, info.Lifetime);
+					ThrowError("Use of unsafe local variable '" + info.Name + "' in a safe context.", identifier.Name);
+                return GetVariablePair(info);
             }
 
             if (m_Globals.TryGetValue(name, out info))
             {
                 if (info.IsUnsafe && m_SafetyContext.IsSafe)
-                    ThrowError("Use of unsafe global variable '" + info.Name + "' in a safe context.", identifier.Name);
-                return new ValueInfo(info.Type, info.Lifetime);
+					ThrowError("Use of unsafe global variable '" + info.Name + "' in a safe context.", identifier.Name);
+                return GetVariablePair(info);
             }
 
             List<FunctionInfo> functions = m_Functions.GetOverloadsWithName(name);
@@ -244,9 +263,9 @@ namespace Ripple.Validation.Info
                     if (funcType.IsEquatableTo(expected.Value))
                     {
                         if (funcInfo.IsUnsafe && m_SafetyContext.IsSafe)
-                            ThrowError("Use of unsafe function '" + funcInfo.Name + "' in a safe context.", identifier.Name);
+							ThrowError("Use of unsafe function '" + funcInfo.Name + "' in a safe context.", identifier.Name);
 
-                        return new ValueInfo(expected.Value, LifetimeInfo.Static);
+                        return GetFunctionPair(funcInfo);
                     }
                 }
             }
@@ -254,7 +273,7 @@ namespace Ripple.Validation.Info
             if (functions.Count == 1)
             {
                 FunctionInfo funcInfo = functions[0];
-                return new ValueInfo(funcInfo.FunctionType, LifetimeInfo.Static);
+                return GetFunctionPair(funcInfo);
             }
             else if (functions.Count > 1)
             {
@@ -270,10 +289,14 @@ namespace Ripple.Validation.Info
 
         public Pair<ValueInfo, TypedExpression> VisitIndex(AST.Index index, Option<TypeInfo> expected)
         {
-            ValueInfo indexed = index.Indexed.Accept(this, new Option<TypeInfo>());
-            ValueInfo arg = index.Argument.Accept(this, RipplePrimitives.Int32);
-            return m_OperatorLibrary.Indexers.Evaluate(indexed, arg, m_VariableStack.CurrentLifetime, index.OpenBracket).Match(
-                ok => ok,
+            var indexed = index.Indexed.Accept(this, new Option<TypeInfo>());
+            var arg = index.Argument.Accept(this, RipplePrimitives.Int32);
+            return m_OperatorLibrary.Indexers.Evaluate(indexed.First, arg.First, m_VariableStack.CurrentLifetime, index.OpenBracket).Match(
+                ok =>
+                {
+                    TypedIndex typedIndex = new TypedIndex(indexed.Second, arg.Second, ok.Type);
+                    return new Pair<ValueInfo, TypedExpression>(ok, typedIndex);
+                },
                 fail => throw new ExpressionCheckerException(fail.Message, fail.Token));
         }
 
@@ -283,7 +306,7 @@ namespace Ripple.Validation.Info
             {
                 foreach (Expression expression in initializerList.Expressions)
                 {
-                    TypeInfo info = expression.Accept(this, array.Contained).Type;
+                    TypeInfo info = expression.Accept(this, array.Contained).First.Type;
                     if (!info.IsEquatableTo(array.Contained))
                     {
                         string message = "Expected an array of: " +
@@ -298,7 +321,7 @@ namespace Ripple.Validation.Info
                 if (initializerList.Expressions.Count > array.Size)
                     throw new ExpressionCheckerException("Initializer list size is bigger than the array size.", initializerList.OpenBrace);
 
-                return ValueInfoFromType(array);
+                return GetLiteralPair(array);
             }
 
             throw new ExpressionCheckerException("Could not infer the type of the initializer list.", initializerList.OpenBrace);
@@ -314,47 +337,47 @@ namespace Ripple.Validation.Info
                         if (e is BasicTypeInfo b)
                         {
                             if (b.Name == RipplePrimitives.Int32Name)
-                                return ValueInfoFromType(b);
+                                return GetLiteralPair(b);
                             else if (b.Name == RipplePrimitives.Float32Name)
-                                return ValueInfoFromType(b);
+                                return GetLiteralPair(b);
                         }
 
-                        return ValueInfoFromType(RipplePrimitives.Int32);
+                        return GetLiteralPair(RipplePrimitives.Int32);
                     },
-                    () => ValueInfoFromType(RipplePrimitives.Int32));
+                    () => GetLiteralPair(RipplePrimitives.Int32));
 
                 case TokenType.FloatLiteral:
                     return expected.Match(e =>
                     {
                         if (e is BasicTypeInfo b && b.Name == RipplePrimitives.Float32Name) // will return accurate mutable value
-                            return ValueInfoFromType(b);
+                            return GetLiteralPair(b);
 
-                        return ValueInfoFromType(RipplePrimitives.Float32);
+                        return GetLiteralPair(RipplePrimitives.Float32);
                     },
-                    () => ValueInfoFromType(RipplePrimitives.Float32));
+                    () => GetLiteralPair(RipplePrimitives.Float32));
 
                 case TokenType.True:
                 case TokenType.False:
                     return expected.Match(e =>
                     {
                         if (e is BasicTypeInfo b && b.Name == RipplePrimitives.BoolName)
-                            return ValueInfoFromType(b);
-                        return ValueInfoFromType(RipplePrimitives.Bool);
+                            return GetLiteralPair(b);
+                        return GetLiteralPair(RipplePrimitives.Bool);
                     },
-                    () => ValueInfoFromType(RipplePrimitives.Bool));
+                    () => GetLiteralPair(RipplePrimitives.Bool));
 
                 case TokenType.CharactorLiteral:
                     return expected.Match(e =>
                     {
                         if (e is BasicTypeInfo b && b.Name == RipplePrimitives.CharName)
-                            return ValueInfoFromType(b);
-                        return ValueInfoFromType(RipplePrimitives.Char);
+                            return GetLiteralPair(b);
+                        return GetLiteralPair(RipplePrimitives.Char);
                     },
-                    () => ValueInfoFromType(RipplePrimitives.Char));
+                    () => GetLiteralPair(RipplePrimitives.Char));
 
                 case TokenType.Nullptr:
                     if (expected.Match(e => e is PointerInfo, () => false))
-                        return ValueInfoFromType(expected.Value);
+                        return GetLiteralPair(expected.Value);
                     throw new ExpressionCheckerException("Could not infer nullptr, in this context", literal.Val);
 
                 case TokenType.CStringLiteral:
@@ -370,9 +393,9 @@ namespace Ripple.Validation.Info
             return expected.Match(e =>
             {
                 if (e is BasicTypeInfo b && b.Name == RipplePrimitives.Int32Name)
-                    return ValueInfoFromType(b);
-                return ValueInfoFromType(RipplePrimitives.Int32);
-            }, () => ValueInfoFromType(RipplePrimitives.Int32));
+                    return GetLiteralPair(b);
+                return GetLiteralPair(RipplePrimitives.Int32);
+            }, () => GetLiteralPair(RipplePrimitives.Int32));
         }
 
         public Pair<ValueInfo, TypedExpression> VisitTypeExpression(TypeExpression typeExpression, Option<TypeInfo> expected)
@@ -380,14 +403,31 @@ namespace Ripple.Validation.Info
             throw new NotImplementedException();
         }
 
-        private void ThrowError(string message, Token token)
+        private static Pair<ValueInfo, TypedExpression> GetVariablePair(VariableInfo variableInfo)
+		{
+            ValueInfo value = new ValueInfo(variableInfo.Type, variableInfo.Lifetime);
+            TypedIdentifier identifier = new TypedIdentifier(variableInfo.Name, variableInfo, variableInfo.Type);
+            return new Pair<ValueInfo, TypedExpression>(value, identifier);
+		}
+
+        private static Pair<ValueInfo, TypedExpression> GetFunctionPair(FunctionInfo functionInfo)
+		{
+            ValueInfo value = new ValueInfo(functionInfo.FunctionType, LifetimeInfo.Static);
+            TypedIdentifier identifier = new TypedIdentifier(functionInfo.Name, functionInfo, functionInfo.ReturnType);
+            return new Pair<ValueInfo, TypedExpression>(value, identifier);
+		}
+
+        private static void ThrowError(string message, Token token)
         {
             throw new ExpressionCheckerException(message, token);
         }
 
-        private ValueInfo ValueInfoFromType(TypeInfo type)
-        {
-            return new ValueInfo(type, m_VariableStack.CurrentLifetime);
-        }
+        private Pair<ValueInfo, TypedExpression> GetLiteralPair(BasicTypeInfo typeInfo, string literalValue)
+		{
+            ValueInfo value = new ValueInfo(typeInfo, m_VariableStack.CurrentLifetime);
+            TypedLiteral literal = new TypedLiteral(literalValue, typeInfo);
+            return new Pair<ValueInfo, TypedExpression>(value, literal);
+		}
+
     }
 }

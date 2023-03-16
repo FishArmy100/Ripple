@@ -145,6 +145,7 @@ namespace ASTGeneration
             {
                 "System.Collections.Generic",
                 "Ripple.Utils",
+                "Ripple.Validation",
                 "Ripple.Validation.Info.Types",
                 "Ripple.Validation.Info",
                 "Ripple.Validation.Info.Expressions",
@@ -178,7 +179,7 @@ namespace ASTGeneration
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Validation\\Info\\Expressions", "Ripple.Validation.Info.Expressions", "TypedExpression", 
                 "TypeInfo Returned", new List<string>
                 {
-                    "TypedIdentifier : string Name; Either<FunctionInfo, VariableInfo> Value",
+                    "TypedIdentifier : string Name; Either<FunctionInfo,VariableInfo> Value",
                     "TypedInitalizerList : List<TypedExpression> Expressions",
                     "TypedLiteral : string Value",
                     "TypedSizeOf : TypeInfo SizedType",

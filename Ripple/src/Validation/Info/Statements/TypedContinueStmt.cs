@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Ripple.Utils;
+using Ripple.Validation;
 using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info;
 using Ripple.Validation.Info.Expressions;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Ripple.Utils;
+using Ripple.Validation;
 using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info;
 using Ripple.Validation.Info.Expressions;
@@ -12,12 +13,12 @@ namespace Ripple.Validation.Info.Expressions
 	class TypedIdentifier : TypedExpression
 	{
 		public readonly string Name;
-		public readonly Either<FunctionInfo, VariableInfo>;
+		public readonly Either<FunctionInfo,VariableInfo> Value;
 
-		public TypedIdentifier(string name, Either<FunctionInfo, variableInfo>, TypeInfo returned) : base(returned)
+		public TypedIdentifier(string name, Either<FunctionInfo,VariableInfo> value, TypeInfo returned) : base(returned)
 		{
 			this.Name = name;
-			this.VariableInfo> = variableInfo>;
+			this.Value = value;
 		}
 
 		public override void Accept(ITypedExpressionVisitor visitor)
@@ -44,7 +45,7 @@ namespace Ripple.Validation.Info.Expressions
 		{
 			if(other is TypedIdentifier typedIdentifier)
 			{
-				return Name.Equals(typedIdentifier.Name) && VariableInfo>.Equals(typedIdentifier.VariableInfo>);
+				return Name.Equals(typedIdentifier.Name) && Value.Equals(typedIdentifier.Value);
 			}
 			return false;
 		}
@@ -53,7 +54,7 @@ namespace Ripple.Validation.Info.Expressions
 		{
 			HashCode code = new HashCode();
 			code.Add(Name);
-			code.Add(VariableInfo>);
+			code.Add(Value);
 			return code.ToHashCode();
 		}
 	}
