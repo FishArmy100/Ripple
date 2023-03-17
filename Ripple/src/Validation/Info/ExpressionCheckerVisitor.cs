@@ -321,7 +321,14 @@ namespace Ripple.Validation.Info
                 if (initializerList.Expressions.Count > array.Size)
                     throw new ExpressionCheckerException("Initializer list size is bigger than the array size.", initializerList.OpenBrace);
 
-                return GetLiteralPair(array);
+                ValueInfo value = new ValueInfo(array, m_VariableStack.CurrentLifetime);
+                var typedExpressions = initializerList.Expressions
+                    .Select(e => e.Accept(this, array.Contained))
+                    .Select(e => e.Second)
+                    .ToList();
+
+                TypedInitalizerList typedInitalizerList = new TypedInitalizerList(typedExpressions, array);
+                return new Pair<ValueInfo, TypedExpression>(value, typedInitalizerList);
             }
 
             throw new ExpressionCheckerException("Could not infer the type of the initializer list.", initializerList.OpenBrace);
@@ -377,11 +384,19 @@ namespace Ripple.Validation.Info
 
                 case TokenType.Nullptr:
                     if (expected.Match(e => e is PointerInfo, () => false))
-                        return GetLiteralPair(expected.Value);
+                    {
+                        return GetLiteralPair(expected.Value, "nullptr");
+                    }
                     throw new ExpressionCheckerException("Could not infer nullptr, in this context", literal.Val);
 
                 case TokenType.CStringLiteral:
-                    return new ValueInfo(new PointerInfo(false, RipplePrimitives.Char), LifetimeInfo.Static); // char* with a static lifetime
+                    {
+                        TypeInfo type = new PointerInfo(false, RipplePrimitives.Char);
+                        ValueInfo value = new ValueInfo(type, LifetimeInfo.Static); // char* with a static lifetime
+                        TypedLiteral typedLiteral = new TypedLiteral(literal.Val.Text, type);
+
+                        return new Pair<ValueInfo, TypedExpression>(value, typedLiteral);
+                    }
 
                 default:
                     throw new ExpressionCheckerException("Unknown literal.", literal.Val);
@@ -390,12 +405,13 @@ namespace Ripple.Validation.Info
 
         public Pair<ValueInfo, TypedExpression> VisitSizeOf(SizeOf sizeOf, Option<TypeInfo> expected)
         {
+            TypeInfo typeToCastTo = GetTypeInfo(sizeOf.Type);
             return expected.Match(e =>
             {
                 if (e is BasicTypeInfo b && b.Name == RipplePrimitives.Int32Name)
-                    return GetLiteralPair(b);
-                return GetLiteralPair(RipplePrimitives.Int32);
-            }, () => GetLiteralPair(RipplePrimitives.Int32));
+                    return GetSizeOfPair(typeToCastTo, b);
+                return GetSizeOfPair(typeToCastTo, RipplePrimitives.Int32);
+            }, () => GetSizeOfPair(typeToCastTo, RipplePrimitives.Int32));
         }
 
         public Pair<ValueInfo, TypedExpression> VisitTypeExpression(TypeExpression typeExpression, Option<TypeInfo> expected)
@@ -417,17 +433,29 @@ namespace Ripple.Validation.Info
             return new Pair<ValueInfo, TypedExpression>(value, identifier);
 		}
 
+        private Pair<ValueInfo, TypedExpression> GetSizeOfPair(TypeInfo sizeOfType, TypeInfo returned)
+        {
+            ValueInfo value = new ValueInfo(sizeOfType, m_VariableStack.CurrentLifetime);
+            TypedSizeOf typedSizeOf = new TypedSizeOf(sizeOfType, RipplePrimitives.Int32);
+            return new Pair<ValueInfo, TypedExpression>(value, typedSizeOf);
+        }
+
         private static void ThrowError(string message, Token token)
         {
             throw new ExpressionCheckerException(message, token);
         }
 
-        private Pair<ValueInfo, TypedExpression> GetLiteralPair(BasicTypeInfo typeInfo, string literalValue)
+        private Pair<ValueInfo, TypedExpression> GetLiteralPair(TypeInfo typeInfo, string literalValue)
 		{
             ValueInfo value = new ValueInfo(typeInfo, m_VariableStack.CurrentLifetime);
             TypedLiteral literal = new TypedLiteral(literalValue, typeInfo);
             return new Pair<ValueInfo, TypedExpression>(value, literal);
 		}
 
+        private TypeInfo GetTypeInfo(TypeName type)
+        {
+            return TypeInfoUtils.FromASTType(type, m_Primaries, m_ActiveLifetimes, m_SafetyContext)
+                .Match(ok => ok, fail => throw new ExpressionCheckerException(fail));
+        }
     }
 }
