@@ -14,7 +14,7 @@ namespace Ripple.Validation.Info
     static class ExpressionChecker
     {
 
-        public static Result<Pair<ValueInfo, TypedExpression>, List<ASTInfoError>> CheckExpression(Expression expression, ASTInfo ast, LocalVariableStack variableStack, SafetyContext safetyContext, List<string> activeLifetimes, Option<TypeInfo> expected = default)
+        public static Result<Pair<ValueInfo, TypedExpression>, List<ASTInfoError>> CheckExpression(Expression expression, ASTData ast, LocalVariableStack variableStack, SafetyContext safetyContext, List<string> activeLifetimes, Option<TypeInfo> expected = default)
         {
             ExpressionCheckerVisitor visitor = new ExpressionCheckerVisitor(ast, variableStack, activeLifetimes, safetyContext);
             return CheckExpression(expression, visitor, expected);

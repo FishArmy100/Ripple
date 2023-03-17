@@ -29,7 +29,7 @@ namespace Ripple.Validation.Info
             Lifetime = lifetime;
         }
 
-        public static Result<VariableInfo, List<ASTInfoError>> FromFunctionParameter(TypeName type, Token name, LifetimeInfo lifetime, List<string> primaries, List<string> lifetimes, SafetyContext safetyContext)
+        public static Result<VariableInfo, List<ASTInfoError>> FromFunctionParameter(TypeName type, Token name, LifetimeInfo lifetime, IReadOnlyList<string> primaries, List<string> lifetimes, SafetyContext safetyContext)
         {
             return TypeInfoUtils.FromASTType(type, primaries, lifetimes, safetyContext, true).Match(ok =>
             {

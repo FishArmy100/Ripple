@@ -51,7 +51,7 @@ namespace Ripple.Validation.Info
                 returned);
 		}
 
-        public static Result<FunctionInfo, List<ASTInfoError>> FromASTFunction(FuncDecl funcDecl, List<string> primaries)
+        public static Result<FunctionInfo, List<ASTInfoError>> FromASTFunction(FuncDecl funcDecl, IReadOnlyList<string> primaries)
         {
             var result = TypeInfoGeneratorVisitor.GenerateFromFuncDecl(funcDecl, primaries);
             return result.Match(ok =>
@@ -76,7 +76,7 @@ namespace Ripple.Validation.Info
             });
         }
 
-        public static Result<FunctionInfo, List<ASTInfoError>> FromASTExternalFunction(ExternalFuncDecl funcDecl, List<string> primaries)
+        public static Result<FunctionInfo, List<ASTInfoError>> FromASTExternalFunction(ExternalFuncDecl funcDecl, IReadOnlyList<string> primaries)
         {
             var result = TypeInfoGeneratorVisitor.GenerateFromExternalFuncDecl(funcDecl, primaries);
             return result.Match(ok =>

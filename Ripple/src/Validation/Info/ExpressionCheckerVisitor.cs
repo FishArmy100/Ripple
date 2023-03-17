@@ -15,13 +15,13 @@ namespace Ripple.Validation.Info
     {
         private readonly LocalVariableStack m_VariableStack;
         private readonly FunctionList m_Functions;
-        private readonly List<string> m_Primaries;
+        private readonly IReadOnlyList<string> m_Primaries;
         private readonly OperatorEvaluatorLibrary m_OperatorLibrary;
-        private readonly Dictionary<string, VariableInfo> m_Globals;
+        private readonly IReadOnlyDictionary<string, VariableInfo> m_Globals;
         private readonly SafetyContext m_SafetyContext;
         private readonly List<string> m_ActiveLifetimes;
 
-        public ExpressionCheckerVisitor(ASTInfo astInfo, LocalVariableStack variableStack, List<string> activeLifetimes, SafetyContext safetyContext)
+        public ExpressionCheckerVisitor(ASTData astInfo, LocalVariableStack variableStack, List<string> activeLifetimes, SafetyContext safetyContext)
         {
             m_Functions = astInfo.Functions;
             m_Globals = astInfo.GlobalVariables;

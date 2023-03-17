@@ -51,4 +51,25 @@ namespace Ripple.Utils
             return Match(ok => new Option<TSuccess>(ok), fail => new Option<TSuccess>());
         }
     }
+
+    public static class ResultExtensions
+	{
+
+        public static Result<List<TSuccess>, List<TError>> AggregateResults<TSuccess, TError>(this IEnumerable<Result<TSuccess, List<TError>>> self)
+		{
+            List<TSuccess> successes = new List<TSuccess>();
+            List<TError> errors = new List<TError>();
+            foreach (var result in self)
+            {
+                result.Match(
+                    ok => successes.Add(ok),
+                    fail => errors.AddRange(fail));
+            }
+
+            if (errors.Any())
+                return errors;
+
+            return successes;
+        }
+    }
 }
