@@ -64,7 +64,7 @@ namespace Ripple.Validation
 
             forStmt.Iter.Match(ok =>
             {
-                var result = ValueInfo.FromExpression(ok, m_ASTInfo, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList());
+                var result = ExpressionChecker.CheckExpression(ok, m_ASTInfo, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList());
                 result.Match(ok => { }, fail => Errors.AddRange(fail.ConvertAll(e => new ValidationError(e.Message, e.Token))));
             });
 
@@ -113,7 +113,7 @@ namespace Ripple.Validation
 
         public override void VisitExprStmt(ExprStmt exprStmt)
         {
-            ValueInfo.FromExpression(exprStmt.Expr, m_ASTInfo, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList()).Match(
+            ExpressionChecker.CheckExpression(exprStmt.Expr, m_ASTInfo, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList()).Match(
                 ok => { },
                 fail => Errors.AddRange(fail.ConvertAll(e => new ValidationError(e.Message, e.Token))));
         }
@@ -147,12 +147,12 @@ namespace Ripple.Validation
 
             returnStmt.Expr.Match(ok =>
             {
-                ValueInfo.FromExpression(ok, m_ASTInfo, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList()).Match(
+                ExpressionChecker.CheckExpression(ok, m_ASTInfo, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList()).Match(
                 ok => 
                 {
-                    if(!ok.Type.Equals(m_CurrentReturnType))
+                    if(!ok.First.Type.Equals(m_CurrentReturnType))
                     {
-                        AddError("Cannot return value of type '" + ok.Type + "' from a function that returns '" + m_CurrentReturnType + "'.", returnStmt.ReturnTok);
+                        AddError("Cannot return value of type '" + ok.First.Type + "' from a function that returns '" + m_CurrentReturnType + "'.", returnStmt.ReturnTok);
                     }
                 },
                 fail => 
@@ -177,10 +177,10 @@ namespace Ripple.Validation
 
         private void CheckCondition(Expression condition, Token errorToken)
         {
-            var result = ValueInfo.FromExpression(condition, m_ASTInfo, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList());
+            var result = ExpressionChecker.CheckExpression(condition, m_ASTInfo, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList());
             result.Match(ok =>
             {
-                if (ok.Type.EqualsWithoutFirstMutable(RipplePrimitives.Bool))
+                if (ok.First.Type.EqualsWithoutFirstMutable(RipplePrimitives.Bool))
                     return;
                 AddError("Conditional expression must evaluate to a bool.", errorToken);
             },

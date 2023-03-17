@@ -78,7 +78,7 @@ namespace Ripple.Validation.Info
         {
             try
             {
-                return expression.Accept(visitor, expected).Type;
+                return expression.Accept(visitor, expected).First.Type;
             }
             catch (ExpressionCheckerException e)
             {

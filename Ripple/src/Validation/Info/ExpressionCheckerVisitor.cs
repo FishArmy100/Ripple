@@ -181,14 +181,20 @@ namespace Ripple.Validation.Info
 				ThrowError("Use of unsafe function '" + funcInfo.Name + "' in a safe context.", call.OpenParen);
 
             IEnumerable<ValueInfo> args = arguments.Select(at => at.Match(ok => ok, () => throw new ExpressionCheckerException("Invalid expression at call.", id.Name)));
-            
-            
+
+            var typedArgs = call.Args.Zip(funcInfo.Parameters.Select(p => p.Type)).Select(tuple =>
+            {
+                var (expression, expected) = tuple;
+                return expression.Accept(this, expected).Second;
+            }).ToList();
+
             return m_OperatorLibrary.Calls.Evaluate(new ValueInfo(funcInfo.FunctionType, LifetimeInfo.Static), args, m_VariableStack.CurrentLifetime, id.Name)
                 .Match(
                 ok =>
                 {
                     TypedIdentifier id = new TypedIdentifier(funcInfo.Name, funcInfo, funcInfo.FunctionType);
-                    TypedCall typedCall = new TypedCall(id, args.Select(a => a))
+                    TypedCall typedCall = new TypedCall(id, typedArgs, ok.Type);
+                    return new Pair<ValueInfo, TypedExpression>(ok, typedCall);
                 },
                 fail => 
                 {

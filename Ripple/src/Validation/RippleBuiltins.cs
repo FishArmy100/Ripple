@@ -280,10 +280,10 @@ namespace Ripple.Validation
             });
         }
 
-        private static Option<ValueInfo> EvaluateBasicFuncPtr(FuncPtrInfo fp, List<ValueInfo> args, LifetimeInfo lifetime)
+        private static Option<ValueInfo> EvaluateBasicFuncPtr(FuncPtrInfo fp, IEnumerable<ValueInfo> args, LifetimeInfo lifetime)
         {
             List<TypeInfo> parameters = fp.Parameters;
-            if (parameters.Count != args.Count)
+            if (parameters.Count() != args.Count())
                 return new Option<ValueInfo>();
 
             bool callable = parameters.Zip(args).All(t =>
@@ -299,10 +299,10 @@ namespace Ripple.Validation
             return new Option<ValueInfo>(new ValueInfo(fp.Returned, lifetime));
         }
         
-        private static Option<ValueInfo> EvaluateFuncPtrWithLifetimes(FuncPtrInfo fp, List<ValueInfo> args, LifetimeInfo lifetime)
+        private static Option<ValueInfo> EvaluateFuncPtrWithLifetimes(FuncPtrInfo fp, IEnumerable<ValueInfo> args, LifetimeInfo lifetime)
 		{
             List<TypeInfo> parameters = fp.Parameters;
-            if (parameters.Count != args.Count)
+            if (parameters.Count() != args.Count())
                 return new Option<ValueInfo>();
 
             var functionLifetimeValues = parameters.Zip(args)

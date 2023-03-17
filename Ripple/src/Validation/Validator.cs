@@ -15,7 +15,7 @@ namespace Ripple.Validation
 {
     static class Validator
     {
-        public static Result<TypedProgramStmt, List<ValidationError>> ValidateAst(ProgramStmt programStmt)
+        public static Result<ASTInfo, List<ValidationError>> ValidateAst(ProgramStmt programStmt)
         {
             ASTInfo info = GenerateASTInfo(programStmt);
             List<ValidationError> errors = new List<ValidationError>();
@@ -37,6 +37,6 @@ namespace Ripple.Validation
             List<string> primaries = RippleBuiltins.GetPrimitives();
             FunctionList functions = RippleBuiltins.GetBuiltInFunctions();
             return new ASTInfo(programStmt, primaries, functions, RippleBuiltins.GetBuiltInOperators());
-        } 
+        }
     }
 }

@@ -59,7 +59,5 @@ namespace Ripple.Transpiling.ASTConversion
 				_ => throw new ArgumentException("Invalid literal type for transpiling " + literal.Val.Type)
 			};
 		}
-
-		public 
 	}
 }
