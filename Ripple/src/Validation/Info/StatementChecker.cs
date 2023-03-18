@@ -22,6 +22,8 @@ namespace Ripple.Validation.Info
 
         private bool m_IsGlobal = true;
         private bool m_IsUnsafe = false;
+
+        private Stack<bool> m_LoopsStack = new Stack<bool>();
         private Stack<List<bool>> m_BlocksReturn = new Stack<List<bool>>();
         private readonly LocalVariableStack m_VariableStack = new LocalVariableStack();
         private readonly Stack<List<Token>> m_CurrentLifetimes = new Stack<List<Token>>();
@@ -71,12 +73,22 @@ namespace Ripple.Validation.Info
 
 		public Result<TypedStatement, List<ValidationError>> VisitContinueStmt(ContinueStmt continueStmt)
 		{
-			throw new NotImplementedException();
-		}
+            if (!IsInLoop())
+            {
+                return CreateError("Continue statement must be in the context of a for or while loop.", continueStmt.ContinueToken);
+            }
+
+            return new TypedContinueStmt();
+        }
 
 		public Result<TypedStatement, List<ValidationError>> VisitBreakStmt(BreakStmt breakStmt)
 		{
-			
+			if(!IsInLoop())
+            {
+                return CreateError("Break statement must be in the context of a for or while loop.", breakStmt.BreakToken);
+            }
+
+            return new TypedBreakStmt();
 		}
 
 		public Result<TypedStatement, List<ValidationError>> VisitParameters(Parameters parameters)
@@ -248,6 +260,8 @@ namespace Ripple.Validation.Info
             return new SafetyContext(!m_IsUnsafe);
         }
 
+        private bool IsInLoop() => m_LoopsStack.Any(b => b);
+
         private T UpdateUnsafe<T>(bool isUnsafe, Func<T> func)
         {
             bool oldUnsafe = m_IsUnsafe;
@@ -262,6 +276,19 @@ namespace Ripple.Validation.Info
             m_IsUnsafe = isUnsafe;
             func();
             m_IsUnsafe = oldUnsafe;
+        }
+
+        private T PushScope<T>(bool isUnsafe, bool isLoop, Func<T> func)
+        {
+            return UpdateUnsafe(isUnsafe, () =>
+            {
+                m_LoopsStack.Push(isLoop);
+                m_VariableStack.PushScope();
+                T value = func();
+                m_VariableStack.PopScope();
+                m_LoopsStack.Pop();
+                return value;
+            });
         }
 
         private List<ValidationError> CreateError(string text, Token token)
