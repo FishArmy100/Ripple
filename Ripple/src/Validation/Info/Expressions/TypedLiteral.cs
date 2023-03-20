@@ -13,10 +13,12 @@ namespace Ripple.Validation.Info.Expressions
 	class TypedLiteral : TypedExpression
 	{
 		public readonly string Value;
+		public readonly TokenType Type;
 
-		public TypedLiteral(string value, TypeInfo returned) : base(returned)
+		public TypedLiteral(string value, TokenType type, TypeInfo returned) : base(returned)
 		{
 			this.Value = value;
+			this.Type = type;
 		}
 
 		public override void Accept(ITypedExpressionVisitor visitor)
@@ -43,7 +45,7 @@ namespace Ripple.Validation.Info.Expressions
 		{
 			if(other is TypedLiteral typedLiteral)
 			{
-				return Value.Equals(typedLiteral.Value);
+				return Value.Equals(typedLiteral.Value) && Type.Equals(typedLiteral.Type);
 			}
 			return false;
 		}
@@ -52,6 +54,7 @@ namespace Ripple.Validation.Info.Expressions
 		{
 			HashCode code = new HashCode();
 			code.Add(Value);
+			code.Add(Type);
 			return code.ToHashCode();
 		}
 	}

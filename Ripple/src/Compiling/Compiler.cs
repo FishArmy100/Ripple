@@ -50,7 +50,7 @@ namespace Ripple.Compiling
                 .ConvertToCompilerResult(e => new CompilerError(e)));
         }
 
-        public static CompilerResult<ASTInfo> RunValidator(List<SourceFile> sourceFiles)
+        public static CompilerResult<TypedProgramStmt> RunValidator(List<SourceFile> sourceFiles)
         {
             return RunParser(sourceFiles)
                 .Match(ok => Validator.ValidateAst(ok)

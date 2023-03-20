@@ -16,9 +16,6 @@ namespace Ripple.Validation.Info
     class StatementChecker : IStatementVisitor<Result<TypedStatement, List<ValidationError>>>
     {
         private IReadOnlyList<string> m_PrimaryTypes => m_ASTData.PrimaryTypes;
-        private FunctionList m_Functions => m_ASTData.Functions;
-        private IReadOnlyDictionary<string, VariableInfo> m_GlobalVariables => m_ASTData.GlobalVariables;
-        private OperatorEvaluatorLibrary m_OperatorLibrary => m_ASTData.OperatorLibrary;
 
         private bool m_IsGlobal = true;
         private bool m_IsUnsafe = false;
@@ -34,42 +31,184 @@ namespace Ripple.Validation.Info
         public StatementChecker(ASTData data)
 		{
             m_ASTData = data;
+
+            m_BlocksReturn.Push(new List<bool>());
 		}
 
 		public Result<TypedStatement, List<ValidationError>> VisitExprStmt(ExprStmt exprStmt)
 		{
-			throw new NotImplementedException();
-		}
+            return ExpressionChecker.CheckExpression(exprStmt.Expr, m_ASTData, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList()).Match(
+                ok => new Result<TypedStatement, List<ValidationError>>(new TypedExprStmt(ok.Second)),
+                fail => fail.Select(e => new ValidationError(e.Message, e.Token)).ToList());
+        }
 
 		public Result<TypedStatement, List<ValidationError>> VisitBlockStmt(BlockStmt blockStmt)
 		{
-			throw new NotImplementedException();
-		}
+            var statements = UpdateUnsafe(m_IsUnsafe, () =>
+            {
+                m_VariableStack.PushScope();
+                var results = blockStmt.Statements.Select(s => s.Accept(this)).AggregateResults();
+                m_VariableStack.PopScope();
+                return results;
+            });
+
+            return statements.Match(
+                ok => new TypedBlockStmt(ok),
+                fail => new Result<TypedStatement, List<ValidationError>>(fail));
+        }
 
 		public Result<TypedStatement, List<ValidationError>> VisitIfStmt(IfStmt ifStmt)
 		{
-			throw new NotImplementedException();
-		}
+            var conditon = CheckCondition(ifStmt.Expr, ifStmt.IfTok);
+            m_VariableStack.PushScope();
+            m_BlocksReturn.Push(new List<bool>());
+
+            var body = ifStmt.Body.Accept(this);
+            bool ifBlockReturns = m_BlocksReturn.Peek().Any(v => v);
+
+            m_BlocksReturn.Push(new List<bool>());
+            m_VariableStack.PopScope();
+
+            bool elseBlockReturns = false;
+
+            var elseBody = ifStmt.ElseBody.Match(ok =>
+            {
+                m_VariableStack.PushScope();
+                m_BlocksReturn.Push(new List<bool>());
+
+                var elseBody = ok.Accept(this);
+                elseBlockReturns = m_BlocksReturn.Peek().Any(v => v);
+
+                m_BlocksReturn.Push(new List<bool>());
+                m_VariableStack.PopScope();
+                return elseBody;
+
+            }, () => new Option<Result<TypedStatement, List<ValidationError>>>());
+
+            m_BlocksReturn.Peek().Add(ifBlockReturns && elseBlockReturns);
+
+            List<ValidationError> errors = new List<ValidationError>();
+            conditon.Match(ok => { }, fail => errors.AddRange(fail));
+            body.Match(ok => { }, fail => errors.AddRange(fail));
+            elseBody.Match(ok => ok.Match(ok => { }, fail => errors.AddRange(fail)));
+
+            if (errors.Any())
+                return errors;
+
+            return new TypedIfStmt(conditon.Value, body.Value, elseBody.Match(ok => ok.Value, () => default));
+        }
 
 		public Result<TypedStatement, List<ValidationError>> VisitForStmt(ForStmt forStmt)
 		{
-			throw new NotImplementedException();
-		}
+            m_BlocksReturn.Peek().Add(false);
+            m_VariableStack.PushScope();
+            var init = forStmt.Init.Match(ok => ok.Accept(this), () => new Option<Result<TypedStatement, List<ValidationError>>>());
+            var condition = forStmt.Condition.Match(
+                ok => CheckCondition(ok, forStmt.ForTok), 
+                () => new Option<Result<TypedExpression, List<ValidationError>>>());
+
+            var iter = forStmt.Iter.Match(ok => 
+            {
+                return ExpressionChecker.CheckExpression(ok, m_ASTData, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList())
+                    .Match(
+                        ok => new Result<TypedExpression, List<ValidationError>>(ok.Second), 
+                        fail => new Result<TypedExpression, List<ValidationError>>(fail.Select(e => new ValidationError(e.Message, e.Token)).ToList()));
+                
+            }, () => new Option<Result<TypedExpression, List<ValidationError>>>());
+
+            var body = forStmt.Body.Accept(this);
+
+            m_VariableStack.PopScope();
+
+            // basically just checks weather or not they are all errors
+            List<ValidationError> errors = new List<ValidationError>();
+            init.Match(ok => ok.GetErrorOption().Match(e => errors.AddRange(e)));
+            condition.Match(ok => ok.GetErrorOption().Match(e => errors.AddRange(e)));
+            iter.Match(ok => ok.GetErrorOption().Match(e => errors.AddRange(e)));
+            body.GetErrorOption().Match(e => errors.AddRange(e));
+
+            if (errors.Any())
+                return errors;
+
+            return new TypedForStmt(
+                init.Match(ok => ok.Value, () => default),
+                condition.Match(ok => ok.Value, () => default),
+                iter.Match(ok => ok.Value, () => default),
+                body.Value);
+        }
 
 		public Result<TypedStatement, List<ValidationError>> VisitWhileStmt(WhileStmt whileStmt)
 		{
-			throw new NotImplementedException();
-		}
+            m_BlocksReturn.Peek().Add(false);
+            var condition = CheckCondition(whileStmt.Condition, whileStmt.WhileToken);
+            m_VariableStack.PushScope();
+
+            var body = whileStmt.Body.Accept(this);
+
+            m_VariableStack.PopScope();
+
+            if(condition.IsError() || body.IsError())
+            {
+                List<ValidationError> errors = new List<ValidationError>();
+                errors.AddRange(condition.GetErrorOption().MatchOrConstruct(ok => ok));
+                errors.AddRange(body.GetErrorOption().MatchOrConstruct(ok => ok));
+                return errors;
+            }
+
+            return new TypedWhileStmt(condition.Value, body.Value);
+        }
 
 		public Result<TypedStatement, List<ValidationError>> VisitVarDecl(VarDecl varDecl)
 		{
-			throw new NotImplementedException();
-		}
+            ExpressionCheckerVisitor visitor = new ExpressionCheckerVisitor(m_ASTData, m_VariableStack, GetActiveLifetimesList(), GetSafetyContext());
+            var result = VariableInfo.FromVarDecl(varDecl, visitor, m_PrimaryTypes, GetActiveLifetimesList(), m_VariableStack.CurrentLifetime, GetSafetyContext());
+
+            if (!m_IsGlobal)
+            {
+                return FromVarDecl(result);
+
+            }
+            else
+            {
+                return FromVarDecl(result).Match(
+                    ok => ok, 
+                    fail => new Result<TypedStatement, List<ValidationError>>(new List<ValidationError>())); // errors will be caught by Global Variable Finder
+            }
+        }
 
 		public Result<TypedStatement, List<ValidationError>> VisitReturnStmt(ReturnStmt returnStmt)
 		{
-			throw new NotImplementedException();
-		}
+            m_BlocksReturn.Peek().Add(true);
+
+            return returnStmt.Expr.Match(ok =>
+            {
+                return ExpressionChecker.CheckExpression(ok, m_ASTData, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList()).Match(
+                ok =>
+                {
+                    if (!ok.First.Type.EqualsWithoutFirstMutable(m_CurrentReturnType))
+                    {
+                        return CreateError("Cannot return value of type '" + ok.First.Type + "' from a function that returns '" + m_CurrentReturnType + "'.", returnStmt.ReturnTok);
+                    }
+
+                    TypedReturnStmt typedReturn = new TypedReturnStmt(ok.Second);
+                    return new Result<TypedStatement, List<ValidationError>>(typedReturn);
+                },
+                fail =>
+                {
+                    return fail.ConvertAll(e => new ValidationError(e.Message, e.Token));
+                });
+            },
+            () =>
+            {
+                if (!m_CurrentReturnType.Equals(RipplePrimitives.Void))
+                {
+                    return CreateError("Cannot return a expression from a void function.", returnStmt.ReturnTok);
+                }
+
+                TypedReturnStmt success = new TypedReturnStmt(new Option<TypedExpression>());
+                return new Result<TypedStatement, List<ValidationError>>(success);
+            });
+        }
 
 		public Result<TypedStatement, List<ValidationError>> VisitContinueStmt(ContinueStmt continueStmt)
 		{
@@ -93,12 +232,12 @@ namespace Ripple.Validation.Info
 
 		public Result<TypedStatement, List<ValidationError>> VisitParameters(Parameters parameters)
 		{
-			throw new NotImplementedException();
+			throw new NotImplementedException(); // Should never get called
 		}
 
 		public Result<TypedStatement, List<ValidationError>> VisitGenericParameters(GenericParameters genericParameters)
 		{
-			throw new NotImplementedException();
+			throw new NotImplementedException(); // should never get called
 		}
 
 		public Result<TypedStatement, List<ValidationError>> VisitWhereClause(WhereClause whereClause)
@@ -123,10 +262,7 @@ namespace Ripple.Validation.Info
 
 		public Result<TypedStatement, List<ValidationError>> VisitFuncDecl(FuncDecl funcDecl)
 		{
-            var bodyResult = UpdateFunctionData(funcDecl, () =>
-            {
-                funcDecl.Body.Accept(this);
-            });
+            var bodyResult = UpdateFunctionData(funcDecl);
 
             var declResult = FunctionInfo.FromASTFunction(funcDecl, m_PrimaryTypes).Match(
                 ok =>
@@ -195,24 +331,55 @@ namespace Ripple.Validation.Info
                     fail => new Result<TypedStatement, List<ValidationError>>(fail));
 		}
 
+        private Result<TypedStatement, List<ValidationError>> FromVarDecl(Result<Pair<List<VariableInfo>, TypedExpression>, List<ASTInfoError>> result)
+        {
+            return result.Match(ok =>
+            {
+                List<ValidationError> errors = new List<ValidationError>();
+                foreach (VariableInfo variable in ok.First)
+                {
+                    if (!m_VariableStack.TryAddVariable(variable))
+                    {
+                        ValidationError error = new ValidationError("Variable '" + variable.Name + "' has already been defined.", variable.NameToken);
+                        errors.Add(error);
+                    }
+                }
+
+                if (errors.Any())
+                {
+                    return errors;
+                }
+                else
+                {
+                    TypeInfo type = ok.First[0].Type;
+                    TypedVarDecl typedVar = new TypedVarDecl(ok.First[0].IsUnsafe, type, ok.First.Select(v => v.Name).ToList(), ok.Second);
+                    return new Result<TypedStatement, List<ValidationError>>(typedVar);
+                }
+            },
+            fail =>
+            {
+                return fail.ConvertAll(e => new ValidationError(e.Message, e.Token)).ToList();
+            });
+        }
+
         private List<string> GetActiveLifetimesList()
         {
             return m_CurrentLifetimes.SelectMany(l => l).ToList().ConvertAll(t => t.Text);
         }
 
-        private Option<List<ValidationError>> CheckCondition(Expression condition, Token errorToken)
+        private Result<TypedExpression, List<ValidationError>> CheckCondition(Expression condition, Token errorToken)
         {
             var result = ExpressionChecker.CheckExpression(condition, m_ASTData, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList());
             return result.Match(ok =>
             {
                 if (ok.First.Type.EqualsWithoutFirstMutable(RipplePrimitives.Bool))
-                    return new ();
+                    return new Result<TypedExpression, List<ValidationError>>(ok.Second);
                 return CreateError("Conditional expression must evaluate to a bool.", errorToken);
             },
             fail => fail.Select(e => new ValidationError(e.Message, e.Token)).ToList());
         }
 
-        private Result<TypedBlockStmt, List<ValidationError>> UpdateFunctionData(FuncDecl decl, Action func)
+        private Result<TypedBlockStmt, List<ValidationError>> UpdateFunctionData(FuncDecl decl)
         {
             List<string> functionLifetimes = decl.GenericParams
                 .MatchOrConstruct(ok => ok.Lifetimes.ConvertAll(l => l.Text));
@@ -226,6 +393,8 @@ namespace Ripple.Validation.Info
             m_VariableStack.PushScope();
             m_BlocksReturn.Push(new List<bool>());
 
+            Result<TypedBlockStmt, List<ValidationError>> result = null;
+
             UpdateUnsafe(decl.UnsafeToken.HasValue, () =>
             {
                 foreach ((var type, var name) in decl.Param.ParamList)
@@ -237,7 +406,9 @@ namespace Ripple.Validation.Info
                         });
                 }
 
-                func();
+                result = decl.Body.Accept(this).Match(
+                    ok => new Result<TypedBlockStmt, List<ValidationError>>((TypedBlockStmt)ok),
+                    fail => fail);
             });
 
             if (!m_CurrentReturnType.Equals(RipplePrimitives.Void) && !m_BlocksReturn.Peek().Any(v => v))
@@ -250,9 +421,7 @@ namespace Ripple.Validation.Info
             m_IsGlobal = true;
             m_CurrentReturnType = null;
 
-            return decl.Body.Accept(this).Match(
-                ok => new Result<TypedBlockStmt, List<ValidationError>>((TypedBlockStmt)ok), 
-                fail => fail);
+            return result;
         }
 
         private SafetyContext GetSafetyContext()
@@ -276,19 +445,6 @@ namespace Ripple.Validation.Info
             m_IsUnsafe = isUnsafe;
             func();
             m_IsUnsafe = oldUnsafe;
-        }
-
-        private T PushScope<T>(bool isUnsafe, bool isLoop, Func<T> func)
-        {
-            return UpdateUnsafe(isUnsafe, () =>
-            {
-                m_LoopsStack.Push(isLoop);
-                m_VariableStack.PushScope();
-                T value = func();
-                m_VariableStack.PopScope();
-                m_LoopsStack.Pop();
-                return value;
-            });
         }
 
         private List<ValidationError> CreateError(string text, Token token)

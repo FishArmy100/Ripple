@@ -73,6 +73,8 @@ namespace Ripple.Transpiling.SourceGeneration
 		public const string HASH_PRAGMA = "#pragma";
 		public const string HASH_DEFINED = "#defined";
 
+		public const string HASH_PRAGMA_ONCE = "#pragma once";
+
 		public const string INT_8BIT = "int8_t";
 		public const string INT_16BIT = "int16_t";
 		public const string INT_32BIT = "int32_t";
@@ -89,5 +91,6 @@ namespace Ripple.Transpiling.SourceGeneration
 		public const string NULL_MACRO = "NULL";
 
 		public const string ARRAY_DATA_NAME = "data";
+		public const string TEMP_VAR_PREFIX = "_temp_var"
 	}
 }

@@ -186,7 +186,7 @@ namespace Ripple.App
                         ok =>
                         {
                             AstPrinter printer = new AstPrinter("   ");
-                            printer.PrintAst(ok.AST);
+                            ConsoleHelper.WriteLine("Validated successfully!");
                         },
                         fail =>
                         {

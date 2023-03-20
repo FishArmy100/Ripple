@@ -45,7 +45,8 @@ namespace ASTGeneration
                 "CIdentifier : string Id",
                 "CSizeOf : CType Type",
                 "CMemberAccess : CExpression Expression; string Identifier",
-                "CLiteral : object Value; CLiteralType Type"
+                "CLiteral : object Value; CLiteralType Type",
+                "CInitalizerList : List<CExpression> Expressions"
             }, additionalUsings);
 
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Transpiling\\C_AST\\Statements", "Ripple.Transpiling.C_AST", "CStatement", "", new List<string>()
@@ -127,16 +128,6 @@ namespace ASTGeneration
                 "ArrayType : TypeName BaseType; Token? MutToken; Token OpenBracket; Token Size; Token CloseBracket",
                 "FuncPtr : Token? MutToken; Token FuncToken; Option<List<Token>> Lifetimes; Token OpenParen; List<TypeName> Parameters; Token CloseParen; Token Arrow; TypeName ReturnType",
             }, additionalUsings);
-
-            // Simplified types
-            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Transpiling\\ASTConversion\\SimplifiedTypes", "Ripple.Transpiling.ASTConversion.SimplifiedTypes", "SimplifiedType", "", new List<string>
-            {
-                "SBasicType : bool IsMutable; string Name",
-                "SPointer : bool IsMutable; SimplifiedType Contained",
-                "SReference : bool IsMutable; SimplifiedType Contained",
-                "SArray : bool IsMutable; SimplifiedType Contained; int Size",
-                "SFuncPtr : bool IsMutable; List<SimplifiedType> Parameters; SimplifiedType Returned"
-            }, additionalUsings);
         }
 
         private static void GenerateTypedAST()
@@ -181,7 +172,7 @@ namespace ASTGeneration
                 {
                     "TypedIdentifier : string Name; Either<FunctionInfo,VariableInfo> Value",
                     "TypedInitalizerList : List<TypedExpression> Expressions",
-                    "TypedLiteral : string Value",
+                    "TypedLiteral : string Value; TokenType Type",
                     "TypedSizeOf : TypeInfo SizedType",
                     "TypedCall : TypedExpression Callee; List<TypedExpression> Arguments",
                     "TypedIndex : TypedExpression Indexee; TypedExpression Argument",

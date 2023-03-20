@@ -14,6 +14,7 @@ namespace Ripple.Transpiling.C_AST
 		public abstract void VisitCSizeOf(CSizeOf cSizeOf);
 		public abstract void VisitCMemberAccess(CMemberAccess cMemberAccess);
 		public abstract void VisitCLiteral(CLiteral cLiteral);
+		public abstract void VisitCInitalizerList(CInitalizerList cInitalizerList);
 	}
 
 	interface ICExpressionVisitor<T>
@@ -27,6 +28,7 @@ namespace Ripple.Transpiling.C_AST
 		public abstract T VisitCSizeOf(CSizeOf cSizeOf);
 		public abstract T VisitCMemberAccess(CMemberAccess cMemberAccess);
 		public abstract T VisitCLiteral(CLiteral cLiteral);
+		public abstract T VisitCInitalizerList(CInitalizerList cInitalizerList);
 	}
 
 	interface ICExpressionVisitor<TReturn, TArg>
@@ -40,6 +42,7 @@ namespace Ripple.Transpiling.C_AST
 		public abstract TReturn VisitCSizeOf(CSizeOf cSizeOf, TArg arg);
 		public abstract TReturn VisitCMemberAccess(CMemberAccess cMemberAccess, TArg arg);
 		public abstract TReturn VisitCLiteral(CLiteral cLiteral, TArg arg);
+		public abstract TReturn VisitCInitalizerList(CInitalizerList cInitalizerList, TArg arg);
 	}
 	interface ICExpressionVisitorWithArg<TArg>
 	{
@@ -52,5 +55,6 @@ namespace Ripple.Transpiling.C_AST
 		public abstract void VisitCSizeOf(CSizeOf cSizeOf, TArg arg);
 		public abstract void VisitCMemberAccess(CMemberAccess cMemberAccess, TArg arg);
 		public abstract void VisitCLiteral(CLiteral cLiteral, TArg arg);
+		public abstract void VisitCInitalizerList(CInitalizerList cInitalizerList, TArg arg);
 	}
 }

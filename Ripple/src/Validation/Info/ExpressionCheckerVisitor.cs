@@ -350,48 +350,48 @@ namespace Ripple.Validation.Info
                         if (e is BasicTypeInfo b)
                         {
                             if (b.Name == RipplePrimitives.Int32Name)
-                                return GetLiteralPair(b, literal.Val.Text);
+                                return GetLiteralPair(b, literal.Val.Type, literal.Val.Text);
                             else if (b.Name == RipplePrimitives.Float32Name)
-                                return GetLiteralPair(b, literal.Val.Text);
+                                return GetLiteralPair(b, literal.Val.Type, literal.Val.Text);
                         }
 
-                        return GetLiteralPair(RipplePrimitives.Int32, literal.Val.Text);
+                        return GetLiteralPair(RipplePrimitives.Int32, literal.Val.Type, literal.Val.Text);
                     },
-                    () => GetLiteralPair(RipplePrimitives.Int32, literal.Val.Text));
+                    () => GetLiteralPair(RipplePrimitives.Int32, literal.Val.Type, literal.Val.Text));
 
                 case TokenType.FloatLiteral:
                     return expected.Match(e =>
                     {
                         if (e is BasicTypeInfo b && b.Name == RipplePrimitives.Float32Name) // will return accurate mutable value
-                            return GetLiteralPair(b, literal.Val.Text);
+                            return GetLiteralPair(b, literal.Val.Type, literal.Val.Text);
 
-                        return GetLiteralPair(RipplePrimitives.Float32, literal.Val.Text);
+                        return GetLiteralPair(RipplePrimitives.Float32, literal.Val.Type, literal.Val.Text);
                     },
-                    () => GetLiteralPair(RipplePrimitives.Float32, literal.Val.Text));
+                    () => GetLiteralPair(RipplePrimitives.Float32, literal.Val.Type, literal.Val.Text));
 
                 case TokenType.True:
                 case TokenType.False:
                     return expected.Match(e =>
                     {
                         if (e is BasicTypeInfo b && b.Name == RipplePrimitives.BoolName)
-                            return GetLiteralPair(b, literal.Val.Text);
-                        return GetLiteralPair(RipplePrimitives.Bool, literal.Val.Text);
+                            return GetLiteralPair(b, literal.Val.Type, literal.Val.Text);
+                        return GetLiteralPair(RipplePrimitives.Bool, literal.Val.Type, literal.Val.Text);
                     },
-                    () => GetLiteralPair(RipplePrimitives.Bool, literal.Val.Text));
+                    () => GetLiteralPair(RipplePrimitives.Bool, literal.Val.Type, literal.Val.Text));
 
                 case TokenType.CharactorLiteral:
                     return expected.Match(e =>
                     {
                         if (e is BasicTypeInfo b && b.Name == RipplePrimitives.CharName)
-                            return GetLiteralPair(b, literal.Val.Text);
-                        return GetLiteralPair(RipplePrimitives.Char, literal.Val.Text);
+                            return GetLiteralPair(b, literal.Val.Type, literal.Val.Text);
+                        return GetLiteralPair(RipplePrimitives.Char, literal.Val.Type, literal.Val.Text);
                     },
-                    () => GetLiteralPair(RipplePrimitives.Char, literal.Val.Text));
+                    () => GetLiteralPair(RipplePrimitives.Char, literal.Val.Type, literal.Val.Text));
 
                 case TokenType.Nullptr:
                     if (expected.Match(e => e is PointerInfo, () => false))
                     {
-                        return GetLiteralPair(expected.Value, "nullptr");
+                        return GetLiteralPair(expected.Value, TokenType.Nullptr, "nullptr");
                     }
                     throw new ExpressionCheckerException("Could not infer nullptr, in this context", literal.Val);
 
@@ -399,7 +399,7 @@ namespace Ripple.Validation.Info
                     {
                         TypeInfo type = new PointerInfo(false, RipplePrimitives.Char);
                         ValueInfo value = new ValueInfo(type, LifetimeInfo.Static); // char* with a static lifetime
-                        TypedLiteral typedLiteral = new TypedLiteral(literal.Val.Text, type);
+                        TypedLiteral typedLiteral = new TypedLiteral(literal.Val.Text, literal.Val.Type, type);
 
                         return new Pair<ValueInfo, TypedExpression>(value, typedLiteral);
                     }
@@ -451,10 +451,10 @@ namespace Ripple.Validation.Info
             throw new ExpressionCheckerException(message, token);
         }
 
-        private Pair<ValueInfo, TypedExpression> GetLiteralPair(TypeInfo typeInfo, string literalValue)
+        private Pair<ValueInfo, TypedExpression> GetLiteralPair(TypeInfo typeInfo, TokenType literalType, string literalValue)
 		{
             ValueInfo value = new ValueInfo(typeInfo, m_VariableStack.CurrentLifetime);
-            TypedLiteral literal = new TypedLiteral(literalValue, typeInfo);
+            TypedLiteral literal = new TypedLiteral(literalValue, literalType, typeInfo);
             return new Pair<ValueInfo, TypedExpression>(value, literal);
 		}
 

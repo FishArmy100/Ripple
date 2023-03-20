@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using Ripple.Transpiling.C_AST;
 using Ripple.Lexing;
 using Ripple.AST;
+using Ripple.Validation.Info.Expressions;
 
 namespace Ripple.Transpiling.ASTConversion
 {
-	static class RippleToCConversionUtils
+	static class ASTConversionUtils
 	{
 		public static CBinaryOperator ToBinary(TokenType operatorType)
 		{
@@ -46,17 +47,18 @@ namespace Ripple.Transpiling.ASTConversion
 			};
 		}
 
-		public static CLiteral ToLiteral(Literal literal)
+		public static CLiteral ToLiteral(TypedLiteral literal)
 		{
-			return literal.Val.Type switch
+			return literal.Type switch
 			{
 				TokenType.True => new CLiteral(true, CLiteralType.True),
 				TokenType.False => new CLiteral(false, CLiteralType.False),
-				TokenType.IntagerLiteral => new CLiteral(int.Parse(literal.Val.Text), CLiteralType.Intager),
-				TokenType.FloatLiteral => new CLiteral(float.Parse(literal.Val.Text), CLiteralType.Float),
-				TokenType.CharactorLiteral => new CLiteral(literal.Val.Text.Trim('\''), CLiteralType.Charactor), // always in format 'c' or '\n'
-				TokenType.CStringLiteral => new CLiteral(literal.Val.Text.Trim('\"'), CLiteralType.String),
-				_ => throw new ArgumentException("Invalid literal type for transpiling " + literal.Val.Type)
+				TokenType.IntagerLiteral => new CLiteral(int.Parse(literal.Value), CLiteralType.Intager),
+				TokenType.FloatLiteral => new CLiteral(float.Parse(literal.Value), CLiteralType.Float),
+				TokenType.CharactorLiteral => new CLiteral(literal.Value.Trim('\''), CLiteralType.Charactor), // always in format 'c' or '\n'
+				TokenType.CStringLiteral => new CLiteral(literal.Value.Trim('\"'), CLiteralType.String),
+				TokenType.Nullptr => new CLiteral("nullptr", CLiteralType.Nullptr),
+				_ => throw new ArgumentException("Invalid literal type for transpiling " + literal.Type)
 			};
 		}
 	}

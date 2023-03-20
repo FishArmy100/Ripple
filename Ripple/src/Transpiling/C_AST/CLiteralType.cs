@@ -15,27 +15,6 @@ namespace Ripple.Transpiling.C_AST
 		Float,
 		True,
 		False,
+		Nullptr,
 	}
-
-	static class CLiteralTypeExtensions
-    {
-		public static CType ToCType(this CLiteralType type)
-        {
-			return type switch
-			{
-				CLiteralType.String => new CPointer(new CBasicType(CKeywords.CHAR, false), false),
-				CLiteralType.Intager => GenType(CKeywords.INT),
-				CLiteralType.Charactor => GenType(CKeywords.CHAR),
-				CLiteralType.Float => GenType(CKeywords.FLOAT),
-				CLiteralType.True => GenType(CKeywords.BOOL),
-				CLiteralType.False => GenType(CKeywords.BOOL),
-				_ => throw new ArgumentException("Unknown literal type " + type),
-			};
-        }
-
-		private static CBasicType GenType(string name)
-        {
-			return new CBasicType(name, false);
-        }
-    }
 }

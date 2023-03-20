@@ -95,5 +95,18 @@ namespace Ripple.Validation.Info
                 return new Result<FunctionInfo, List<ASTInfoError>>(fail);
             });
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is FunctionInfo info &&
+                   IsUnsafe == info.IsUnsafe &&
+                   EqualityComparer<FuncPtrInfo>.Default.Equals(FunctionType, info.FunctionType) &&
+                   Name == info.Name;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(IsUnsafe, FunctionType, Name);
+        }
     }
 }

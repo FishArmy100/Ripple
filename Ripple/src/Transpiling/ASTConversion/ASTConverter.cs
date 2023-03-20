@@ -5,9 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Transpiling.C_AST;
 using Ripple.AST;
-using Ripple.Transpiling.ASTConversion.SimplifiedTypes;
 using Ripple.Utils;
 using Ripple.Transpiling.SourceGeneration;
+using Ripple.Validation.Info.Types;
+using Ripple.Validation.Info.Expressions;
 
 namespace Ripple.Transpiling.ASTConversion
 {
@@ -18,52 +19,14 @@ namespace Ripple.Transpiling.ASTConversion
 			return null;
 		}
 
-		public static CType ConvertToCType(TypeName name, ref CArrayRegistry registry)
+		public static CType ConvertToCType(TypeInfo name, ref CArrayRegistry registry)
 		{
-			SimplifiedType simplified = SimplifiedTypeGenerator.Generate(name);
-			return simplified.Accept(new SimplifiedTypeToCTypeConverterVisitor(registry));
+			return name.Accept(new TypeConverterVisitor(registry));
 		}
 
-		public static CType ConvertToCType(SimplifiedType type, ref CArrayRegistry registry)
+		public static ExpressionConversionResult ConvertExpression(TypedExpression expression, ref CArrayRegistry registry, string tempVarPostfix)
         {
-			return type.Accept(new SimplifiedTypeToCTypeConverterVisitor(registry));
+			return expression.Accept(new ExpressionConverterVisitor(registry, tempVarPostfix));
         }
-
-		private class SimplifiedTypeToCTypeConverterVisitor : ISimplifiedTypeVisitor<CType>
-		{
-			private readonly CArrayRegistry m_Registry;
-
-			public SimplifiedTypeToCTypeConverterVisitor(CArrayRegistry registry)
-			{
-				m_Registry = registry;
-			}
-
-			public CType VisitSArray(SArray sArray)
-			{
-				return new CBasicType(m_Registry.GetArrayAlias(sArray).Name, false); 
-			}
-
-			public CType VisitSBasicType(SBasicType sBasicType)
-			{
-				return new CBasicType(sBasicType.Name, false);
-			}
-
-			public CType VisitSFuncPtr(SFuncPtr sFuncPtr)
-			{
-				List<CType> parameters = sFuncPtr.Parameters.Select(p => p.Accept(this)).ToList();
-				CType returned = sFuncPtr.Returned.Accept(this);
-				return new CFuncPtr(returned, parameters);
-			}
-
-			public CType VisitSPointer(SPointer sPointer)
-			{
-				return new CPointer(sPointer.Contained.Accept(this), false);
-			}
-
-			public CType VisitSReference(SReference sReference)
-			{
-				return new CPointer(sReference.Contained.Accept(this), false);
-			}
-		}
 	}
 }

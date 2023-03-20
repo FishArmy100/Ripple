@@ -4,22 +4,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ripple.Transpiling.C_AST;
-using Ripple.Transpiling.ASTConversion.SimplifiedTypes;
 using Ripple.AST;
 using Ripple.Transpiling.SourceGeneration;
 using Ripple.Utils;
+using Ripple.Validation.Info.Types;
 
 namespace Ripple.Transpiling.ASTConversion
 {
 	class CArrayRegistry
 	{
 		private readonly List<CStructDef> m_OrderedArrayStructs = new List<CStructDef>();
-		private readonly Dictionary<SimplifiedType, CStructDef> m_ArrayStructs = new Dictionary<SimplifiedType, CStructDef>();
+		private readonly Dictionary<TypeInfo, CStructDef> m_ArrayStructs = new Dictionary<TypeInfo, CStructDef>();
 
 		public List<CStructDef> GetArrayAliasStructs() => m_OrderedArrayStructs;
 
 
-		public CStructDef GetArrayAlias(SArray array)
+		public CStructDef GetArrayAlias(ArrayInfo array)
 		{
 			if(m_ArrayStructs.TryGetValue(array, out CStructDef alias))
 			{
@@ -32,7 +32,7 @@ namespace Ripple.Transpiling.ASTConversion
 			}
 		}
 
-		private CStructDef GenerateArrayAlias(SArray array)
+		private CStructDef GenerateArrayAlias(ArrayInfo array)
 		{
 			CStructDefData data = array.Contained.Accept(new CStructDefDataGeneratorVisitor(this));
 			CStructDef def = new CStructDef($"{data.Name}_array_{array.Size}", new List<CStructMember>
@@ -46,7 +46,7 @@ namespace Ripple.Transpiling.ASTConversion
 			return def;
 		}
 
-		private class CStructDefDataGeneratorVisitor : ISimplifiedTypeVisitor<CStructDefData>
+		private class CStructDefDataGeneratorVisitor : ITypeInfoVisitor<CStructDefData>
 		{
 			private readonly CArrayRegistry m_Registry;
 
@@ -55,18 +55,18 @@ namespace Ripple.Transpiling.ASTConversion
 				m_Registry = registry;
 			}
 
-			public CStructDefData VisitSArray(SArray sArray)
+			public CStructDefData VisitArrayInfo(ArrayInfo sArray)
 			{
 				CStructDef def = m_Registry.GenerateArrayAlias(sArray);
 				return new CStructDefData(def.Name, new CBasicType(def.Name, false));
 			}
 
-			public CStructDefData VisitSBasicType(SBasicType sBasicType)
+			public CStructDefData VisitBasicTypeInfo(BasicTypeInfo sBasicType)
 			{
 				return new CStructDefData(sBasicType.Name, new CBasicType(sBasicType.Name, !sBasicType.IsMutable));
 			}
 
-			public CStructDefData VisitSFuncPtr(SFuncPtr sFuncPtr)
+			public CStructDefData VisitFuncPtrInfo(FuncPtrInfo sFuncPtr)
 			{
 				IEnumerable<CStructDefData> parameterDatas = sFuncPtr.Parameters.Select(p => p.Accept(this));
 				CStructDefData returnedData = sFuncPtr.Returned.Accept(this);
@@ -76,7 +76,7 @@ namespace Ripple.Transpiling.ASTConversion
 				return new CStructDefData(name, ctype);
 			}
 
-			public CStructDefData VisitSPointer(SPointer sPointer)
+			public CStructDefData VisitPointerInfo(PointerInfo sPointer)
 			{
 				CStructDefData containedData = sPointer.Contained.Accept(this);
 				string name = $"ptr_{containedData.Name}";
@@ -85,7 +85,7 @@ namespace Ripple.Transpiling.ASTConversion
 			}
 
 			// References are just pointers here
-			public CStructDefData VisitSReference(SReference sReference)
+			public CStructDefData VisitReferenceInfo(ReferenceInfo sReference)
 			{
 				CStructDefData containedData = sReference.Contained.Accept(this);
 				string name = $"ptr_{containedData.Name}";

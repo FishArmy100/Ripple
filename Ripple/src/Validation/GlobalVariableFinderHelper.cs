@@ -39,7 +39,7 @@ namespace Ripple.Validation
             var result = VariableInfo.FromVarDecl(varDecl, visitor, m_Primaries, new List<string>(), LifetimeInfo.Static, safetyContext);
             result.Match(ok =>
             {
-                foreach (VariableInfo info in ok)
+                foreach (VariableInfo info in ok.First)
                     TryAddVariableInfo(info);
             },
             fail =>
