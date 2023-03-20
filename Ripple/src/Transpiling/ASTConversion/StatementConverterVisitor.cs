@@ -9,7 +9,7 @@ using Ripple.Utils;
 
 namespace Ripple.Transpiling.ASTConversion
 {
-    class StatementConverterVisitor : ITypedStatementVisitor<CStatement>
+    class StatementConverterVisitor : ITypedStatementVisitor<List<CStatement>>
     {
         private readonly ExpressionConverterVisitor m_ExpressionConverter;
         private readonly TypeConverterVisitor m_TypeConverter;
@@ -22,78 +22,83 @@ namespace Ripple.Transpiling.ASTConversion
             m_Includes = includes;
         }
 
-        public CStatement VisitTypedBlockStmt(TypedBlockStmt typedBlockStmt)
+        public List<CStatement> VisitTypedBlockStmt(TypedBlockStmt typedBlockStmt)
         {
-            List<CStatement> statements = typedBlockStmt.Statements.Select(s => s.Accept(this)).ToList();
-            return new CBlockStmt(statements);
+            return ToList(new CBlockStmt(typedBlockStmt.Accept(this)));
         }
 
-        public CStatement VisitTypedBreakStmt(TypedBreakStmt typedBreakStmt)
+        public List<CStatement> VisitTypedBreakStmt(TypedBreakStmt typedBreakStmt)
         {
             return ToList(new CBreakStmt());
         }
 
-        public CStatement VisitTypedContinueStmt(TypedContinueStmt typedContinueStmt)
+        public List<CStatement> VisitTypedContinueStmt(TypedContinueStmt typedContinueStmt)
         {
-            return new CContinueStmt();
+            return ToList(new CContinueStmt());
         }
 
-        public CStatement VisitTypedExprStmt(TypedExprStmt typedExprStmt)
+        public List<CStatement> VisitTypedExprStmt(TypedExprStmt typedExprStmt)
         {
-            CExpression expression = typedExprStmt.Expression.Accept(m_ExpressionConverter).Expression;
-            return new CExprStmt(expression);
+            ExpressionConversionResult result = typedExprStmt.Expression.Accept(m_ExpressionConverter);
+            List<CStatement> statements = result.GeneratedVariables
+                .Cast<CStatement>()
+                .Append(new CExprStmt(result.Expression))
+                .ToList();
+
+            return statements;
         }
 
-        public CStatement VisitTypedExternalFuncDecl(TypedExternalFuncDecl typedExternalFuncDecl)
+        public List<CStatement> VisitTypedExternalFuncDecl(TypedExternalFuncDecl typedExternalFuncDecl)
         {
             throw new NotImplementedException();
         }
 
-        public CStatement VisitTypedFileStmt(TypedFileStmt typedFileStmt)
+        public List<CStatement> VisitTypedFileStmt(TypedFileStmt typedFileStmt)
         {
             var statements = typedFileStmt.Statements
                 .Select(s => s.Accept(this))
+                .SelectMany(s => s)
                 .ToList();
 
-            return new CFileStmt(m_Includes, statements, typedFileStmt.FilePath, CFileType.Source);
+            return ToList(new CFileStmt(m_Includes, statements, typedFileStmt.FilePath, CFileType.Source));
         }
 
-        public CStatement VisitTypedForStmt(TypedForStmt typedForStmt)
+        public List<CStatement> VisitTypedForStmt(TypedForStmt typedForStmt)
         {
             throw new NotImplementedException();
         }
 
-        public CStatement VisitTypedFuncDecl(TypedFuncDecl typedFuncDecl)
+        public List<CStatement> VisitTypedFuncDecl(TypedFuncDecl typedFuncDecl)
         {
             throw new NotImplementedException();
         }
 
-        public CStatement VisitTypedIfStmt(TypedIfStmt typedIfStmt)
+        public List<CStatement> VisitTypedIfStmt(TypedIfStmt typedIfStmt)
         {
             throw new NotImplementedException();
         }
 
-        public CStatement VisitTypedProgramStmt(TypedProgramStmt typedProgramStmt)
-        {
-            throw new NotImplementedException(); // Should never be called
-        }
-
-        public CStatement VisitTypedReturnStmt(TypedReturnStmt typedReturnStmt)
+        public List<CStatement> VisitTypedProgramStmt(TypedProgramStmt typedProgramStmt)
         {
             throw new NotImplementedException();
         }
 
-        public CStatement VisitTypedUnsafeBlock(TypedUnsafeBlock typedUnsafeBlock)
+        public List<CStatement> VisitTypedReturnStmt(TypedReturnStmt typedReturnStmt)
         {
             throw new NotImplementedException();
         }
 
-        public CStatement VisitTypedVarDecl(TypedVarDecl typedVarDecl)
+        public List<CStatement> VisitTypedUnsafeBlock(TypedUnsafeBlock typedUnsafeBlock)
         {
             throw new NotImplementedException();
         }
 
-        public CStatement VisitTypedWhileStmt(TypedWhileStmt typedWhileStmt)
+        public List<CStatement> VisitTypedVarDecl(TypedVarDecl typedVarDecl)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<CStatement> VisitTypedWhileStmt(TypedWhileStmt typedWhileStmt)
         {
             throw new NotImplementedException();
         }
