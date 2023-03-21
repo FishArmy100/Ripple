@@ -24,6 +24,8 @@ namespace Ripple.AST.Utils
         public static readonly BasicTypeInfo Char = GenPrimative(CharName);
         public static readonly BasicTypeInfo Void = GenPrimative(VoidName);
 
+        public static readonly PointerInfo CString = new PointerInfo(false, GenPrimative(CharName));
+
         private static BasicTypeInfo GenPrimative(string name)
         {
             return new BasicTypeInfo(false, name);

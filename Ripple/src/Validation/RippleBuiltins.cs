@@ -30,9 +30,10 @@ namespace Ripple.Validation
         {
             var infos = new List<FunctionInfo>()
             {
-                GenFunctionData("print", new (){(RipplePrimitives.Int32Name,    "value")}, RipplePrimitives.VoidName),
-                GenFunctionData("print", new (){(RipplePrimitives.Float32Name,  "value")}, RipplePrimitives.VoidName),
-                GenFunctionData("print", new (){(RipplePrimitives.BoolName,     "value")}, RipplePrimitives.VoidName),
+                GenFunctionData("print", new (){(RipplePrimitives.Int32,    "value")}, RipplePrimitives.VoidName),
+                GenFunctionData("print", new (){(RipplePrimitives.Float32,  "value")}, RipplePrimitives.VoidName),
+                GenFunctionData("print", new (){(RipplePrimitives.Bool,     "value")}, RipplePrimitives.VoidName),
+                GenFunctionData("print", new (){(RipplePrimitives.CString , "value")}, RipplePrimitives.VoidName),
             };
 
             FunctionList list = new FunctionList();
@@ -378,12 +379,12 @@ namespace Ripple.Validation
             return new Token(name, TokenType.Identifier, -1, -1);
         }
 
-        private static FunctionInfo GenFunctionData(string name, List<(string, string)> paramaters, string returnTypeName)
+        private static FunctionInfo GenFunctionData(string name, List<(TypeInfo, string)> paramaters, string returnTypeName)
         {
             Token funcName = GenIdTok(name);
             TypeInfo returnType = GenBasicType(returnTypeName);
             List<ParameterInfo> parameterInfos = paramaters
-                .ConvertAll(p => new ParameterInfo(GenIdTok(p.Item2), GenBasicType(p.Item1)));
+                .ConvertAll(p => new ParameterInfo(GenIdTok(p.Item2), p.Item1));
 
             return FunctionInfo.CreateFunction(false, name, returnType, parameterInfos);
         }

@@ -10,7 +10,6 @@ using Ripple.Utils.Extensions;
 using Ripple.Transpiling.C_AST;
 using Ripple.Transpiling.SourceGeneration;
 using Ripple.Transpiling.ASTConversion;
-using Ripple.Transpiling.ASTConversion.SimplifiedTypes;
 
 namespace Ripple.App
 {
@@ -195,20 +194,21 @@ namespace Ripple.App
                         });
                     break;
                 case CompilerMode.Transpiling:
-                    TestTranspiler();
+                    var transpilingResult = Compiler.RunTranspiler(sourceFiles);
+                    transpilingResult.Match(
+                        ok =>
+                        {
+                            ConsoleHelper.WriteLine("C Source:");
+                            ConsoleHelper.WriteLine(ok);
+                        },
+                        fail => 
+                        {
+                            foreach (CompilerError compilerError in fail)
+                                ConsoleHelper.WriteLineError(compilerError.ToString());
+                        });
                     break;
             }
         }
-
-        private static void TestTranspiler()
-		{
-            CArrayRegistry registry = new CArrayRegistry();
-            SArray type = new SArray(false, new SArray(false, new SBasicType(false, "int"), 4), 4);
-            registry.GetArrayAlias(type);
-            CFileStmt file = new CFileStmt(new List<CIncludeStmt>(), registry.GetArrayAliasStructs().ConvertAll(a => a as CStatement), "", CFileType.Header);
-
-            ConsoleHelper.WriteLine(CStatementSourceGenerator.GenerateSource(file));
-		}
 
 		private void RunCompiler()
         {

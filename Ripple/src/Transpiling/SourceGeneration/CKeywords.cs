@@ -91,6 +91,6 @@ namespace Ripple.Transpiling.SourceGeneration
 		public const string NULL_MACRO = "NULL";
 
 		public const string ARRAY_DATA_NAME = "data";
-		public const string TEMP_VAR_PREFIX = "_temp_var"
+		public const string TEMP_VAR_PREFIX = "_temp_var";
 	}
 }

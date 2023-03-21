@@ -94,6 +94,10 @@ namespace Ripple.Transpiling.SourceGeneration
 				string operand = GroupIfTrue(unary.Expression, unary.Expression is CBinary || unary.Expression is CCast);
 				return op + operand;
 			}
+			public string VisitCInitalizerList(CInitalizerList cInitalizerList)
+			{
+				throw new NotImplementedException();
+			}
 
 			private static string Group(string grouped)
 			{

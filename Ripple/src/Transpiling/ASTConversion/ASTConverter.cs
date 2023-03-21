@@ -9,24 +9,22 @@ using Ripple.Utils;
 using Ripple.Transpiling.SourceGeneration;
 using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info.Expressions;
+using Ripple.Validation.Info.Statements;
 
 namespace Ripple.Transpiling.ASTConversion
 {
 	static class ASTConverter
 	{
-		public static CProgram ConvertAST(ProgramStmt program)
+		public static string ConvertAST(TypedProgramStmt program)
 		{
-			return null;
-		}
+			TypedFileStmt file = program.Files[0];
+			CArrayRegistry registry = new CArrayRegistry();
 
-		public static CType ConvertToCType(TypeInfo name, ref CArrayRegistry registry)
-		{
-			return name.Accept(new TypeConverterVisitor(registry));
-		}
+			StatementConverterVisitor visitor = new StatementConverterVisitor(registry, new List<CIncludeStmt>());
 
-		public static ExpressionConversionResult ConvertExpression(TypedExpression expression, ref CArrayRegistry registry, string tempVarPostfix)
-        {
-			return expression.Accept(new ExpressionConverterVisitor(registry, tempVarPostfix));
-        }
+			CFileStmt cFile = (CFileStmt)file.Accept(visitor)[0];
+			string source = CStatementSourceGenerator.GenerateSource(cFile);
+			return source;
+		}
 	}
 }

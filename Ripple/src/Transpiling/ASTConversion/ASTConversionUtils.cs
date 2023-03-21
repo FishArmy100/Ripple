@@ -56,10 +56,22 @@ namespace Ripple.Transpiling.ASTConversion
 				TokenType.IntagerLiteral => new CLiteral(int.Parse(literal.Value), CLiteralType.Intager),
 				TokenType.FloatLiteral => new CLiteral(float.Parse(literal.Value), CLiteralType.Float),
 				TokenType.CharactorLiteral => new CLiteral(literal.Value.Trim('\''), CLiteralType.Charactor), // always in format 'c' or '\n'
-				TokenType.CStringLiteral => new CLiteral(literal.Value.Trim('\"'), CLiteralType.String),
+				TokenType.CStringLiteral => new CLiteral(ConvertStringLiteral(literal.Value), CLiteralType.String),
 				TokenType.Nullptr => new CLiteral("nullptr", CLiteralType.Nullptr),
 				_ => throw new ArgumentException("Invalid literal type for transpiling " + literal.Type)
 			};
 		}
+
+		private static string ConvertStringLiteral(string literalText)
+        {
+			if(literalText[0] == 'c')
+            {
+				return literalText[2..^1];
+			}
+			else
+            {
+				return literalText[1..^1];
+            }
+        }
 	}
 }
