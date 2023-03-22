@@ -9,7 +9,7 @@ namespace Ripple.Utils
 {
 	class ListStack<T> : IEnumerable<T>
 	{
-		private readonly Stack<List<T>> m_Stack;
+		private readonly Stack<List<T>> m_Stack = new Stack<List<T>>();
 
 		public int StackSize => m_Stack.Count;
 

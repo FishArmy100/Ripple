@@ -10,6 +10,7 @@ using Ripple.Transpiling.SourceGeneration;
 using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info.Expressions;
 using Ripple.Validation.Info.Statements;
+using Ripple.Utils.Extensions;
 
 namespace Ripple.Transpiling.ASTConversion
 {
@@ -23,8 +24,13 @@ namespace Ripple.Transpiling.ASTConversion
 			StatementConverterVisitor visitor = new StatementConverterVisitor(registry, new List<CIncludeStmt>());
 
 			CFileStmt cFile = (CFileStmt)file.Accept(visitor)[0];
-			string source = CStatementSourceGenerator.GenerateSource(cFile);
-			return source;
+
+			string predefs = registry.GetArrayAliasStructs().Select(d => CStatementSourceGenerator.GenerateSource(d)).Concat("\n");
+
+
+			string generated = CStatementSourceGenerator.GenerateSource(cFile);
+
+			return  "// Predefs: \n" + predefs + "\n// Source:\n" + generated;
 		}
 	}
 }

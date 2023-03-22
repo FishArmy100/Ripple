@@ -19,12 +19,12 @@ namespace Ripple.Transpiling.ASTConversion
 
 		public CType VisitArrayInfo(ArrayInfo sArray)
 		{
-			return new CBasicType(m_Registry.GetArrayAlias(sArray).Name, false);
+			return new CBasicType(m_Registry.GetArrayAlias(sArray).Name, false, true);
 		}
 
 		public CType VisitBasicTypeInfo(BasicTypeInfo sBasicType)
 		{
-			return new CBasicType(sBasicType.Name, false);
+			return new CBasicType(sBasicType.Name, false, false);
 		}
 
 		public CType VisitFuncPtrInfo(FuncPtrInfo sFuncPtr)

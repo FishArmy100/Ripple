@@ -56,12 +56,12 @@ namespace Ripple.Transpiling.ASTConversion
 			public CStructDefData VisitArrayInfo(ArrayInfo sArray)
 			{
 				CStructDef def = m_Registry.GenerateArrayAlias(sArray);
-				return new CStructDefData(def.Name, new CBasicType(def.Name, false));
+				return new CStructDefData(def.Name, new CBasicType(def.Name, false, true));
 			}
 
 			public CStructDefData VisitBasicTypeInfo(BasicTypeInfo sBasicType)
 			{
-				return new CStructDefData(sBasicType.Name, new CBasicType(sBasicType.Name, !sBasicType.IsMutable));
+				return new CStructDefData(sBasicType.Name, new CBasicType(sBasicType.Name, !sBasicType.IsMutable, true));
 			}
 
 			public CStructDefData VisitFuncPtrInfo(FuncPtrInfo sFuncPtr)

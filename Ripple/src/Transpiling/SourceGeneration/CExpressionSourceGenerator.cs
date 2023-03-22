@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Transpiling.C_AST;
 using Ripple.Utils;
+using Ripple.Utils.Extensions;
 
 namespace Ripple.Transpiling.SourceGeneration
 {
@@ -94,9 +95,15 @@ namespace Ripple.Transpiling.SourceGeneration
 				string operand = GroupIfTrue(unary.Expression, unary.Expression is CBinary || unary.Expression is CCast);
 				return op + operand;
 			}
+
+			public string VisitCCompoundLiteral(CCompoundLiteral cCompoundLiteral)
+			{
+				return $"({CTypeSourceGenerator.GenerateSource(cCompoundLiteral.Type, new Option<string>())}){cCompoundLiteral.Initalizer.Accept(this)}";
+			}
+
 			public string VisitCInitalizerList(CInitalizerList cInitalizerList)
 			{
-				throw new NotImplementedException();
+				return "{" + cInitalizerList.Expressions.Select(e => e.Accept(this)).Concat(", ") + "}";
 			}
 
 			private static string Group(string grouped)
@@ -142,6 +149,6 @@ namespace Ripple.Transpiling.SourceGeneration
 					_ => throw new ArgumentException("Unknown C binary operator " + op),
 				};
 			}
-        }
+		}
 	}
 }

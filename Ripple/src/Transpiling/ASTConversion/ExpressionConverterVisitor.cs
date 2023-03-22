@@ -96,9 +96,17 @@ namespace Ripple.Transpiling.ASTConversion
                 .ToList();
 
             CType returned = GetReturned(typedInitalizerList);
-            CInitalizerList cInitalizerList = new CInitalizerList(expressions.Select(e => e.Expression).ToList());
+            if(returned is CBasicType b && b.IsStruct)
+			{
 
-            return new ExpressionConversionResult(generatedVariables, cInitalizerList, returned, ExpressionValueType.Temp);
+                CInitalizerList cInitalizerList = new CInitalizerList(expressions.Select(e => e.Expression).ToList());
+                CCompoundLiteral compoundLiteral = new CCompoundLiteral(b, cInitalizerList);
+                return new ExpressionConversionResult(generatedVariables, compoundLiteral, returned, ExpressionValueType.Temp);
+            }
+			else
+			{
+                throw new NotImplementedException();
+			}
         }
 
         public ExpressionConversionResult VisitTypedLiteral(TypedLiteral typedLiteral)

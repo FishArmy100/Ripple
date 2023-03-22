@@ -9,9 +9,10 @@ namespace Ripple.Transpiling.C_AST
 {
 	static class CPrimatives
 	{
-		public static readonly CBasicType Int =		new CBasicType(CKeywords.INT, false);
-		public static readonly CBasicType Float =	new CBasicType(CKeywords.FLOAT, false);
-		public static readonly CBasicType Char =	new CBasicType(CKeywords.CHAR, false);
-		public static readonly CBasicType Bool =	new CBasicType(CKeywords.BOOL, false);
+		public static readonly CBasicType Int =		new CBasicType(CKeywords.INT, false, false);
+		public static readonly CBasicType Float =	new CBasicType(CKeywords.FLOAT, false, false);
+		public static readonly CBasicType Char =	new CBasicType(CKeywords.CHAR, false, false);
+		public static readonly CBasicType Bool =	new CBasicType(CKeywords.BOOL, false, false);
+		public static readonly CPointer   CString =	new CPointer(new CBasicType(CKeywords.CHAR, true, false), false);
 	}
 }

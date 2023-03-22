@@ -32,6 +32,11 @@ namespace Ripple.Transpiling.SourceGeneration
 
 			public string VisitCBasicType(CBasicType cBasicType, Option<string> arg)
 			{
+				if(cBasicType.IsStruct)
+				{
+					return CKeywords.STRUCT + " " + cBasicType.Name + " " + arg.Match(ok => ok, () => "");
+				}
+
 				return cBasicType.Name + " " + arg.Match(ok => ok, () => "");
 			}
 
