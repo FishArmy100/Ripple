@@ -61,7 +61,7 @@ namespace Ripple.Transpiling.ASTConversion
 
 			public CStructDefData VisitBasicTypeInfo(BasicTypeInfo sBasicType)
 			{
-				return new CStructDefData(sBasicType.Name, new CBasicType(sBasicType.Name, !sBasicType.IsMutable, true));
+				return new CStructDefData(sBasicType.Name, new CBasicType(sBasicType.Name, !sBasicType.IsMutable, false));
 			}
 
 			public CStructDefData VisitFuncPtrInfo(FuncPtrInfo sFuncPtr)

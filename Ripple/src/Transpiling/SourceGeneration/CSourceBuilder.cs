@@ -31,6 +31,12 @@ namespace Ripple.Transpiling.SourceGeneration
 			AppendLine("}");
 		}
 
+		public void EndBlockWithSemicolon()
+        {
+			m_IndentLevel--;
+			AppendLine("};");
+        }
+
 		public override string ToString()
 		{
 			return m_Builder.ToString();

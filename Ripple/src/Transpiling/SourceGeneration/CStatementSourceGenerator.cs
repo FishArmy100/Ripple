@@ -103,7 +103,7 @@ namespace Ripple.Transpiling.SourceGeneration
 				builder.BeginBlock();
 				foreach (CStructMember member in cStructDef.Members)
 					member.Accept(this, builder);
-				builder.EndBlock();
+				builder.EndBlockWithSemicolon();
 			}
 
 			public void VisitCStructDecl(CStructDecl structDecl, CSourceBuilder builder)

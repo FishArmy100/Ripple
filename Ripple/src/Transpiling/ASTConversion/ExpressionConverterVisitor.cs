@@ -17,6 +17,7 @@ namespace Ripple.Transpiling.ASTConversion
     class ExpressionConverterVisitor : ITypedExpressionVisitor<ExpressionConversionResult>
     {
         private readonly TypeConverterVisitor m_TypeConverterVisitor;
+        private int m_GeneratedVariableCount = 0;
         public string VariableSufix { get; set; }
 
         public ExpressionConverterVisitor(CArrayRegistry registry, string variableSufix)
@@ -24,6 +25,8 @@ namespace Ripple.Transpiling.ASTConversion
             m_TypeConverterVisitor = new TypeConverterVisitor(registry);
             VariableSufix = variableSufix;
         }
+
+        public void ResetVarCount() => m_GeneratedVariableCount = 0;
 
         public ExpressionConversionResult VisitTypedBinary(TypedBinary typedBinary)
         {
@@ -88,7 +91,7 @@ namespace Ripple.Transpiling.ASTConversion
 
         public ExpressionConversionResult VisitTypedInitalizerList(TypedInitalizerList typedInitalizerList)
         {
-            var expressions = typedInitalizerList.Expressions.Select(e => e.Accept(this));
+            var expressions = typedInitalizerList.Expressions.Select(e => e.Accept(this)).ToList(); // ToList() needs to be here, because lazy evaluation
 
             List<CVarDecl> generatedVariables = expressions
                 .Select(e => e.GeneratedVariables)
@@ -98,8 +101,7 @@ namespace Ripple.Transpiling.ASTConversion
             CType returned = GetReturned(typedInitalizerList);
             if(returned is CBasicType b && b.IsStruct)
 			{
-
-                CInitalizerList cInitalizerList = new CInitalizerList(expressions.Select(e => e.Expression).ToList());
+                CInitalizerList cInitalizerList = new CInitalizerList(new List<CExpression> { new CInitalizerList(expressions.Select(e => e.Expression).ToList()) });
                 CCompoundLiteral compoundLiteral = new CCompoundLiteral(b, cInitalizerList);
                 return new ExpressionConversionResult(generatedVariables, compoundLiteral, returned, ExpressionValueType.Temp);
             }
@@ -134,12 +136,13 @@ namespace Ripple.Transpiling.ASTConversion
 
             if (typedUnary.Op.IsType(TokenType.Ampersand, TokenType.RefMut) && operand.ValueType == ExpressionValueType.Temp)
             {
-                string varName = $"{CKeywords.TEMP_VAR_PREFIX}_{varDecls.Count}_{VariableSufix}";
+                string varName = $"{CKeywords.TEMP_VAR_PREFIX}_{m_GeneratedVariableCount}_{VariableSufix}";
                 CType type = operand.ExpressionType;
                 CVarDecl cVarDecl = new CVarDecl(type, varName, operand.Expression);
                 varDecls.Add(cVarDecl);
 
                 CUnary premotedUnary = new CUnary(new CIdentifier(varName), op);
+                m_GeneratedVariableCount++;
                 return new ExpressionConversionResult(varDecls, premotedUnary, returned, ExpressionValueType.Temp);
             }
 

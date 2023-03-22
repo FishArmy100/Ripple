@@ -259,10 +259,10 @@ namespace Ripple.Transpiling.ASTConversion
 
         private ExpressionConversionResult ConvertExpression(TypedExpression expression)
 		{
-            ExpressionConversionResult result = expression.Accept(m_ExpressionConverter);
             int count = m_VariableCount.Pop();
             m_VariableCount.Push(++count);
             m_ExpressionConverter.VariableSufix = GetTempararyVarPostfix();
+            ExpressionConversionResult result = expression.Accept(m_ExpressionConverter);
             return result;
 		}
 
