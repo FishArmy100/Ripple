@@ -9,13 +9,11 @@ namespace Ripple.Transpiling.C_AST
 	{
 		public readonly CType Type;
 		public readonly string Name;
-		public readonly Option<CExpression> Initalizer;
 
-		public CStructMember(CType type, string name, Option<CExpression> initalizer)
+		public CStructMember(CType type, string name)
 		{
 			this.Type = type;
 			this.Name = name;
-			this.Initalizer = initalizer;
 		}
 
 		public override void Accept(ICStatementVisitor visitor)
@@ -42,7 +40,7 @@ namespace Ripple.Transpiling.C_AST
 		{
 			if(other is CStructMember cStructMember)
 			{
-				return Type.Equals(cStructMember.Type) && Name.Equals(cStructMember.Name) && Initalizer.Equals(cStructMember.Initalizer);
+				return Type.Equals(cStructMember.Type) && Name.Equals(cStructMember.Name);
 			}
 			return false;
 		}
@@ -52,7 +50,6 @@ namespace Ripple.Transpiling.C_AST
 			HashCode code = new HashCode();
 			code.Add(Type);
 			code.Add(Name);
-			code.Add(Initalizer);
 			return code.ToHashCode();
 		}
 	}

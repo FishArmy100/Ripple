@@ -62,7 +62,7 @@ namespace ASTGeneration
                 "CContinueStmt",
                 "CFuncDef : CType Returned; string Name; List<CFuncParam> Parameters; CBlockStmt Body",
                 "CFuncDecl : CType Returned; string Name; List<CFuncParam> Parameters",
-                "CStructMember : CType Type; string Name; Option<CExpression> Initalizer",
+                "CStructMember : CType Type; string Name",
                 "CStructDef : string Name; List<CStructMember> Members",
                 "CStructDecl : string Name",
                 "CTypeDefStmt : CType Type; string Name",

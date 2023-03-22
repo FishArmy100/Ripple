@@ -17,8 +17,6 @@ namespace Ripple.Transpiling.ASTConversion
 		private readonly Dictionary<TypeInfo, CStructDef> m_ArrayStructs = new Dictionary<TypeInfo, CStructDef>();
 
 		public List<CStructDef> GetArrayAliasStructs() => m_OrderedArrayStructs;
-
-
 		public CStructDef GetArrayAlias(ArrayInfo array)
 		{
 			if(m_ArrayStructs.TryGetValue(array, out CStructDef alias))
@@ -37,7 +35,7 @@ namespace Ripple.Transpiling.ASTConversion
 			CStructDefData data = array.Contained.Accept(new CStructDefDataGeneratorVisitor(this));
 			CStructDef def = new CStructDef($"{data.Name}_array_{array.Size}", new List<CStructMember>
 			{
-				new CStructMember(new CArray(data.Contained, array.Size), CKeywords.ARRAY_DATA_NAME, new Option<CExpression>())
+				new CStructMember(new CArray(data.Contained, array.Size), CKeywords.ARRAY_DATA_NAME)
 			});
 
 			m_ArrayStructs.Add(array, def);

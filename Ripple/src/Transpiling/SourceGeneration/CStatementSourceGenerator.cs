@@ -114,8 +114,7 @@ namespace Ripple.Transpiling.SourceGeneration
 			public void VisitCStructMember(CStructMember structMember, CSourceBuilder builder)
 			{
 				string member = CTypeSourceGenerator.GenerateSource(structMember.Type, structMember.Name);
-				string initializer = structMember.Initalizer.Match(ok => " = " + CExpressionSourceGenerator.GenerateSource(ok), () => "");
-				builder.AppendLine($"{member}{initializer};");
+				builder.AppendLine($"{member};");
 			}
 
 			public void VisitCTypeDefStmt(CTypeDefStmt typeDefStmt, CSourceBuilder builder)
