@@ -16,11 +16,11 @@ namespace ASTGeneration
 
             foreach (NodeData node in nodes)
             {
-                string src = GenerateCodeForNode(node, additionalUsings);
+                string src = GenerateCodeForNode(node, data.BaseProperties, additionalUsings);
                 WriteToFile(data.Directory, node.Name, src);
             }
 
-            string baseSrc = GenerateBaseClassForNodes(data.BaseName, data.NamespaceName, visitorName);
+            string baseSrc = GenerateBaseClassForNodes(data.BaseName, data.NamespaceName, data.BaseProperties, additionalUsings, visitorName);
             WriteToFile(data.Directory, data.BaseName, baseSrc);
 
             string[] nodeNames = nodes.ConvertAll(x => x.Name).ToArray();
@@ -28,7 +28,7 @@ namespace ASTGeneration
             WriteToFile(data.Directory, visitorName, visitorSrc);
         }
 
-        public static string GenerateCodeForNode(NodeData nodeData, List<string> additionalUsings)
+        public static string GenerateCodeForNode(NodeData nodeData, List<Pair<string, string>> baseProperties, List<string> additionalUsings)
         {
             StringBuilder builder = new StringBuilder();
             BeginCodeFile(nodeData.NamespaceName, builder, additionalUsings);
@@ -39,7 +39,7 @@ namespace ASTGeneration
             GenFeilds(nodeData, builder);
 
             builder.AppendLine();
-            GenConstructor(nodeData, builder);
+            GenConstructor(nodeData, baseProperties, builder);
 
             builder.AppendLine();
             GenAcceptVisitorMethod(nodeData, builder);
@@ -49,6 +49,9 @@ namespace ASTGeneration
 
             builder.AppendLine();
             GenGenericArgAcceptVisitorMethod(nodeData, builder);
+
+            builder.AppendLine();
+            GenGenericOnlyArgAcceptVisitorMethod(nodeData, builder);
 
             builder.AppendLine();
             GenEqualsOverride(nodeData, builder);
@@ -62,16 +65,26 @@ namespace ASTGeneration
             return builder.ToString();
         }
 
-        public static string GenerateBaseClassForNodes(string name, string namespaceName, string visitorName)
+        public static string GenerateBaseClassForNodes(string name, string namespaceName, List<Pair<string, string>> baseProperties, List<string> additionalUsings, string visitorName)
         {
             StringBuilder builder = new StringBuilder();
-            BeginCodeFile(namespaceName, builder, new List<string>());
+            BeginCodeFile(namespaceName, builder, additionalUsings);
 
             builder.AppendLine("\tabstract class " + name);
             builder.AppendLine("\t{");
+
+            foreach (var (propType, propName) in baseProperties)
+                builder.AppendLine($"\t\tpublic readonly {propType} {propName};");
+
+            builder.AppendLine();
+            GenBaseConstructor(builder, name, baseProperties);
+
+            builder.AppendLine();
+
             builder.AppendLine("\t\tpublic abstract void " + Keywords.AcceptVisitorName + "(" + visitorName + " " + visitorName.FirstCharToLowerCase() + ");");
             builder.AppendLine("\t\tpublic abstract T " + Keywords.AcceptVisitorName + "<T>(" + visitorName + "<T> " + visitorName.FirstCharToLowerCase() + ");");
             builder.AppendLine("\t\tpublic abstract TReturn " + Keywords.AcceptVisitorName + "<TReturn, TArg>(" + visitorName + "<TReturn, TArg> " + visitorName.FirstCharToLowerCase() + ", TArg arg);");
+            builder.AppendLine("\t\tpublic abstract void " + Keywords.AcceptVisitorName + "<TArg>(" + visitorName + "WithArg<TArg> " + visitorName.FirstCharToLowerCase() + ", TArg arg);");
             builder.AppendLine("\t}");
 
             EndCodeFile(builder);
@@ -79,11 +92,28 @@ namespace ASTGeneration
             return builder.ToString();
         }
 
+        private static void GenBaseConstructor(StringBuilder builder, string baseName, List<Pair<string, string>> parameterNames)
+        {
+            builder.Append("\t\tpublic " + baseName + "(");
+
+            builder.Append(parameterNames.Select(p => $"{p.First} {p.Second.FirstCharToLowerCase()}").Concat(", "));
+            builder.AppendLine(")");
+            builder.AppendLine("\t\t{");
+
+            foreach (var (_, paramName) in parameterNames)
+            {
+                builder.AppendLine("\t\t\tthis." + paramName + " = " + paramName.FirstCharToLowerCase() + ";");
+            }
+
+            builder.AppendLine("\t\t}");
+        }
+
         public static string GenerateVisitorForNodes(string name, string namespaceName, string[] nodeNames)
         {
             StringBuilder builder = new StringBuilder();
             BeginCodeFile(namespaceName, builder, new List<string>());
 
+            // void visitor
             builder.AppendLine("\tinterface " + name);
             builder.AppendLine("\t{");
 
@@ -92,6 +122,7 @@ namespace ASTGeneration
 
             builder.AppendLine("\t}");
 
+            // return visitor
             builder.AppendLine();
 
             builder.AppendLine("\tinterface " + name + "<T>");
@@ -104,11 +135,22 @@ namespace ASTGeneration
 
             builder.AppendLine();
 
+            // argument and return visitor
             builder.AppendLine("\tinterface " + name + "<TReturn, TArg>");
             builder.AppendLine("\t{");
 
             foreach (string s in nodeNames)
                 builder.AppendLine("\t\tpublic abstract TReturn Visit" + s +
+                    "(" + s + " " + s.FirstCharToLowerCase() + ", TArg arg);");
+
+            builder.AppendLine("\t}");
+
+            // argumentVisitor
+            builder.AppendLine("\tinterface " + name + "WithArg" + "<TArg>");
+            builder.AppendLine("\t{");
+
+            foreach (string s in nodeNames)
+                builder.AppendLine("\t\tpublic abstract void Visit" + s +
                     "(" + s + " " + s.FirstCharToLowerCase() + ", TArg arg);");
 
             builder.AppendLine("\t}");
@@ -143,19 +185,29 @@ namespace ASTGeneration
             string valName = nodeData.Name.FirstCharToLowerCase();
             builder.AppendLine("\t\t\tif(other is " + nodeData.Name + " " + valName + ")");
             builder.AppendLine("\t\t\t{");
-            builder.Append("\t\t\t\treturn ");
 
-            for(int i = 0; i < nodeData.FeildData.Count; i++)
-            {
-                if (i != 0)
-                    builder.Append(" && ");
+            if(nodeData.FeildData.Count > 0)
+			{
+                builder.Append("\t\t\t\treturn ");
 
-                string feildName = nodeData.FeildData[i].Value;
+                for (int i = 0; i < nodeData.FeildData.Count; i++)
+                {
+                    if (i != 0)
+                        builder.Append(" && ");
 
-                builder.Append(feildName + ".Equals(" + valName + "." + feildName + ")");
+                    string feildName = nodeData.FeildData[i].Value;
+
+                    builder.Append(feildName + ".Equals(" + valName + "." + feildName + ")");
+                }
+
+                builder.AppendLine(";");
             }
+			else
+			{
+                builder.AppendLine("\t\t\t\treturn true;");
+			}
 
-            builder.AppendLine(";");
+            
             builder.AppendLine("\t\t\t}");
 
             builder.AppendLine("\t\t\treturn false;");
@@ -168,11 +220,19 @@ namespace ASTGeneration
             builder.AppendLine("\t\tpublic override int GetHashCode()");
             builder.AppendLine("\t\t{");
 
-            builder.AppendLine("\t\t\tHashCode code = new HashCode();");
-            foreach (var feild in nodeData.FeildData)
-                builder.AppendLine("\t\t\tcode.Add(" + feild.Value + ");");
+            if(nodeData.FeildData.Count > 0)
+			{
+                builder.AppendLine("\t\t\tHashCode code = new HashCode();");
+                foreach (var feild in nodeData.FeildData)
+                    builder.AppendLine("\t\t\tcode.Add(" + feild.Value + ");");
 
-            builder.AppendLine("\t\t\treturn code.ToHashCode();");
+                builder.AppendLine("\t\t\treturn code.ToHashCode();");
+            }
+			else
+			{
+                builder.AppendLine($"\t\t\treturn typeof({nodeData.Name}).Name.GetHashCode();");
+			}
+            
 
             builder.AppendLine("\t\t}");
         }
@@ -201,25 +261,38 @@ namespace ASTGeneration
             builder.AppendLine("\t\t}");
         }
 
+        private static void GenGenericOnlyArgAcceptVisitorMethod(NodeData nodeData, StringBuilder builder)
+		{
+            builder.AppendLine("\t\tpublic override void " + Keywords.AcceptVisitorName + "<TArg>(" + Nameing.GetVisitorName(nodeData) + "WithArg" + "<TArg> visitor, TArg arg)");
+            builder.AppendLine("\t\t{");
+            builder.AppendLine("\t\t\tvisitor." + Nameing.GetVisitorMethodName(nodeData) + "(this, arg);");
+            builder.AppendLine("\t\t}");
+        }
+
         private static void GenFeilds(NodeData nodeData, StringBuilder builder)
         {
             foreach (KeyValuePair<string, string> feild in nodeData.FeildData)
                 builder.AppendLine("\t\tpublic readonly " + feild.Key + " " + feild.Value + ";");
         }
 
-        private static void GenConstructor(NodeData nodeData, StringBuilder builder)
+        private static void GenConstructor(NodeData nodeData, List<Pair<string, string>> baseProperties, StringBuilder builder)
         {
             builder.Append("\t\tpublic " + nodeData.Name + "(");
-            for (int i = 0; i < nodeData.FeildData.Count; i++)
+            List<Pair<string, string>> parameters = nodeData.FeildData
+                .Select(f => new Pair<string, string>(f.Key, f.Value))
+                .ToList();
+
+            parameters.AddRange(baseProperties);
+
+            builder.Append(parameters.Select(p => $"{p.First} {p.Second.FirstCharToLowerCase()}").Concat(", "));
+            builder.Append(")");
+
+            if(baseProperties.Count > 0)
             {
-                var feildData = nodeData.FeildData[i];
-
-                if (i != 0)
-                    builder.Append(", ");
-                builder.Append(feildData.Key + " " + feildData.Value.FirstCharToLowerCase());
-
+                builder.Append($" : base({baseProperties.Select(p => $"{p.Second.FirstCharToLowerCase()}").Concat(", ")})");
             }
-            builder.AppendLine(")");
+            builder.AppendLine();
+
             builder.AppendLine("\t\t{");
 
             foreach (var feild in nodeData.FeildData)

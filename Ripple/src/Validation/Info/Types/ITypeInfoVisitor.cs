@@ -29,4 +29,12 @@ namespace Ripple.Validation.Info.Types
 		public abstract TReturn VisitArrayInfo(ArrayInfo arrayInfo, TArg arg);
 		public abstract TReturn VisitFuncPtrInfo(FuncPtrInfo funcPtrInfo, TArg arg);
 	}
+	interface ITypeInfoVisitorWithArg<TArg>
+	{
+		public abstract void VisitBasicTypeInfo(BasicTypeInfo basicTypeInfo, TArg arg);
+		public abstract void VisitPointerInfo(PointerInfo pointerInfo, TArg arg);
+		public abstract void VisitReferenceInfo(ReferenceInfo referenceInfo, TArg arg);
+		public abstract void VisitArrayInfo(ArrayInfo arrayInfo, TArg arg);
+		public abstract void VisitFuncPtrInfo(FuncPtrInfo funcPtrInfo, TArg arg);
+	}
 }

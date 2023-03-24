@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Ripple.Validation.Info;
 using Ripple.Lexing;
 
-namespace Ripple.AST.Utils
+namespace Ripple.Validation
 {
     class LocalVariableStack
     {

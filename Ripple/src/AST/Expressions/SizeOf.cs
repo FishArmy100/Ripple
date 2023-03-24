@@ -41,6 +41,11 @@ namespace Ripple.AST
 			return visitor.VisitSizeOf(this, arg);
 		}
 
+		public override void Accept<TArg>(IExpressionVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitSizeOf(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is SizeOf sizeOf)

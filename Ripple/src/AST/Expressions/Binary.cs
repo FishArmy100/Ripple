@@ -35,6 +35,11 @@ namespace Ripple.AST
 			return visitor.VisitBinary(this, arg);
 		}
 
+		public override void Accept<TArg>(IExpressionVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitBinary(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is Binary binary)

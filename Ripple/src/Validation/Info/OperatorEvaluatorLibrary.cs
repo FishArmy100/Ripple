@@ -22,10 +22,10 @@ namespace Ripple.Validation.Info
                 (t, v, et) => new ASTInfoError("Too many '" + t + "' operators for values '" + v.Item1 + "' and '" + v.Item2 + "'.", et),
                 (t, v, et) => new ASTInfoError("No '" + t + "' operators for values '" + v.Item1 + "' and '" + v.Item2 + "'.", et));
 
-        public readonly OperatorEvaluator<ValueInfo, List<ValueInfo>> Calls =
-            new OperatorEvaluator<ValueInfo, List<ValueInfo>>(
-                (o, p, t) => new ASTInfoError("Too many call operators for type '" + o.Type.ToPrettyString() + "' with arguments: '" + p.ConvertAll(v => v.ToString()).Concat("', '") + "'.", t),
-                (o, p, t) => new ASTInfoError("No call operators for type '" + o.Type.ToPrettyString() + "' with arguments: '" + p.ConvertAll(v => v.ToString()).Concat("', '") + "'.", t));
+        public readonly OperatorEvaluator<ValueInfo, IEnumerable<ValueInfo>> Calls =
+            new OperatorEvaluator<ValueInfo, IEnumerable<ValueInfo>>(
+                (o, p, t) => new ASTInfoError("Too many call operators for type '" + o.Type.ToPrettyString() + "' with arguments: '" + p.Select(v => v.ToString()).Concat("', '") + "'.", t),
+                (o, p, t) => new ASTInfoError("No call operators for type '" + o.Type.ToPrettyString() + "' with arguments: '" + p.Select(v => v.ToString()).Concat("', '") + "'.", t));
 
         public readonly OperatorEvaluator<ValueInfo, ValueInfo> Indexers =
             new OperatorEvaluator<ValueInfo, ValueInfo>(

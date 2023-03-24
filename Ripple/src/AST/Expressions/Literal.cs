@@ -31,6 +31,11 @@ namespace Ripple.AST
 			return visitor.VisitLiteral(this, arg);
 		}
 
+		public override void Accept<TArg>(IExpressionVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitLiteral(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is Literal literal)

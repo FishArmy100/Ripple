@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Ripple.Lexing;
-using Ripple.Parsing;
 using Ripple.Utils;
+using Ripple.Validation;
+using Ripple.Validation.Info.Types;
+using Ripple.Validation.Info;
+using Ripple.Validation.Info.Expressions;
+using Ripple.Lexing;
 
 
 namespace Ripple.Validation.Info.Types
@@ -37,6 +40,11 @@ namespace Ripple.Validation.Info.Types
 		public override TReturn Accept<TReturn, TArg>(ITypeInfoVisitor<TReturn, TArg> visitor, TArg arg)
 		{
 			return visitor.VisitFuncPtrInfo(this, arg);
+		}
+
+		public override void Accept<TArg>(ITypeInfoVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitFuncPtrInfo(this, arg);
 		}
 
 		public override bool Equals(object other)

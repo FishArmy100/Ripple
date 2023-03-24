@@ -12,7 +12,7 @@ namespace Ripple.Validation.Info.Types
 {
     class TypeInfoGeneratorVisitor : ITypeNameVisitor<Result<TypeInfo, List<ASTInfoError>>>
     {
-        private readonly List<string> m_PrimaryTypes;
+        private readonly IReadOnlyList<string> m_PrimaryTypes;
         private readonly List<string> m_ExternalLifetimes = new List<string>();
         private readonly Stack<FunctionLifetimes> m_ActiveLifetimes = new Stack<FunctionLifetimes>();
         private int m_FunctionPointerIndex = 0;
@@ -20,7 +20,7 @@ namespace Ripple.Validation.Info.Types
         private readonly bool m_RequireLifetimes;
         private readonly SafetyContext m_SafetyContext;
 
-        public TypeInfoGeneratorVisitor(List<string> primaryTypes, List<string> externalLifetimes, bool requireLifetimes, SafetyContext safetyContext)
+        public TypeInfoGeneratorVisitor(IReadOnlyList<string> primaryTypes, List<string> externalLifetimes, bool requireLifetimes, SafetyContext safetyContext)
         {
             m_PrimaryTypes = primaryTypes;
             m_ExternalLifetimes.AddRange(externalLifetimes);
@@ -28,7 +28,7 @@ namespace Ripple.Validation.Info.Types
             m_SafetyContext = safetyContext;
         }
 
-        public static Result<FuncPtrInfo, List<ASTInfoError>> GenerateFromFuncDecl(FuncDecl funcDecl, List<string> primaryTypes)
+        public static Result<FuncPtrInfo, List<ASTInfoError>> GenerateFromFuncDecl(FuncDecl funcDecl, IReadOnlyList<string> primaryTypes)
 		{
             SafetyContext context = new SafetyContext(!funcDecl.UnsafeToken.HasValue);
             TypeInfoGeneratorVisitor visitor = new TypeInfoGeneratorVisitor(primaryTypes, new List<string>(), true, context);
@@ -42,7 +42,7 @@ namespace Ripple.Validation.Info.Types
             return funcPtr.Accept(visitor).Match(ok => new Result<FuncPtrInfo, List<ASTInfoError>>(ok as FuncPtrInfo), fail => new Result<FuncPtrInfo, List<ASTInfoError>>(fail));
 		}
 
-        public static Result<FuncPtrInfo, List<ASTInfoError>> GenerateFromExternalFuncDecl(ExternalFuncDecl funcDecl, List<string> primaryTypes)
+        public static Result<FuncPtrInfo, List<ASTInfoError>> GenerateFromExternalFuncDecl(ExternalFuncDecl funcDecl, IReadOnlyList<string> primaryTypes)
         {
             SafetyContext context = new SafetyContext(false);
             TypeInfoGeneratorVisitor visitor = new TypeInfoGeneratorVisitor(primaryTypes, new List<string>(), true, context);

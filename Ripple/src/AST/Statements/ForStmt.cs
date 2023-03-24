@@ -43,6 +43,11 @@ namespace Ripple.AST
 			return visitor.VisitForStmt(this, arg);
 		}
 
+		public override void Accept<TArg>(IStatementVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitForStmt(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is ForStmt forStmt)

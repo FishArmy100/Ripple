@@ -32,4 +32,13 @@ namespace Ripple.AST
 		public abstract TReturn VisitArrayType(ArrayType arrayType, TArg arg);
 		public abstract TReturn VisitFuncPtr(FuncPtr funcPtr, TArg arg);
 	}
+	interface ITypeNameVisitorWithArg<TArg>
+	{
+		public abstract void VisitBasicType(BasicType basicType, TArg arg);
+		public abstract void VisitGroupedType(GroupedType groupedType, TArg arg);
+		public abstract void VisitPointerType(PointerType pointerType, TArg arg);
+		public abstract void VisitReferenceType(ReferenceType referenceType, TArg arg);
+		public abstract void VisitArrayType(ArrayType arrayType, TArg arg);
+		public abstract void VisitFuncPtr(FuncPtr funcPtr, TArg arg);
+	}
 }

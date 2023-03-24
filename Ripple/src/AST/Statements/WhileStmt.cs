@@ -39,6 +39,11 @@ namespace Ripple.AST
 			return visitor.VisitWhileStmt(this, arg);
 		}
 
+		public override void Accept<TArg>(IStatementVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitWhileStmt(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is WhileStmt whileStmt)

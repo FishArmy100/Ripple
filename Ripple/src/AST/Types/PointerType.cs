@@ -35,6 +35,11 @@ namespace Ripple.AST
 			return visitor.VisitPointerType(this, arg);
 		}
 
+		public override void Accept<TArg>(ITypeNameVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitPointerType(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is PointerType pointerType)

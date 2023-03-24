@@ -51,7 +51,7 @@ namespace Ripple.Validation.Info
                 returned);
 		}
 
-        public static Result<FunctionInfo, List<ASTInfoError>> FromASTFunction(FuncDecl funcDecl, List<string> primaries)
+        public static Result<FunctionInfo, List<ASTInfoError>> FromASTFunction(FuncDecl funcDecl, IReadOnlyList<string> primaries)
         {
             var result = TypeInfoGeneratorVisitor.GenerateFromFuncDecl(funcDecl, primaries);
             return result.Match(ok =>
@@ -76,7 +76,7 @@ namespace Ripple.Validation.Info
             });
         }
 
-        public static Result<FunctionInfo, List<ASTInfoError>> FromASTExternalFunction(ExternalFuncDecl funcDecl, List<string> primaries)
+        public static Result<FunctionInfo, List<ASTInfoError>> FromASTExternalFunction(ExternalFuncDecl funcDecl, IReadOnlyList<string> primaries)
         {
             var result = TypeInfoGeneratorVisitor.GenerateFromExternalFuncDecl(funcDecl, primaries);
             return result.Match(ok =>
@@ -94,6 +94,19 @@ namespace Ripple.Validation.Info
             {
                 return new Result<FunctionInfo, List<ASTInfoError>>(fail);
             });
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is FunctionInfo info &&
+                   IsUnsafe == info.IsUnsafe &&
+                   EqualityComparer<FuncPtrInfo>.Default.Equals(FunctionType, info.FunctionType) &&
+                   Name == info.Name;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(IsUnsafe, FunctionType, Name);
         }
     }
 }

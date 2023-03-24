@@ -30,9 +30,10 @@ namespace Ripple.Validation
         {
             var infos = new List<FunctionInfo>()
             {
-                GenFunctionData("print", new (){(RipplePrimitives.Int32Name,    "value")}, RipplePrimitives.VoidName),
-                GenFunctionData("print", new (){(RipplePrimitives.Float32Name,  "value")}, RipplePrimitives.VoidName),
-                GenFunctionData("print", new (){(RipplePrimitives.BoolName,     "value")}, RipplePrimitives.VoidName),
+                GenFunctionData("print", new (){(RipplePrimitives.Int32,    "value")}, RipplePrimitives.VoidName),
+                GenFunctionData("print", new (){(RipplePrimitives.Float32,  "value")}, RipplePrimitives.VoidName),
+                GenFunctionData("print", new (){(RipplePrimitives.Bool,     "value")}, RipplePrimitives.VoidName),
+                GenFunctionData("print", new (){(RipplePrimitives.CString , "value")}, RipplePrimitives.VoidName),
             };
 
             FunctionList list = new FunctionList();
@@ -280,10 +281,10 @@ namespace Ripple.Validation
             });
         }
 
-        private static Option<ValueInfo> EvaluateBasicFuncPtr(FuncPtrInfo fp, List<ValueInfo> args, LifetimeInfo lifetime)
+        private static Option<ValueInfo> EvaluateBasicFuncPtr(FuncPtrInfo fp, IEnumerable<ValueInfo> args, LifetimeInfo lifetime)
         {
             List<TypeInfo> parameters = fp.Parameters;
-            if (parameters.Count != args.Count)
+            if (parameters.Count() != args.Count())
                 return new Option<ValueInfo>();
 
             bool callable = parameters.Zip(args).All(t =>
@@ -299,10 +300,10 @@ namespace Ripple.Validation
             return new Option<ValueInfo>(new ValueInfo(fp.Returned, lifetime));
         }
         
-        private static Option<ValueInfo> EvaluateFuncPtrWithLifetimes(FuncPtrInfo fp, List<ValueInfo> args, LifetimeInfo lifetime)
+        private static Option<ValueInfo> EvaluateFuncPtrWithLifetimes(FuncPtrInfo fp, IEnumerable<ValueInfo> args, LifetimeInfo lifetime)
 		{
             List<TypeInfo> parameters = fp.Parameters;
-            if (parameters.Count != args.Count)
+            if (parameters.Count() != args.Count())
                 return new Option<ValueInfo>();
 
             var functionLifetimeValues = parameters.Zip(args)
@@ -368,7 +369,7 @@ namespace Ripple.Validation
                     },
                     bparam =>
                     {
-                        throw new ValueOfExpressionExeption(new ASTInfoError($"Cannot dicern between lifetime {aparam.Text} and {bparam.Text}.", aparam));
+                        throw new ExpressionCheckerException(new ASTInfoError($"Cannot dicern between lifetime {aparam.Text} and {bparam.Text}.", aparam));
                     });
                 });
             });
@@ -378,12 +379,12 @@ namespace Ripple.Validation
             return new Token(name, TokenType.Identifier, -1, -1);
         }
 
-        private static FunctionInfo GenFunctionData(string name, List<(string, string)> paramaters, string returnTypeName)
+        private static FunctionInfo GenFunctionData(string name, List<(TypeInfo, string)> paramaters, string returnTypeName)
         {
             Token funcName = GenIdTok(name);
             TypeInfo returnType = GenBasicType(returnTypeName);
             List<ParameterInfo> parameterInfos = paramaters
-                .ConvertAll(p => new ParameterInfo(GenIdTok(p.Item2), GenBasicType(p.Item1)));
+                .ConvertAll(p => new ParameterInfo(GenIdTok(p.Item2), p.Item1));
 
             return FunctionInfo.CreateFunction(false, name, returnType, parameterInfos);
         }

@@ -89,4 +89,12 @@ namespace Ripple.Utils
             return HashCode.Combine(m_Value, m_HasValue);
         }
     }
+
+    public static class OptionExtensions
+	{
+        public static string MatchOrEmpty(this Option<string> option)
+		{
+            return option.Match(ok => ok, () => "");
+		}
+	}
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.Utils;
 using Ripple.Utils.Extensions;
+using Ripple.Validation.Info.Expressions;
 using Ripple.Validation.Info.Types;
 
 namespace Ripple.Validation.Info
@@ -46,5 +47,5 @@ namespace Ripple.Validation.Info
         {
             m_EvaluationFunctions.Add(evaluator);
         }
-    }
+	}
 }

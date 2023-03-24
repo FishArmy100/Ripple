@@ -8,13 +8,14 @@ using Ripple.Parsing;
 using Ripple.Validation;
 using Ripple.Utils;
 using Ripple.AST;
-using Ripple.Validation.Info;
+using Ripple.Validation.Info.Statements;
+using Ripple.Transpiling.ASTConversion;
 
 namespace Ripple.Compiling
 {
     static class Compiler
     {
-        public static CompilerResult<List<Token>> RunLexer(List<SourceFile> sourceFiles)
+        public static Result<List<Token>, List<CompilerError>> RunLexer(List<SourceFile> sourceFiles)
         {
             var results = sourceFiles
                 .ConvertAll(f => Lexer.Scan(f.Source, f.Path))
@@ -37,30 +38,37 @@ namespace Ripple.Compiling
             }
 
             if (compilerErrors.Count > 0)
-                return new CompilerResult<List<Token>>.Fail(compilerErrors);
+                return compilerErrors;
             else
-                return new CompilerResult<List<Token>>.Ok(tokens);
+                return tokens;
         }
 
-        public static CompilerResult<ProgramStmt> RunParser(List<SourceFile> sourceFiles)
+        public static Result<ProgramStmt, List<CompilerError>> RunParser(List<SourceFile> sourceFiles)
         {
-            return RunLexer(sourceFiles)
-                .Match(ok => Parser.Parse(ok)
-                .ConvertToCompilerResult(e => new CompilerError(e)));
+            return RunLexer(sourceFiles).Match(
+                    ok => Parser.Parse(ok).ConvertToCompilerResult(e => new CompilerError(e)), 
+                    fail => new Result<ProgramStmt, List<CompilerError>>(fail));
         }
 
-        public static CompilerResult<ASTInfo> RunValidator(List<SourceFile> sourceFiles)
+        public static Result<TypedProgramStmt, List<CompilerError>> RunValidator(List<SourceFile> sourceFiles)
         {
-            return RunParser(sourceFiles)
-                .Match(ok => Validator.ValidateAst(ok)
-                .ConvertToCompilerResult(e => new CompilerError(e)));
+            return RunParser(sourceFiles).Match(
+                    ok => Validator.ValidateAst(ok).ConvertToCompilerResult(e => new CompilerError(e)),
+                    fail => new Result<TypedProgramStmt, List<CompilerError>>(fail));
         }
 
-        private static CompilerResult<TSuccess> ConvertToCompilerResult<TSuccess, TError>(this Result<TSuccess, List<TError>> self, Converter<TError, CompilerError> converter)
+        public static Result<string, List<CompilerError>> RunTranspiler(List<SourceFile> sourceFiles)
+        {
+            return RunValidator(sourceFiles).Match(
+                    ok => ASTConverter.ConvertAST(ok),
+                    fail => new Result<string, List<CompilerError>>(fail));
+        }
+
+        private static Result<TSuccess, List<CompilerError>> ConvertToCompilerResult<TSuccess, TError>(this Result<TSuccess, List<TError>> self, Converter<TError, CompilerError> converter)
         {
             return self.Match(
-                ok   => (CompilerResult<TSuccess>)new CompilerResult<TSuccess>.Ok(ok),
-                fail => (CompilerResult<TSuccess>)new CompilerResult<TSuccess>.Fail(fail.ConvertAll(converter)));
+                ok   => new Result<TSuccess, List<CompilerError>>(ok),
+                fail => fail.ConvertAll(converter));
         }
     }
 }

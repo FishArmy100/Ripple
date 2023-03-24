@@ -7,6 +7,9 @@ using Ripple.Lexing;
 using Sharprompt;
 using Ripple.AST.Utils;
 using Ripple.Utils.Extensions;
+using Ripple.Transpiling.C_AST;
+using Ripple.Transpiling.SourceGeneration;
+using Ripple.Transpiling.ASTConversion;
 
 namespace Ripple.App
 {
@@ -138,7 +141,7 @@ namespace Ripple.App
                 CurrentPath = FileBrowser.SelectFolder(CurrentPath);
         }
 
-        private void CompileSource(List<SourceFile> sourceFiles)
+        private static void CompileSource(List<SourceFile> sourceFiles)
         {
             if(string.IsNullOrEmpty(CurrentPath))
             {
@@ -182,7 +185,7 @@ namespace Ripple.App
                         ok =>
                         {
                             AstPrinter printer = new AstPrinter("   ");
-                            printer.PrintAst(ok.AST);
+                            ConsoleHelper.WriteLine("Validated successfully!");
                         },
                         fail =>
                         {
@@ -191,12 +194,23 @@ namespace Ripple.App
                         });
                     break;
                 case CompilerMode.Transpiling:
-                    ConsoleHelper.WriteLineError("Compiler mode has not been implemented yet");
+                    var transpilingResult = Compiler.RunTranspiler(sourceFiles);
+                    transpilingResult.Match(
+                        ok =>
+                        {
+                            ConsoleHelper.WriteLine("C Source:");
+                            ConsoleHelper.WriteLine(ok);
+                        },
+                        fail => 
+                        {
+                            foreach (CompilerError compilerError in fail)
+                                ConsoleHelper.WriteLineError(compilerError.ToString());
+                        });
                     break;
             }
         }
 
-        private void RunCompiler()
+		private void RunCompiler()
         {
             if(FileUtils.ReadFolder(CurrentPath, out FolderData data))
             {

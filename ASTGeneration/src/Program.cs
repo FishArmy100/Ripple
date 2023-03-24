@@ -3,22 +3,73 @@ using System.Collections.Generic;
 
 namespace ASTGeneration
 {
-    struct Token { }
-
     class Program
     {
         static void Main(string[] args)
         {
             //RunTests();
             GenerateRippleAst();
+            GenerateTypedAST();
+            GenerateCAST();
         }
 
         private static void RunTests()
         {
-            AstGenerator.Generate("C:\\dev\\Ripple\\ASTGeneration\\src\\Tests", "ASTGeneration.Tests", "Expression", new List<string>
+            AstGenerator.Generate("C:\\dev\\Ripple\\ASTGeneration\\src\\Tests", "ASTGeneration.Tests", "TestBase", 
+                "", new List<string>
+                {
+                    "Test1 : int X; int Y",
+                    "Test2 : int Z; int W"
+                }, new List<string>() { "System.Collections.Generic" });
+        }
+
+        private static void GenerateCAST()
+		{
+            List<string> additionalUsings = new List<string>() { "System.Collections.Generic", "Ripple.Utils" };
+
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Transpiling\\C_AST\\Types", "Ripple.Transpiling.C_AST", "CType", "", new List<string>()
             {
-                "Test : string a; string b; string c; string d; string e; string f; string g; string h; string i",
-            }, new List<string>());
+                "CBasicType : string Name; bool IsConst; bool IsStruct",
+                "CPointer : CType BaseType; bool IsConst",
+                "CArray : CType BaseType; Option<int> Size",
+                "CFuncPtr : CType Returned; List<CType> Parameters"
+            }, additionalUsings);
+
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Transpiling\\C_AST\\Expressions", "Ripple.Transpiling.C_AST", "CExpression", "", new List<string>() 
+            {
+                "CBinary : CExpression Left; CBinaryOperator Op; CExpression Right",
+                "CUnary : CExpression Expression; CUnaryOperator Op",
+                "CIndex : CExpression Indexee; CExpression Argument",
+                "CCall : CExpression Callee; List<CExpression> Arguments",
+                "CCast : CExpression Castee; CType Type",
+                "CIdentifier : string Id",
+                "CSizeOf : CType Type",
+                "CMemberAccess : CExpression Expression; string Identifier",
+                "CLiteral : object Value; CLiteralType Type",
+                "CCompoundLiteral : CType Type; CInitalizerList Initalizer",
+                "CInitalizerList : List<CExpression> Expressions"
+            }, additionalUsings);
+
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Transpiling\\C_AST\\Statements", "Ripple.Transpiling.C_AST", "CStatement", "", new List<string>()
+            {
+                "CExprStmt : CExpression Expression", 
+                "CIfStmt : CExpression Condition; CStatement Body; Option<CStatement> ElseBody",
+                "CWhileStmt : CExpression Condition; CStatement Body",
+                "CForStmt : Option<CVarDecl> Initalizer; Option<CExpression> Condition; Option<CExpression> Iterator; CStatement Body",
+                "CBlockStmt : List<CStatement> Statements",
+                "CVarDecl : CType Type; string Name; Option<CExpression> Initializer",
+                "CReturnStmt : Option<CExpression> Expression",
+                "CBreakStmt",
+                "CContinueStmt",
+                "CFuncDef : CType Returned; string Name; List<CFuncParam> Parameters; CBlockStmt Body",
+                "CFuncDecl : CType Returned; string Name; List<CFuncParam> Parameters",
+                "CStructMember : CType Type; string Name",
+                "CStructDef : string Name; List<CStructMember> Members",
+                "CStructDecl : string Name",
+                "CTypeDefStmt : CType Type; string Name",
+                "CIncludeStmt : string File",
+                "CFileStmt : List<CIncludeStmt> Includes; List<CStatement> Statements; string RelativePath; CFileType FileType",
+            }, additionalUsings);
         }
 
         private static void GenerateRippleAst()
@@ -26,7 +77,7 @@ namespace ASTGeneration
             List<string> additionalUsings = new List<string>() { "System.Collections.Generic", "Ripple.Lexing", "Ripple.Parsing", "Ripple.Utils" };
 
             // Expressions
-            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Expressions", "Ripple.AST", "Expression", new List<string>()
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Expressions", "Ripple.AST", "Expression", "", new List<string>()
             {
                 "Literal : Token Val",
                 "Grouping : Token LeftParen; Expression Expr; Token RightParen",
@@ -42,7 +93,7 @@ namespace ASTGeneration
             }, additionalUsings);
 
             // Statements
-            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Statements", "Ripple.AST", "Statement", new List<string>()
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Statements", "Ripple.AST", "Statement", "", new List<string>()
             {
                 "ExprStmt : Expression Expr; Token SemiColin",
                 "BlockStmt : Token OpenBrace; List<Statement> Statements; Token CloseBrace",
@@ -69,7 +120,7 @@ namespace ASTGeneration
             }, additionalUsings);
 
             // Types:
-            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Types", "Ripple.AST", "TypeName", new List<string>
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Types", "Ripple.AST", "TypeName", "", new List<string>
             {
                 "BasicType : Token? MutToken; Token Identifier",
                 "GroupedType : Token OpenParen; TypeName Type; Token CloseParen",
@@ -78,9 +129,61 @@ namespace ASTGeneration
                 "ArrayType : TypeName BaseType; Token? MutToken; Token OpenBracket; Token Size; Token CloseBracket",
                 "FuncPtr : Token? MutToken; Token FuncToken; Option<List<Token>> Lifetimes; Token OpenParen; List<TypeName> Parameters; Token CloseParen; Token Arrow; TypeName ReturnType",
             }, additionalUsings);
+        }
+
+        private static void GenerateTypedAST()
+        {
+            List<string> additionalUsings = new List<string>()
+            {
+                "System.Collections.Generic",
+                "Ripple.Utils",
+                "Ripple.Validation",
+                "Ripple.Validation.Info.Types",
+                "Ripple.Validation.Info",
+                "Ripple.Validation.Info.Expressions",
+                "Ripple.Lexing"
+            };
+
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Validation\\Info\\Statements", "Ripple.Validation.Info.Statements", "TypedStatement",
+                "", new List<string>
+                {
+                    "TypedExprStmt : TypedExpression Expression",
+                    "TypedBlockStmt : List<TypedStatement> Statements",
+                    "TypedIfStmt : TypedExpression Condition; TypedStatement Body; Option<TypedStatement> ElseBody",
+                    "TypedForStmt : Option<TypedStatement> Initalizer; Option<TypedExpression> Condition; Option<TypedExpression> Iterator; TypedStatement Body",
+                    "TypedWhileStmt : TypedExpression Condition; TypedStatement Body",
+                    "TypedVarDecl : bool IsUnsafe; TypeInfo Type; List<string> VariableNames; TypedExpression Initalizer",
+                    "TypedReturnStmt : Option<TypedExpression> Expression",
+
+                    "TypedContinueStmt",
+                    "TypedBreakStmt",
+
+                    "TypedUnsafeBlock : List<TypedStatement> Statements",
+
+                    "TypedFuncDecl : FunctionInfo Info; TypedBlockStmt Body",
+                    "TypedExternalFuncDecl : FunctionInfo Info",
+
+                    "TypedFileStmt : List<TypedStatement> Statements; string FilePath",
+                    "TypedProgramStmt : List<TypedFileStmt> Files"
+                }, additionalUsings);
+
+            // TypedExpression
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Validation\\Info\\Expressions", "Ripple.Validation.Info.Expressions", "TypedExpression", 
+                "TypeInfo Returned", new List<string>
+                {
+                    "TypedIdentifier : string Name; Either<FunctionInfo,VariableInfo> Value",
+                    "TypedInitalizerList : List<TypedExpression> Expressions",
+                    "TypedLiteral : string Value; TokenType Type",
+                    "TypedSizeOf : TypeInfo SizedType",
+                    "TypedCall : TypedExpression Callee; List<TypedExpression> Arguments",
+                    "TypedIndex : TypedExpression Indexee; TypedExpression Argument",
+                    "TypedCast : TypedExpression Casted; TypeInfo TypeToCastTo",
+                    "TypedBinary : TypedExpression Left; TokenType Op; TypedExpression Right",
+                    "TypedUnary : TypedExpression Operand; TokenType Op"
+                }, additionalUsings);
 
             // TypeInfo:
-            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Validation\\Info\\Types", "Ripple.Validation.Info.Types", "TypeInfo", new List<string>
+            AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Validation\\Info\\Types", "Ripple.Validation.Info.Types", "TypeInfo", "", new List<string>
             {
                 "BasicTypeInfo : bool IsMutable; string Name",
                 "PointerInfo : bool IsMutable; TypeInfo Contained",

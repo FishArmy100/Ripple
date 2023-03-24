@@ -39,6 +39,11 @@ namespace Ripple.AST
 			return visitor.VisitArrayType(this, arg);
 		}
 
+		public override void Accept<TArg>(ITypeNameVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitArrayType(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is ArrayType arrayType)

@@ -37,6 +37,11 @@ namespace Ripple.AST
 			return visitor.VisitTypeExpression(this, arg);
 		}
 
+		public override void Accept<TArg>(IExpressionVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitTypeExpression(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is TypeExpression typeExpression)

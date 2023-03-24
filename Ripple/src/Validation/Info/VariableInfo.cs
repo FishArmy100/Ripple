@@ -9,6 +9,7 @@ using Ripple.AST.Utils;
 using Ripple.Utils;
 using Ripple.Utils.Extensions;
 using Ripple.Validation.Info.Types;
+using Ripple.Validation.Info.Expressions;
 
 namespace Ripple.Validation.Info
 {
@@ -29,7 +30,7 @@ namespace Ripple.Validation.Info
             Lifetime = lifetime;
         }
 
-        public static Result<VariableInfo, List<ASTInfoError>> FromFunctionParameter(TypeName type, Token name, LifetimeInfo lifetime, List<string> primaries, List<string> lifetimes, SafetyContext safetyContext)
+        public static Result<VariableInfo, List<ASTInfoError>> FromFunctionParameter(TypeName type, Token name, LifetimeInfo lifetime, IReadOnlyList<string> primaries, List<string> lifetimes, SafetyContext safetyContext)
         {
             return TypeInfoUtils.FromASTType(type, primaries, lifetimes, safetyContext, true).Match(ok =>
             {
@@ -42,7 +43,7 @@ namespace Ripple.Validation.Info
             });
         }
 
-        public static Result<List<VariableInfo>, List<ASTInfoError>> FromVarDecl(VarDecl varDecl, ValueOfExpressionVisitor visitor, List<string> primaries, List<string> lifetimes, LifetimeInfo lifetime, SafetyContext safetyContext)
+        public static Result<Pair<List<VariableInfo>, TypedExpression>, List<ASTInfoError>> FromVarDecl(VarDecl varDecl, ExpressionCheckerVisitor visitor, IReadOnlyList<string> primaries, List<string> lifetimes, LifetimeInfo lifetime, SafetyContext safetyContext)
         {
             if (safetyContext.IsSafe && varDecl.UnsafeToken.HasValue)
                 safetyContext = new SafetyContext(false);
@@ -51,36 +52,38 @@ namespace Ripple.Validation.Info
             if (result.IsError())
                 return result.Error;
 
-            var expressionResult = GetTypeFromExpression(varDecl.Expr, visitor, result.Value);
+            var expressionResult = CheckExpression(varDecl.Expr, visitor, result.Value);
             return expressionResult.Match(ok =>
             {
-                if (!ok.SetFirstMutable(false).IsEquatableTo(result.Value.SetFirstMutable(false)))
+                TypeInfo type = ok.First.Type;
+                if (!type.SetFirstMutable(false).IsEquatableTo(result.Value.SetFirstMutable(false)))
                 {
                     string varTypeName = TypeNamePrinter.PrintType(varDecl.Type);
-                    ASTInfoError error = new ASTInfoError("Cannot assign type '" + ok.ToString() + "', to a variable of type '" + varTypeName + "'.", varDecl.VarNames[0]);
-                    return new Result<List<VariableInfo>, List<ASTInfoError>>(new List<ASTInfoError> { error });
+                    ASTInfoError error = new ASTInfoError("Cannot assign type '" + type.ToString() + "', to a variable of type '" + varTypeName + "'.", varDecl.VarNames[0]);
+                    return new Result<Pair<List<VariableInfo>, TypedExpression>, List<ASTInfoError>>(new List<ASTInfoError> { error });
                 }
 
                 List<VariableInfo> vars = varDecl.VarNames.ConvertAll(n =>
                 {
-                    return new VariableInfo(n, ok, !safetyContext.IsSafe, lifetime);
+                    return new VariableInfo(n, type, !safetyContext.IsSafe, lifetime);
                 });
 
-                return new Result<List<VariableInfo>, List<ASTInfoError>>(vars);
+                var pair = new Pair<List<VariableInfo>, TypedExpression>(vars, ok.Second);
+                return new Result<Pair<List<VariableInfo>, TypedExpression>, List<ASTInfoError>>(pair);
             },
             fail =>
             {
-                return new Result<List<VariableInfo>, List<ASTInfoError>>(fail);
+                return new Result<Pair<List<VariableInfo>, TypedExpression>, List<ASTInfoError>>(fail);
             });
         }
 
-        private static Result<TypeInfo, List<ASTInfoError>> GetTypeFromExpression(Expression expression, ValueOfExpressionVisitor visitor, Option<TypeInfo> expected)
+        private static Result<Pair<ValueInfo, TypedExpression>, List<ASTInfoError>> CheckExpression(Expression expression, ExpressionCheckerVisitor visitor, Option<TypeInfo> expected)
         {
             try
             {
-                return expression.Accept(visitor, expected).Type;
+                return expression.Accept(visitor, expected);
             }
-            catch (ValueOfExpressionExeption e)
+            catch (ExpressionCheckerException e)
             {
                 return e.Errors.ToList();
             }

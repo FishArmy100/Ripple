@@ -33,6 +33,11 @@ namespace Ripple.AST
 			return visitor.VisitUnary(this, arg);
 		}
 
+		public override void Accept<TArg>(IExpressionVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitUnary(this, arg);
+		}
+
 		public override bool Equals(object other)
 		{
 			if(other is Unary unary)
