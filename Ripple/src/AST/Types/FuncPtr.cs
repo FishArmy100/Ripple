@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Ripple.Utils;
+using System.Linq;
+using System.Linq;
+using System.Linq;
 
 
 namespace Ripple.AST
@@ -54,7 +57,7 @@ namespace Ripple.AST
 		{
 			if(other is FuncPtr funcPtr)
 			{
-				return MutToken.Equals(funcPtr.MutToken) && FuncToken.Equals(funcPtr.FuncToken) && Lifetimes.Equals(funcPtr.Lifetimes) && OpenParen.Equals(funcPtr.OpenParen) && Parameters.Equals(funcPtr.Parameters) && CloseParen.Equals(funcPtr.CloseParen) && Arrow.Equals(funcPtr.Arrow) && ReturnType.Equals(funcPtr.ReturnType);
+				return MutToken.Equals(funcPtr.MutToken) && FuncToken.Equals(funcPtr.FuncToken) && Lifetimes.Equals(funcPtr.Lifetimes) && OpenParen.Equals(funcPtr.OpenParen) && Parameters.SequenceEqual(funcPtr.Parameters) && CloseParen.Equals(funcPtr.CloseParen) && Arrow.Equals(funcPtr.Arrow) && ReturnType.Equals(funcPtr.ReturnType);
 			}
 			return false;
 		}

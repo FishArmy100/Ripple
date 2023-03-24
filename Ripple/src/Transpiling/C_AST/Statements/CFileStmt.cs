@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Ripple.Utils;
+using System.Linq;
+using System.Linq;
+using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
@@ -44,7 +47,7 @@ namespace Ripple.Transpiling.C_AST
 		{
 			if(other is CFileStmt cFileStmt)
 			{
-				return Includes.Equals(cFileStmt.Includes) && Statements.Equals(cFileStmt.Statements) && RelativePath.Equals(cFileStmt.RelativePath) && FileType.Equals(cFileStmt.FileType);
+				return Includes.SequenceEqual(cFileStmt.Includes) && Statements.SequenceEqual(cFileStmt.Statements) && RelativePath.Equals(cFileStmt.RelativePath) && FileType.Equals(cFileStmt.FileType);
 			}
 			return false;
 		}

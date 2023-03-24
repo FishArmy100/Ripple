@@ -6,6 +6,7 @@ using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info;
 using Ripple.Validation.Info.Expressions;
 using Ripple.Lexing;
+using System.Linq;
 
 
 namespace Ripple.Validation.Info.Statements
@@ -45,7 +46,7 @@ namespace Ripple.Validation.Info.Statements
 		{
 			if(other is TypedFileStmt typedFileStmt)
 			{
-				return Statements.Equals(typedFileStmt.Statements) && FilePath.Equals(typedFileStmt.FilePath);
+				return Statements.SequenceEqual(typedFileStmt.Statements) && FilePath.Equals(typedFileStmt.FilePath);
 			}
 			return false;
 		}

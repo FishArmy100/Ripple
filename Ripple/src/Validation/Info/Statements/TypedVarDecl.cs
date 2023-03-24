@@ -6,6 +6,7 @@ using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info;
 using Ripple.Validation.Info.Expressions;
 using Ripple.Lexing;
+using System.Linq;
 
 
 namespace Ripple.Validation.Info.Statements
@@ -49,7 +50,7 @@ namespace Ripple.Validation.Info.Statements
 		{
 			if(other is TypedVarDecl typedVarDecl)
 			{
-				return IsUnsafe.Equals(typedVarDecl.IsUnsafe) && Type.Equals(typedVarDecl.Type) && VariableNames.Equals(typedVarDecl.VariableNames) && Initalizer.Equals(typedVarDecl.Initalizer);
+				return IsUnsafe.Equals(typedVarDecl.IsUnsafe) && Type.Equals(typedVarDecl.Type) && VariableNames.SequenceEqual(typedVarDecl.VariableNames) && Initalizer.Equals(typedVarDecl.Initalizer);
 			}
 			return false;
 		}

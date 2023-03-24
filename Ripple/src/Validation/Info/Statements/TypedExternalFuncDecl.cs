@@ -6,6 +6,7 @@ using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info;
 using Ripple.Validation.Info.Expressions;
 using Ripple.Lexing;
+using System.Linq;
 
 
 namespace Ripple.Validation.Info.Statements
@@ -13,10 +14,12 @@ namespace Ripple.Validation.Info.Statements
 	class TypedExternalFuncDecl : TypedStatement
 	{
 		public readonly FunctionInfo Info;
+		public readonly string Header;
 
-		public TypedExternalFuncDecl(FunctionInfo info)
+		public TypedExternalFuncDecl(FunctionInfo info, string header)
 		{
 			this.Info = info;
+			this.Header = header;
 		}
 
 		public override void Accept(ITypedStatementVisitor visitor)
@@ -43,7 +46,7 @@ namespace Ripple.Validation.Info.Statements
 		{
 			if(other is TypedExternalFuncDecl typedExternalFuncDecl)
 			{
-				return Info.Equals(typedExternalFuncDecl.Info);
+				return Info.Equals(typedExternalFuncDecl.Info) && Header.Equals(typedExternalFuncDecl.Header);
 			}
 			return false;
 		}
@@ -52,6 +55,7 @@ namespace Ripple.Validation.Info.Statements
 		{
 			HashCode code = new HashCode();
 			code.Add(Info);
+			code.Add(Header);
 			return code.ToHashCode();
 		}
 	}

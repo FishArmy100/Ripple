@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Ripple.Utils;
+using System.Linq;
 
 
 namespace Ripple.AST
@@ -46,7 +47,7 @@ namespace Ripple.AST
 		{
 			if(other is Call call)
 			{
-				return Callee.Equals(call.Callee) && OpenParen.Equals(call.OpenParen) && Args.Equals(call.Args) && CloseParen.Equals(call.CloseParen);
+				return Callee.Equals(call.Callee) && OpenParen.Equals(call.OpenParen) && Args.SequenceEqual(call.Args) && CloseParen.Equals(call.CloseParen);
 			}
 			return false;
 		}

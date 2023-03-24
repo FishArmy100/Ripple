@@ -100,7 +100,7 @@ namespace Ripple.Validation.Info
         {
             return obj is FunctionInfo info &&
                    IsUnsafe == info.IsUnsafe &&
-                   EqualityComparer<FuncPtrInfo>.Default.Equals(FunctionType, info.FunctionType) &&
+                   FunctionType.Equals(info.FunctionType) &&
                    Name == info.Name;
         }
 

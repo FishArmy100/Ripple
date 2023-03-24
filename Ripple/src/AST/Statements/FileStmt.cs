@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Ripple.Utils;
+using System.Linq;
+using System.Linq;
 
 
 namespace Ripple.AST
@@ -44,7 +46,7 @@ namespace Ripple.AST
 		{
 			if(other is FileStmt fileStmt)
 			{
-				return Statements.Equals(fileStmt.Statements) && FilePath.Equals(fileStmt.FilePath) && EOFTok.Equals(fileStmt.EOFTok);
+				return Statements.SequenceEqual(fileStmt.Statements) && FilePath.Equals(fileStmt.FilePath) && EOFTok.Equals(fileStmt.EOFTok);
 			}
 			return false;
 		}

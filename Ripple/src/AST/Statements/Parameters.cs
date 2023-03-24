@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Ripple.Utils;
+using System.Linq;
+using System.Linq;
 
 
 namespace Ripple.AST
@@ -44,7 +46,7 @@ namespace Ripple.AST
 		{
 			if(other is Parameters parameters)
 			{
-				return OpenParen.Equals(parameters.OpenParen) && ParamList.Equals(parameters.ParamList) && CloseParen.Equals(parameters.CloseParen);
+				return OpenParen.Equals(parameters.OpenParen) && ParamList.SequenceEqual(parameters.ParamList) && CloseParen.Equals(parameters.CloseParen);
 			}
 			return false;
 		}

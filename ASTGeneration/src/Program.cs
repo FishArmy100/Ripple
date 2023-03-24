@@ -161,7 +161,7 @@ namespace ASTGeneration
                     "TypedUnsafeBlock : List<TypedStatement> Statements",
 
                     "TypedFuncDecl : FunctionInfo Info; TypedBlockStmt Body",
-                    "TypedExternalFuncDecl : FunctionInfo Info",
+                    "TypedExternalFuncDecl : FunctionInfo Info; string Header",
 
                     "TypedFileStmt : List<TypedStatement> Statements; string FilePath",
                     "TypedProgramStmt : List<TypedFileStmt> Files"

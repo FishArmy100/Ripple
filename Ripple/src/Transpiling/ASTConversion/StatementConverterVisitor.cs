@@ -65,7 +65,7 @@ namespace Ripple.Transpiling.ASTConversion
 
         public List<CStatement> VisitTypedExternalFuncDecl(TypedExternalFuncDecl typedExternalFuncDecl)
         {
-            throw new NotImplementedException();
+            return new List<CStatement>();
         }
 
         public List<CStatement> VisitTypedFileStmt(TypedFileStmt typedFileStmt)

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Ripple.Utils;
+using System.Linq;
+using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
@@ -40,7 +42,7 @@ namespace Ripple.Transpiling.C_AST
 		{
 			if(other is CCall cCall)
 			{
-				return Callee.Equals(cCall.Callee) && Arguments.Equals(cCall.Arguments);
+				return Callee.Equals(cCall.Callee) && Arguments.SequenceEqual(cCall.Arguments);
 			}
 			return false;
 		}

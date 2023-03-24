@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Ripple.Utils;
+using System.Linq;
+using System.Linq;
+using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
@@ -38,7 +41,7 @@ namespace Ripple.Transpiling.C_AST
 		{
 			if(other is CBlockStmt cBlockStmt)
 			{
-				return Statements.Equals(cBlockStmt.Statements);
+				return Statements.SequenceEqual(cBlockStmt.Statements);
 			}
 			return false;
 		}

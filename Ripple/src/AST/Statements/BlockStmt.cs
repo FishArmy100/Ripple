@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Ripple.Utils;
+using System.Linq;
+using System.Linq;
 
 
 namespace Ripple.AST
@@ -44,7 +46,7 @@ namespace Ripple.AST
 		{
 			if(other is BlockStmt blockStmt)
 			{
-				return OpenBrace.Equals(blockStmt.OpenBrace) && Statements.Equals(blockStmt.Statements) && CloseBrace.Equals(blockStmt.CloseBrace);
+				return OpenBrace.Equals(blockStmt.OpenBrace) && Statements.SequenceEqual(blockStmt.Statements) && CloseBrace.Equals(blockStmt.CloseBrace);
 			}
 			return false;
 		}

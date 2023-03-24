@@ -27,10 +27,12 @@ namespace Ripple.Validation.Info
         private TypeInfo m_CurrentReturnType = null;
 
         private readonly ASTData m_ASTData;
+        private readonly Linker m_Linker;
 
-        public StatementChecker(ASTData data)
+        public StatementChecker(ASTData data, Linker linker)
 		{
             m_ASTData = data;
+            m_Linker = linker;
 
             m_BlocksReturn.Push(new List<bool>());
 		}
@@ -296,7 +298,11 @@ namespace Ripple.Validation.Info
             return FunctionInfo.FromASTExternalFunction(externalFuncDecl, m_PrimaryTypes).Match(
                 ok =>
                 {
-                    return new Result<TypedStatement, List<ValidationError>>(new TypedExternalFuncDecl(ok));
+                    Option<string> file = m_Linker.TryGetHeader(ok);
+                    if (!file.HasValue())
+                        return CreateError("No external function of type " + ok.FunctionType.ToPrettyString() + " exists.", externalFuncDecl.Name);
+
+                    return new Result<TypedStatement, List<ValidationError>>(new TypedExternalFuncDecl(ok, file.Value));
                 },
                 fail =>
                 {

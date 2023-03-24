@@ -13,4 +13,8 @@
     <PackageReference Include="Sharprompt" Version="2.4.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="src\Compiling\CCompilation\" />
+  </ItemGroup>
+
 </Project>

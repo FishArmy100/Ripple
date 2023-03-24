@@ -13,6 +13,7 @@ namespace ASTGeneration
         public static void GenerateCode(BasicCodeData data, List<NodeData> nodes, List<string> additionalUsings)
         {
             string visitorName = "I" + data.BaseName + "Visitor";
+            additionalUsings.Add("System.Linq");
 
             foreach (NodeData node in nodes)
             {
@@ -196,8 +197,16 @@ namespace ASTGeneration
                         builder.Append(" && ");
 
                     string feildName = nodeData.FeildData[i].Value;
+                    string feildType = nodeData.FeildData[i].Key;
 
-                    builder.Append(feildName + ".Equals(" + valName + "." + feildName + ")");
+                    if(feildType.Length > 4 && feildType.Substring(0, 5) == "List<")
+                    {
+                        builder.Append(feildName + ".SequenceEqual(" + valName + "." + feildName + ")");
+                    }
+                    else
+                    {
+                        builder.Append(feildName + ".Equals(" + valName + "." + feildName + ")");
+                    }
                 }
 
                 builder.AppendLine(";");

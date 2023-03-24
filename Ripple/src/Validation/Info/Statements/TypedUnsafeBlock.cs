@@ -6,6 +6,7 @@ using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info;
 using Ripple.Validation.Info.Expressions;
 using Ripple.Lexing;
+using System.Linq;
 
 
 namespace Ripple.Validation.Info.Statements
@@ -43,7 +44,7 @@ namespace Ripple.Validation.Info.Statements
 		{
 			if(other is TypedUnsafeBlock typedUnsafeBlock)
 			{
-				return Statements.Equals(typedUnsafeBlock.Statements);
+				return Statements.SequenceEqual(typedUnsafeBlock.Statements);
 			}
 			return false;
 		}
