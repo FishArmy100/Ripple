@@ -89,4 +89,6 @@ module Core
 }
 ```
 
+### Notes:
+- Ripple is *EXTREMELY* incomplete, and 90% of the above features are not implemented yet
 
