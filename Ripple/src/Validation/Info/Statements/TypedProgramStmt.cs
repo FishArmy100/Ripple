@@ -14,10 +14,12 @@ namespace Ripple.Validation.Info.Statements
 	class TypedProgramStmt : TypedStatement
 	{
 		public readonly List<TypedFileStmt> Files;
+		public readonly string Path;
 
-		public TypedProgramStmt(List<TypedFileStmt> files)
+		public TypedProgramStmt(List<TypedFileStmt> files, string path)
 		{
 			this.Files = files;
+			this.Path = path;
 		}
 
 		public override void Accept(ITypedStatementVisitor visitor)
@@ -44,7 +46,7 @@ namespace Ripple.Validation.Info.Statements
 		{
 			if(other is TypedProgramStmt typedProgramStmt)
 			{
-				return Files.SequenceEqual(typedProgramStmt.Files);
+				return Files.SequenceEqual(typedProgramStmt.Files) && Path.Equals(typedProgramStmt.Path);
 			}
 			return false;
 		}
@@ -53,6 +55,7 @@ namespace Ripple.Validation.Info.Statements
 		{
 			HashCode code = new HashCode();
 			code.Add(Files);
+			code.Add(Path);
 			return code.ToHashCode();
 		}
 	}

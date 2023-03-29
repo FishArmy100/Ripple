@@ -3,20 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Ripple.Compiling
 {
     struct SourceFile
     {
-        public readonly string Path;
-        public readonly string Source;
+        public readonly string StartPath;
+        public readonly string RelativePath;
+        public string FullPath => StartPath + "\\" + RelativePath;
         public readonly string Name;
 
-        public SourceFile(string path, string source)
+        public SourceFile(string startPath, string relativePath)
         {
-            Path = path;
-            Source = source;
-            Name = System.IO.Path.GetFileName(Path);
+            RelativePath = relativePath;
+            StartPath = startPath;
+            Name = Path.GetFileName(StartPath + RelativePath);
         }
+
+        public string Read() => File.ReadAllText(FullPath);
     }
 }

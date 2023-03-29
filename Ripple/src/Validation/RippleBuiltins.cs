@@ -174,7 +174,7 @@ namespace Ripple.Validation
         {
             library.Indexers.AddOperatorEvaluator((indexed, arg, lifetime) => // array indexing
             {
-                if(indexed.Type is ArrayInfo array && arg.Type.Equals(RipplePrimitives.Int32))
+                if(indexed.Type is ArrayInfo array && arg.Type.EqualsWithoutFirstMutable(RipplePrimitives.Int32))
                 {
                     ValueInfo info = new ValueInfo(array.Contained, lifetime);
                     return new Option<ValueInfo>(info);

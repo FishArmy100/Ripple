@@ -115,8 +115,8 @@ namespace ASTGeneration
                 "FuncDecl : Token? UnsafeToken; Token FuncTok; Token Name; Option<GenericParameters> GenericParams; Parameters Param; Token Arrow; TypeName ReturnType; Option<WhereClause> WhereClause; BlockStmt Body",
                 "ExternalFuncDecl : Token ExternToken; Token Specifier; Token FuncToken; Token Name; Parameters Parameters; Token Arrow; TypeName ReturnType; Token SemiColon",
 
-                "FileStmt : List<Statement> Statements; string FilePath; Token EOFTok",
-                "ProgramStmt : List<FileStmt> Files"
+                "FileStmt : List<Statement> Statements; string RelativePath; Token EOFTok",
+                "ProgramStmt : List<FileStmt> Files; string Path"
             }, additionalUsings);
 
             // Types:
@@ -163,8 +163,8 @@ namespace ASTGeneration
                     "TypedFuncDecl : FunctionInfo Info; TypedBlockStmt Body",
                     "TypedExternalFuncDecl : FunctionInfo Info; string Header",
 
-                    "TypedFileStmt : List<TypedStatement> Statements; string FilePath",
-                    "TypedProgramStmt : List<TypedFileStmt> Files"
+                    "TypedFileStmt : List<TypedStatement> Statements; string RelativePath",
+                    "TypedProgramStmt : List<TypedFileStmt> Files; string Path"
                 }, additionalUsings);
 
             // TypedExpression

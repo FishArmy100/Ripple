@@ -16,21 +16,41 @@ namespace Ripple.Transpiling.ASTConversion
 {
 	static class ASTConverter
 	{
-		public static string ConvertAST(TypedProgramStmt program)
-		{
-			TypedFileStmt file = program.Files[0];
-			CArrayRegistry registry = new CArrayRegistry();
+		public static List<CFileStmt> ConvertAST(TypedProgramStmt program)
+        {
+            CArrayRegistry registry = new CArrayRegistry();
+            TypeConverterVisitor typeConverter = new TypeConverterVisitor(registry);
+            StatementConverterVisitor statementConverter = new StatementConverterVisitor(registry, new List<CIncludeStmt>());
 
-			StatementConverterVisitor visitor = new StatementConverterVisitor(registry, new List<CIncludeStmt>());
+            List<CFileStmt> files = program.Files
+                .Select(f => f.Accept(statementConverter))
+                .SelectMany(f => f)
+                .Cast<CFileStmt>()
+                .ToList();
 
-			CFileStmt cFile = (CFileStmt)file.Accept(visitor)[0];
+            CFileStmt predefs = program.Accept(new PreDeclarationGeneratorVisitor()).GeneratePredefFile(statementConverter, typeConverter, Transpiler.CORE_PREDEFS_FILE);
+            CFileStmt typePredefs = GenTypePredefs(registry);
+            predefs.Includes.Add(new CIncludeStmt(typePredefs.RelativePath));
 
-			string predefs = registry.GetArrayAliasStructs().Select(d => CStatementSourceGenerator.GenerateSource(d)).Concat("\n");
+            foreach (CFileStmt file in files)
+            {
+                file.Includes.Add(new CIncludeStmt(predefs.RelativePath));
+                file.Includes.Add(new CIncludeStmt(typePredefs.RelativePath));
+            }
 
+            files.Add(predefs);
+            files.Add(typePredefs);
+            return files;
+        }
 
-			string generated = CStatementSourceGenerator.GenerateSource(cFile);
+        private static CFileStmt GenTypePredefs(CArrayRegistry registry)
+        {
+            List<CStatement> statements = registry.GetArrayAliasStructs()
+                            .Cast<CStatement>()
+                            .ToList();
 
-			return  "// Predefs: \n" + predefs + "\n// Source:\n" + generated;
-		}
-	}
+            CFileStmt typePredefs = new CFileStmt(new List<CIncludeStmt>(), statements, Transpiler.CORE_TYPE_PREDEFS_FILE, CFileType.Header);
+            return typePredefs;
+        }
+    }
 }

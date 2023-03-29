@@ -1,0 +1,17 @@
+﻿
+
+extern "C" func printf(char* fmt) -> void;
+
+unsafe func main() -> int
+{
+	char*[5] array = { c"Hello", c"World", c"I", c"Am", c"FishArmy100" };
+	
+	for(mut int i = 0; i < 5; i = i + 1)
+	{
+		if(i != 0)
+			printf(c" ");
+		printf(array[i]);
+	}
+
+	return 0;
+}

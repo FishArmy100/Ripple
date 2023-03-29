@@ -324,7 +324,7 @@ namespace Ripple.Validation.Info
             if (errors.Any())
                 return errors;
 
-            return new TypedFileStmt(statements, fileStmt.FilePath);
+            return new TypedFileStmt(statements, fileStmt.RelativePath);
         }
 
 		public Result<TypedStatement, List<ValidationError>> VisitProgramStmt(ProgramStmt programStmt)
@@ -333,7 +333,7 @@ namespace Ripple.Validation.Info
                 .Select(f => f.Accept(this))
                 .AggregateResults()
                 .Match(
-                    ok => new TypedProgramStmt(ok.Cast<TypedFileStmt>().ToList()),
+                    ok => new TypedProgramStmt(ok.Cast<TypedFileStmt>().ToList(), programStmt.Path),
                     fail => new Result<TypedStatement, List<ValidationError>>(fail));
 		}
 

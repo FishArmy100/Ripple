@@ -7,9 +7,7 @@ using Ripple.Lexing;
 using Sharprompt;
 using Ripple.AST.Utils;
 using Ripple.Utils.Extensions;
-using Ripple.Transpiling.C_AST;
-using Ripple.Transpiling.SourceGeneration;
-using Ripple.Transpiling.ASTConversion;
+using Ripple.Compiling.CCompilation;
 
 namespace Ripple.App
 {
@@ -141,7 +139,7 @@ namespace Ripple.App
                 CurrentPath = FileBrowser.SelectFolder(CurrentPath);
         }
 
-        private static void CompileSource(List<SourceFile> sourceFiles)
+        private static void CompileSource(SourceData sourceFiles)
         {
             if(string.IsNullOrEmpty(CurrentPath))
             {
@@ -199,9 +197,25 @@ namespace Ripple.App
                         ok =>
                         {
                             ConsoleHelper.WriteLine("C Source:");
-                            ConsoleHelper.WriteLine(ok);
+                            foreach (var file in ok)
+                                Console.WriteLine("Relative path: " + file.RelativePath);
                         },
                         fail => 
+                        {
+                            foreach (CompilerError compilerError in fail)
+                                ConsoleHelper.WriteLineError(compilerError.ToString());
+                        });
+                    break;
+                case CompilerMode.Compiling:
+                    var result = Compiler.RunTranspiler(sourceFiles);
+                    result.Match(
+                        ok =>
+                        {
+                            string dir = Path.GetDirectoryName(CurrentPath);
+                            string programName = Path.GetFileNameWithoutExtension(CurrentPath);
+                            //ClangCompilerInterface.CompileFile(dir, programName, ok, "clang-out");
+                        },
+                        fail =>
                         {
                             foreach (CompilerError compilerError in fail)
                                 ConsoleHelper.WriteLineError(compilerError.ToString());
@@ -210,20 +224,11 @@ namespace Ripple.App
             }
         }
 
-		private void RunCompiler()
+		private static void RunCompiler()
         {
-            if(FileUtils.ReadFolder(CurrentPath, out FolderData data))
-            {
-                CompileSource(GetSourceFiles(data));
-            }
-            else if(FileUtils.ReadFile(CurrentPath, out string src))
-            {
-                CompileSource(new List<SourceFile> { new SourceFile(CurrentPath, src) });
-            }
-            else
-            {
-                ConsoleHelper.WriteLineError("Invalid current path, please select a new path");
-            }
+            SourceData.FromPath(CurrentPath).Match(
+                ok => CompileSource(ok),
+                () => ConsoleHelper.WriteLineError("Invalid current path, please select a new path"));
         }
 
         private List<SourceFile> GetSourceFiles(FolderData folderData)
