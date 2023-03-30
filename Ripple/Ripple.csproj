@@ -10,10 +10,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Tests\BasicFunction\intermediates\Test.c" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Sharprompt" Version="2.4.5" />
   </ItemGroup>
 
