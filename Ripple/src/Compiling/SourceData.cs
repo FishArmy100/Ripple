@@ -12,17 +12,20 @@ namespace Ripple.Compiling
     {
         public readonly string StartPath;
         public readonly List<SourceFile> Files;
+        public readonly string SourceName;
 
         private SourceData(string path, bool isDirectory)
         {
             if(isDirectory)
             {
                 StartPath = path;
+                SourceName = Path.GetFileName(path);
                 Files = GetAllFiles(path);
             }
             else
             {
                 StartPath = Path.GetDirectoryName(path);
+                SourceName = Path.GetFileNameWithoutExtension(path);
                 Files = new List<SourceFile> { new SourceFile(StartPath, Path.GetFileName(path)) };
             }
         }

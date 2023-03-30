@@ -6,24 +6,24 @@ using System.Threading.Tasks;
 using Ripple.Utils;
 using System.Diagnostics;
 using System.IO;
+using Ripple.Utils.Extensions;
 
 namespace Ripple.Compiling.CCompilation
 {
     static class ClangCompilerInterface
     {
-        public static Option<List<string>> CompileFile(string path, string outputPath, string debugPath)
+        public static void CompileFiles(string workingDir, IEnumerable<string> files, string outputPath, string debugPath)
         {
             Process process = new Process();
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
             startInfo.FileName = "cmd.exe";
-            startInfo.Arguments = $"/C clang {Path.GetFileName(path)} -o {outputPath} > {debugPath} 2>&1";
-            startInfo.WorkingDirectory = Path.GetDirectoryName(path);
+            startInfo.Arguments = $"/C clang {files.Concat()} -o {outputPath} > {debugPath} 2>&1";
+            startInfo.WorkingDirectory = workingDir;
             startInfo.UseShellExecute = false;
             process.StartInfo = startInfo;
             process.Start();
-
-            return new Option<List<string>>();
+            process.WaitForExit();
         }
     }
 }

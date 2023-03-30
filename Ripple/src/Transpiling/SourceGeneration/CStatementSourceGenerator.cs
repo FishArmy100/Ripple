@@ -45,6 +45,9 @@ namespace Ripple.Transpiling.SourceGeneration
 
 			public void VisitCFileStmt(CFileStmt fileStmt, CSourceBuilder builder)
 			{
+				if (fileStmt.FileType == CFileType.Header)
+					builder.AppendLine(CKeywords.HASH_PRAGMA_ONCE);
+
 				foreach (CIncludeStmt include in fileStmt.Includes)
 					include.Accept(this, builder);
 

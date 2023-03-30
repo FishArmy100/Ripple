@@ -207,13 +207,22 @@ namespace Ripple.App
                         });
                     break;
                 case CompilerMode.Compiling:
-                    var result = Compiler.RunTranspiler(sourceFiles);
+                    var result = Compiler.RunClangCompiler(sourceFiles);
                     result.Match(
-                        ok =>
+                        ok => { },
+                        fail =>
                         {
-                            string dir = Path.GetDirectoryName(CurrentPath);
-                            string programName = Path.GetFileNameWithoutExtension(CurrentPath);
-                            //ClangCompilerInterface.CompileFile(dir, programName, ok, "clang-out");
+                            foreach (CompilerError compilerError in fail)
+                                ConsoleHelper.WriteLineError(compilerError.ToString());
+                        });
+                    break;
+                case CompilerMode.Running:
+                    var runningResult = Compiler.CompileAndRun(sourceFiles);
+                    runningResult.Match(
+                        ok => 
+                        {
+                            Console.WriteLine();
+                            Console.WriteLine($"Exited with code: {ok.Second}");
                         },
                         fail =>
                         {

@@ -13,5 +13,6 @@ namespace Ripple.App
         Validating,
         Transpiling,
         Compiling,
+        Running,
     }
 }

@@ -10,6 +10,10 @@ using Ripple.Utils;
 using Ripple.AST;
 using Ripple.Validation.Info.Statements;
 using Ripple.Transpiling;
+using Ripple.Compiling.CCompilation;
+using Ripple.Transpiling.C_AST;
+using System.Diagnostics;
+using Ripple.Utils.Extensions;
 
 namespace Ripple.Compiling
 {
@@ -17,6 +21,7 @@ namespace Ripple.Compiling
     {
         public const string INTERMEDIATE_FOLDER_NAME = "intermediates";
         public const string BIN_FOLDER_NAME = "bin";
+        public const string CLANG_LOG_FILE_NAME = "clang-log.txt";
 
         public static Result<List<Token>, List<CompilerError>> RunLexer(SourceData sourceFiles)
         {
@@ -69,7 +74,39 @@ namespace Ripple.Compiling
 
         public static Result<string, List<CompilerError>> RunClangCompiler(SourceData sourceFiles)
         {
-            return new Result<string, List<CompilerError>>(new List<CompilerError>());
+            return RunTranspiler(sourceFiles)
+                .Match(ok =>
+                {
+                    string intermediatesDirectory = $"{sourceFiles.StartPath}\\{INTERMEDIATE_FOLDER_NAME}";
+                    List<string> files = new List<string>();
+                    foreach (CFileInfo info in ok)
+                    {
+                        FileUtils.WriteToFile($"{intermediatesDirectory}\\{info.RelativePath}", info.Source);
+                        
+                        if(info.FileType == CFileType.Source)
+                            files.Add(info.RelativePath);
+                    }
+
+                    string outputPath = $"{sourceFiles.StartPath}\\{BIN_FOLDER_NAME}\\{sourceFiles.SourceName}.exe";
+                    FileUtils.WriteToFile(outputPath, string.Empty); // makes sure the file exists
+                    string logPath = $"{intermediatesDirectory}\\{CLANG_LOG_FILE_NAME}";
+
+                    ClangCompilerInterface.CompileFiles(intermediatesDirectory, files, outputPath, logPath);
+                    return outputPath;
+                },
+                fail => new Result<string, List<CompilerError>>(fail));
+        }
+
+        public static Result<Pair<string, int>, List<CompilerError>> CompileAndRun(SourceData source, params string[] args)
+        {
+            return RunClangCompiler(source).Match(
+                ok =>
+                {
+                    Process proc = Process.Start("cmd.exe", $"/C {ok} {args.Concat()}");
+                    proc.WaitForExit();
+                    return new Pair<string, int>(ok, proc.ExitCode);
+                },
+                fail => new Result<Pair<string, int>, List<CompilerError>>(fail));
         }
 
         private static Result<TSuccess, List<CompilerError>> ConvertToCompilerResult<TSuccess, TError>(this Result<TSuccess, List<TError>> self, Converter<TError, CompilerError> converter)
