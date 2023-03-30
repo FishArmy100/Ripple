@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Ripple.Utils;
+using System.Linq;
 
 
 namespace Ripple.AST
@@ -44,7 +45,7 @@ namespace Ripple.AST
 		{
 			if(other is InitializerList initializerList)
 			{
-				return OpenBrace.Equals(initializerList.OpenBrace) && Expressions.Equals(initializerList.Expressions) && CloseBrace.Equals(initializerList.CloseBrace);
+				return OpenBrace.Equals(initializerList.OpenBrace) && Expressions.SequenceEqual(initializerList.Expressions) && CloseBrace.Equals(initializerList.CloseBrace);
 			}
 			return false;
 		}

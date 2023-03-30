@@ -18,7 +18,7 @@ namespace Ripple.Validation
         public static Result<TypedProgramStmt, List<ValidationError>> ValidateAst(ProgramStmt programStmt)
         {
             var info = GenerateASTData(programStmt);
-            StatementChecker checker = new StatementChecker(info.First);
+            StatementChecker checker = new StatementChecker(info.First, RippleBuiltins.GetBuiltInLinker());
             var result = programStmt.Accept(checker);
 
             List<ValidationError> errors = new List<ValidationError>();

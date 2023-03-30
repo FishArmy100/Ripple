@@ -6,6 +6,8 @@ using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info;
 using Ripple.Validation.Info.Expressions;
 using Ripple.Lexing;
+using System.Linq;
+using System.Linq;
 
 
 namespace Ripple.Validation.Info.Expressions
@@ -43,7 +45,7 @@ namespace Ripple.Validation.Info.Expressions
 		{
 			if(other is TypedInitalizerList typedInitalizerList)
 			{
-				return Expressions.Equals(typedInitalizerList.Expressions);
+				return Expressions.SequenceEqual(typedInitalizerList.Expressions);
 			}
 			return false;
 		}

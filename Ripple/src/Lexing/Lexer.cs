@@ -11,7 +11,7 @@ namespace Ripple.Lexing
 {
     static class Lexer
     {
-        public static Result<List<Token>, List<LexerError>> Scan(string src, string filePath)
+        public static Result<List<Token>, List<LexerError>> Scan(string src, string relativePath)
         {
             StringReader reader = new StringReader(src);
             List<Token> tokens = new List<Token>();
@@ -37,7 +37,7 @@ namespace Ripple.Lexing
                 }
             }
 
-            tokens.Add(new Token(filePath, TokenType.EOF, reader.Line, reader.Line));
+            tokens.Add(new Token(relativePath, TokenType.EOF, reader.Line, reader.Line));
 
             if (errors.Count > 0)
                 return errors;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Ripple.Utils;
+using System.Linq;
 
 
 namespace Ripple.AST
@@ -46,7 +47,7 @@ namespace Ripple.AST
 		{
 			if(other is TypeExpression typeExpression)
 			{
-				return Name.Equals(typeExpression.Name) && GreaterThan.Equals(typeExpression.GreaterThan) && Lifetimes.Equals(typeExpression.Lifetimes) && LessThan.Equals(typeExpression.LessThan);
+				return Name.Equals(typeExpression.Name) && GreaterThan.Equals(typeExpression.GreaterThan) && Lifetimes.SequenceEqual(typeExpression.Lifetimes) && LessThan.Equals(typeExpression.LessThan);
 			}
 			return false;
 		}

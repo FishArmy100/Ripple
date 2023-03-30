@@ -12,7 +12,7 @@ namespace Ripple.Parsing
 {
     static class Parser
     {
-        public static Result<ProgramStmt, List<ParserError>> Parse(List<Token> tokens)
+        public static Result<ProgramStmt, List<ParserError>> Parse(List<Token> tokens, string path)
         {
             TokenReader reader = new TokenReader(tokens);
             List<ParserError> errors = new List<ParserError>();
@@ -43,7 +43,7 @@ namespace Ripple.Parsing
             if (errors.Count > 0)
                 return errors;
 
-            return new ProgramStmt(files);
+            return new ProgramStmt(files, path);
         }
 
         private static FileStmt ParseFile(ref TokenReader reader, ref List<ParserError> errors)

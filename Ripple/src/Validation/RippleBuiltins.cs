@@ -30,10 +30,10 @@ namespace Ripple.Validation
         {
             var infos = new List<FunctionInfo>()
             {
-                GenFunctionData("print", new (){(RipplePrimitives.Int32,    "value")}, RipplePrimitives.VoidName),
-                GenFunctionData("print", new (){(RipplePrimitives.Float32,  "value")}, RipplePrimitives.VoidName),
-                GenFunctionData("print", new (){(RipplePrimitives.Bool,     "value")}, RipplePrimitives.VoidName),
-                GenFunctionData("print", new (){(RipplePrimitives.CString , "value")}, RipplePrimitives.VoidName),
+                //GenFunctionData("print", new (){(RipplePrimitives.Int32,    "value")}, RipplePrimitives.VoidName),
+                //GenFunctionData("print", new (){(RipplePrimitives.Float32,  "value")}, RipplePrimitives.VoidName),
+                //GenFunctionData("print", new (){(RipplePrimitives.Bool,     "value")}, RipplePrimitives.VoidName),
+                //GenFunctionData("print", new (){(RipplePrimitives.CString , "value")}, RipplePrimitives.VoidName),
             };
 
             FunctionList list = new FunctionList();
@@ -53,6 +53,17 @@ namespace Ripple.Validation
             AppendIndexOperators(ref library);
             AppendCallOperators(ref library);
             return library;
+        }
+
+        public static Linker GetBuiltInLinker()
+        {
+            List<Pair<FunctionInfo, string>> externals = new List<Pair<FunctionInfo, string>>();
+            externals.Add(new Pair<FunctionInfo, string>(GenFunctionData("printf", new List<(TypeInfo, string)>()
+            {
+                (RipplePrimitives.CString, "fmt")
+            }, RipplePrimitives.VoidName, true), "stdio.h"));
+
+            return new Linker(externals);
         }
 
 		private static void AppendCallOperators(ref OperatorEvaluatorLibrary library)
@@ -163,7 +174,7 @@ namespace Ripple.Validation
         {
             library.Indexers.AddOperatorEvaluator((indexed, arg, lifetime) => // array indexing
             {
-                if(indexed.Type is ArrayInfo array && arg.Type.Equals(RipplePrimitives.Int32))
+                if(indexed.Type is ArrayInfo array && arg.Type.EqualsWithoutFirstMutable(RipplePrimitives.Int32))
                 {
                     ValueInfo info = new ValueInfo(array.Contained, lifetime);
                     return new Option<ValueInfo>(info);
@@ -379,14 +390,14 @@ namespace Ripple.Validation
             return new Token(name, TokenType.Identifier, -1, -1);
         }
 
-        private static FunctionInfo GenFunctionData(string name, List<(TypeInfo, string)> paramaters, string returnTypeName)
+        private static FunctionInfo GenFunctionData(string name, List<(TypeInfo, string)> paramaters, string returnTypeName, bool isUnsafe)
         {
             Token funcName = GenIdTok(name);
             TypeInfo returnType = GenBasicType(returnTypeName);
             List<ParameterInfo> parameterInfos = paramaters
                 .ConvertAll(p => new ParameterInfo(GenIdTok(p.Item2), p.Item1));
 
-            return FunctionInfo.CreateFunction(false, name, returnType, parameterInfos);
+            return FunctionInfo.CreateFunction(isUnsafe, name, returnType, parameterInfos);
         }
 
         private static TypeInfo GenBasicType(string name)

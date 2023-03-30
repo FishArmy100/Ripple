@@ -6,6 +6,7 @@ using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info;
 using Ripple.Validation.Info.Expressions;
 using Ripple.Lexing;
+using System.Linq;
 
 
 namespace Ripple.Validation.Info.Statements
@@ -13,12 +14,12 @@ namespace Ripple.Validation.Info.Statements
 	class TypedFileStmt : TypedStatement
 	{
 		public readonly List<TypedStatement> Statements;
-		public readonly string FilePath;
+		public readonly string RelativePath;
 
-		public TypedFileStmt(List<TypedStatement> statements, string filePath)
+		public TypedFileStmt(List<TypedStatement> statements, string relativePath)
 		{
 			this.Statements = statements;
-			this.FilePath = filePath;
+			this.RelativePath = relativePath;
 		}
 
 		public override void Accept(ITypedStatementVisitor visitor)
@@ -45,7 +46,7 @@ namespace Ripple.Validation.Info.Statements
 		{
 			if(other is TypedFileStmt typedFileStmt)
 			{
-				return Statements.Equals(typedFileStmt.Statements) && FilePath.Equals(typedFileStmt.FilePath);
+				return Statements.SequenceEqual(typedFileStmt.Statements) && RelativePath.Equals(typedFileStmt.RelativePath);
 			}
 			return false;
 		}
@@ -54,7 +55,7 @@ namespace Ripple.Validation.Info.Statements
 		{
 			HashCode code = new HashCode();
 			code.Add(Statements);
-			code.Add(FilePath);
+			code.Add(RelativePath);
 			return code.ToHashCode();
 		}
 	}

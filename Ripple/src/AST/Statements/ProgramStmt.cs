@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Ripple.Utils;
+using System.Linq;
+using System.Linq;
 
 
 namespace Ripple.AST
@@ -10,10 +12,12 @@ namespace Ripple.AST
 	class ProgramStmt : Statement
 	{
 		public readonly List<FileStmt> Files;
+		public readonly string Path;
 
-		public ProgramStmt(List<FileStmt> files)
+		public ProgramStmt(List<FileStmt> files, string path)
 		{
 			this.Files = files;
+			this.Path = path;
 		}
 
 		public override void Accept(IStatementVisitor visitor)
@@ -40,7 +44,7 @@ namespace Ripple.AST
 		{
 			if(other is ProgramStmt programStmt)
 			{
-				return Files.Equals(programStmt.Files);
+				return Files.SequenceEqual(programStmt.Files) && Path.Equals(programStmt.Path);
 			}
 			return false;
 		}
@@ -49,6 +53,7 @@ namespace Ripple.AST
 		{
 			HashCode code = new HashCode();
 			code.Add(Files);
+			code.Add(Path);
 			return code.ToHashCode();
 		}
 	}

@@ -175,7 +175,7 @@ namespace Ripple.AST.Utils
 
         public void VisitFileStmt(FileStmt fileStmt)
         {
-            Print("File: " + System.IO.Path.GetFileName(fileStmt.FilePath));
+            Print("File: " + System.IO.Path.GetFileName(fileStmt.RelativePath));
             TabRight();
             foreach (Statement statement in fileStmt.Statements)
                 statement.Accept(this);

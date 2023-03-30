@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Ripple.Utils;
+using System.Linq;
+using System.Linq;
 
 
 namespace Ripple.AST
@@ -44,7 +46,7 @@ namespace Ripple.AST
 		{
 			if(other is GenericParameters genericParameters)
 			{
-				return LessThan.Equals(genericParameters.LessThan) && Lifetimes.Equals(genericParameters.Lifetimes) && GreaterThan.Equals(genericParameters.GreaterThan);
+				return LessThan.Equals(genericParameters.LessThan) && Lifetimes.SequenceEqual(genericParameters.Lifetimes) && GreaterThan.Equals(genericParameters.GreaterThan);
 			}
 			return false;
 		}

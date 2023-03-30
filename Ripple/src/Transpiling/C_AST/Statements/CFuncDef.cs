@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Ripple.Utils;
+using System.Linq;
+using System.Linq;
+using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
@@ -44,7 +47,7 @@ namespace Ripple.Transpiling.C_AST
 		{
 			if(other is CFuncDef cFuncDef)
 			{
-				return Returned.Equals(cFuncDef.Returned) && Name.Equals(cFuncDef.Name) && Parameters.Equals(cFuncDef.Parameters) && Body.Equals(cFuncDef.Body);
+				return Returned.Equals(cFuncDef.Returned) && Name.Equals(cFuncDef.Name) && Parameters.SequenceEqual(cFuncDef.Parameters) && Body.Equals(cFuncDef.Body);
 			}
 			return false;
 		}

@@ -88,7 +88,6 @@ namespace Ripple.Validation.Info.Types
 
             funcPtr.Lifetimes.Match(ok => CheckLifetimes(ok, errors, lifetimes));
             m_ActiveLifetimes.Push(new FunctionLifetimes(m_FunctionPointerIndex, lifetimes));
-            m_FunctionPointerIndex++;
 
             CheckParameters(funcPtr, errors, parameters);
 
@@ -107,7 +106,9 @@ namespace Ripple.Validation.Info.Types
             if (errors.Count > 0)
                 return errors;
 
-            return new FuncPtrInfo(isMutable, m_FunctionPointerIndex, lifetimes.Count, parameters, returned.Value);
+            FuncPtrInfo info = new FuncPtrInfo(isMutable, m_FunctionPointerIndex, lifetimes.Count, parameters, returned.Value);
+            m_FunctionPointerIndex++;
+            return info;
         }
 
         private void CheckParameters(FuncPtr funcPtr, List<ASTInfoError> errors, List<TypeInfo> parameters)

@@ -9,6 +9,7 @@ using Ripple.Transpiling.C_AST;
 using Ripple.Utils;
 using Ripple.Utils.Extensions;
 using Ripple.Validation.Info.Types;
+using System.IO;
 
 namespace Ripple.Transpiling.ASTConversion
 {
@@ -65,7 +66,7 @@ namespace Ripple.Transpiling.ASTConversion
 
         public List<CStatement> VisitTypedExternalFuncDecl(TypedExternalFuncDecl typedExternalFuncDecl)
         {
-            throw new NotImplementedException();
+            return new List<CStatement>();
         }
 
         public List<CStatement> VisitTypedFileStmt(TypedFileStmt typedFileStmt)
@@ -78,7 +79,9 @@ namespace Ripple.Transpiling.ASTConversion
 
             m_VariableCount.Pop();
 
-            return ToList(new CFileStmt(m_Includes, statements, typedFileStmt.FilePath, CFileType.Source));
+            string newFilePath = Path.ChangeExtension(typedFileStmt.RelativePath, null) + ".c";
+
+            return ToList(new CFileStmt(m_Includes, statements, newFilePath, CFileType.Source));
         }
 
         public List<CStatement> VisitTypedForStmt(TypedForStmt typedForStmt)
@@ -107,7 +110,7 @@ namespace Ripple.Transpiling.ASTConversion
 
             conditionResult.Match(ok => extraStatements.AddRange(ok.Second));
 
-            Option<Pair<CExpression, List<CStatement>>> iteratorResult = typedForStmt.Condition.Match(
+            Option<Pair<CExpression, List<CStatement>>> iteratorResult = typedForStmt.Iterator.Match(
                 ok =>
                 {
                     var result = ConvertExpression(ok);
@@ -209,6 +212,9 @@ namespace Ripple.Transpiling.ASTConversion
 
         public List<CStatement> VisitTypedVarDecl(TypedVarDecl typedVarDecl)
         {
+            if (m_IsGlobal)
+                return new List<CStatement>();
+
             CType type = ConvertType(typedVarDecl.Type);
             var initalizerResult = ConvertExpression(typedVarDecl.Initalizer);
             List<CVarDecl> generatedVars = new List<CVarDecl>();
@@ -275,7 +281,15 @@ namespace Ripple.Transpiling.ASTConversion
             };
         }
 
-
+        private static string GetExtension(CFileType fileType)
+        {
+            return fileType switch
+            {
+                CFileType.Header => ".h",
+                CFileType.Source => ".c",
+                _ => throw new NotImplementedException(),
+            };
+        }
         private string GetTempararyVarPostfix()
 		{
             return m_VariableCount.Select(c => c.ToString()).Concat("_");

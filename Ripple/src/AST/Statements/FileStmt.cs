@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Ripple.Utils;
+using System.Linq;
+using System.Linq;
 
 
 namespace Ripple.AST
@@ -10,13 +12,13 @@ namespace Ripple.AST
 	class FileStmt : Statement
 	{
 		public readonly List<Statement> Statements;
-		public readonly string FilePath;
+		public readonly string RelativePath;
 		public readonly Token EOFTok;
 
-		public FileStmt(List<Statement> statements, string filePath, Token eOFTok)
+		public FileStmt(List<Statement> statements, string relativePath, Token eOFTok)
 		{
 			this.Statements = statements;
-			this.FilePath = filePath;
+			this.RelativePath = relativePath;
 			this.EOFTok = eOFTok;
 		}
 
@@ -44,7 +46,7 @@ namespace Ripple.AST
 		{
 			if(other is FileStmt fileStmt)
 			{
-				return Statements.Equals(fileStmt.Statements) && FilePath.Equals(fileStmt.FilePath) && EOFTok.Equals(fileStmt.EOFTok);
+				return Statements.SequenceEqual(fileStmt.Statements) && RelativePath.Equals(fileStmt.RelativePath) && EOFTok.Equals(fileStmt.EOFTok);
 			}
 			return false;
 		}
@@ -53,7 +55,7 @@ namespace Ripple.AST
 		{
 			HashCode code = new HashCode();
 			code.Add(Statements);
-			code.Add(FilePath);
+			code.Add(RelativePath);
 			code.Add(EOFTok);
 			return code.ToHashCode();
 		}

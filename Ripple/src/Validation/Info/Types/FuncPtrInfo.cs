@@ -6,6 +6,9 @@ using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info;
 using Ripple.Validation.Info.Expressions;
 using Ripple.Lexing;
+using System.Linq;
+using System.Linq;
+using System.Linq;
 
 
 namespace Ripple.Validation.Info.Types
@@ -51,7 +54,7 @@ namespace Ripple.Validation.Info.Types
 		{
 			if(other is FuncPtrInfo funcPtrInfo)
 			{
-				return IsMutable.Equals(funcPtrInfo.IsMutable) && FunctionIndex.Equals(funcPtrInfo.FunctionIndex) && LifetimeCount.Equals(funcPtrInfo.LifetimeCount) && Parameters.Equals(funcPtrInfo.Parameters) && Returned.Equals(funcPtrInfo.Returned);
+				return IsMutable.Equals(funcPtrInfo.IsMutable) && FunctionIndex.Equals(funcPtrInfo.FunctionIndex) && LifetimeCount.Equals(funcPtrInfo.LifetimeCount) && Parameters.SequenceEqual(funcPtrInfo.Parameters) && Returned.Equals(funcPtrInfo.Returned);
 			}
 			return false;
 		}

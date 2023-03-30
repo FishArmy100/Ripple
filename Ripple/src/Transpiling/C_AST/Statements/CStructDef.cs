@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Ripple.Utils;
+using System.Linq;
+using System.Linq;
+using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
@@ -40,7 +43,7 @@ namespace Ripple.Transpiling.C_AST
 		{
 			if(other is CStructDef cStructDef)
 			{
-				return Name.Equals(cStructDef.Name) && Members.Equals(cStructDef.Members);
+				return Name.Equals(cStructDef.Name) && Members.SequenceEqual(cStructDef.Members);
 			}
 			return false;
 		}

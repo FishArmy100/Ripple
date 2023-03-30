@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Ripple.Utils;
+using System.Linq;
+using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
@@ -38,7 +40,7 @@ namespace Ripple.Transpiling.C_AST
 		{
 			if(other is CInitalizerList cInitalizerList)
 			{
-				return Expressions.Equals(cInitalizerList.Expressions);
+				return Expressions.SequenceEqual(cInitalizerList.Expressions);
 			}
 			return false;
 		}

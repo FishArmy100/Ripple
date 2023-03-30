@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Ripple.Utils;
+using System.Linq;
+using System.Linq;
 
 
 namespace Ripple.AST
@@ -50,7 +52,7 @@ namespace Ripple.AST
 		{
 			if(other is VarDecl varDecl)
 			{
-				return UnsafeToken.Equals(varDecl.UnsafeToken) && Type.Equals(varDecl.Type) && VarNames.Equals(varDecl.VarNames) && Equels.Equals(varDecl.Equels) && Expr.Equals(varDecl.Expr) && SemiColin.Equals(varDecl.SemiColin);
+				return UnsafeToken.Equals(varDecl.UnsafeToken) && Type.Equals(varDecl.Type) && VarNames.SequenceEqual(varDecl.VarNames) && Equels.Equals(varDecl.Equels) && Expr.Equals(varDecl.Expr) && SemiColin.Equals(varDecl.SemiColin);
 			}
 			return false;
 		}

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Ripple.Utils;
+using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
@@ -40,7 +41,7 @@ namespace Ripple.Transpiling.C_AST
 		{
 			if(other is CFuncPtr cFuncPtr)
 			{
-				return Returned.Equals(cFuncPtr.Returned) && Parameters.Equals(cFuncPtr.Parameters);
+				return Returned.Equals(cFuncPtr.Returned) && Parameters.SequenceEqual(cFuncPtr.Parameters);
 			}
 			return false;
 		}
