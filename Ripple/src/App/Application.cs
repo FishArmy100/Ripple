@@ -6,8 +6,7 @@ using Ripple.Utils;
 using Ripple.Lexing;
 using Sharprompt;
 using Ripple.AST.Utils;
-using Ripple.Utils.Extensions;
-using Ripple.Compiling.CCompilation;
+using Raucse.Extensions;
 
 namespace Ripple.App
 {

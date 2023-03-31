@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using Ripple.Validation.Info.Statements;
 using Ripple.Validation.Info.Expressions;
 using Ripple.Transpiling.C_AST;
-using Ripple.Utils;
-using Ripple.Utils.Extensions;
+using Raucse;
+using Raucse.Extensions;
 using Ripple.Validation.Info.Types;
 using System.IO;
 

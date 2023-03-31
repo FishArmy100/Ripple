@@ -13,7 +13,8 @@ using Ripple.Transpiling;
 using Ripple.Compiling.CCompilation;
 using Ripple.Transpiling.C_AST;
 using System.Diagnostics;
-using Ripple.Utils.Extensions;
+using Raucse.Extensions;
+using Raucse;
 
 namespace Ripple.Compiling
 {

@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Raucse" Version="1.0.1" />
     <PackageReference Include="Sharprompt" Version="2.4.5" />
   </ItemGroup>
 

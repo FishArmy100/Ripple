@@ -8,6 +8,7 @@ using Ripple.AST;
 using Ripple.Validation;
 using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info.Expressions;
+using Raucse;
 
 namespace Ripple.Validation.Info
 {

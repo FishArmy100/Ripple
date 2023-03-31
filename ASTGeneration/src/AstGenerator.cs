@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Linq;
-using ASTGeneration.Utils.Extensions;
 using ASTGeneration.Utils;
+using Raucse.Extensions;
+using Raucse;
 
 namespace ASTGeneration
 {

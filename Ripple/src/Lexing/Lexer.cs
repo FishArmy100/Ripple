@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Ripple.Utils.Extensions;
-using Ripple.Utils;
+using Raucse.Extensions;
+using Raucse;
 using Ripple.Compiling;
 
 namespace Ripple.Lexing
@@ -91,26 +91,26 @@ namespace Ripple.Lexing
 
         private static bool ScanNumberLiteral(ref StringReader reader, ref List<LexerError> errors, out Token tok)
         {
-            if(reader.Current().IsNumeric())
+            if(reader.Current().IsDigit())
             {
                 int line = reader.Line;
                 int col = reader.Column;
 
                 // lexing int
                 string src = reader.Advance().ToString();
-                while (!reader.IsAtEnd() && reader.Current().IsNumeric())
+                while (!reader.IsAtEnd() && reader.Current().IsDigit())
                     src += reader.Advance();
 
                 // lexing float
                 if(!reader.IsAtEnd() && reader.Current() == '.')
                 {
                     char? nc = reader.Peek();
-                    if(nc.HasValue && nc.Value.IsNumeric())
+                    if(nc.HasValue && nc.Value.IsDigit())
                     {
                         src += reader.Advance().ToString(); 
                         src += reader.Advance().ToString();
 
-                        while (!reader.IsAtEnd() && reader.Current().IsNumeric())
+                        while (!reader.IsAtEnd() && reader.Current().IsDigit())
                             src += reader.Advance();
 
                         tok = new Token(src, TokenType.FloatLiteral, line, col);

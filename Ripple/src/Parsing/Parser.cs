@@ -5,8 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.AST;
 using Ripple.Lexing;
-using Ripple.Utils.Extensions;
-using Ripple.Utils;
+using Raucse.Extensions;
+using Raucse;
 
 namespace Ripple.Parsing
 {

@@ -7,6 +7,7 @@ using Ripple.Utils;
 using Ripple.Lexing;
 using Ripple.AST.Utils;
 using Ripple.AST;
+using Raucse;
 
 namespace Ripple.Validation.Info.Types
 {

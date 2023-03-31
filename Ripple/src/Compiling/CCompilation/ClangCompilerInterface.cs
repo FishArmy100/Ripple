@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Ripple.Utils;
+using Raucse;
 using System.Diagnostics;
 using System.IO;
-using Ripple.Utils.Extensions;
+using Raucse.Extensions;
 
 namespace Ripple.Compiling.CCompilation
 {

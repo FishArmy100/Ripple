@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
 
-namespace Ripple.Utils.Extensions
+namespace Ripple.Lexing
 {
     static class TokenTypeExtensions
     {

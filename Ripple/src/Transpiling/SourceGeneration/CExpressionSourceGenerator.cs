@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ripple.Transpiling.C_AST;
-using Ripple.Utils;
-using Ripple.Utils.Extensions;
+using Raucse;
+using Raucse.Extensions;
 
 namespace Ripple.Transpiling.SourceGeneration
 {

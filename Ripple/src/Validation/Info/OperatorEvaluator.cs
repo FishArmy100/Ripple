@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.Utils;
-using Ripple.Utils.Extensions;
 using Ripple.Validation.Info.Expressions;
 using Ripple.Validation.Info.Types;
+using Raucse;
 
 namespace Ripple.Validation.Info
 {
