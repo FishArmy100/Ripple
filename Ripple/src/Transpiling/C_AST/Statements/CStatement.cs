@@ -1,14 +1,12 @@
-using System;
 using System.Collections.Generic;
 using Raucse;
-using System.Linq;
-using System.Linq;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	abstract class CStatement
+	public abstract class CStatement
 	{
 
 		public CStatement()

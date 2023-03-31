@@ -1,13 +1,12 @@
-using System;
 using System.Collections.Generic;
 using Raucse;
-using System.Linq;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	abstract class CExpression
+	public abstract class CExpression
 	{
 
 		public CExpression()

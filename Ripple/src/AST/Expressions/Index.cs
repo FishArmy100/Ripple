@@ -1,14 +1,14 @@
-using System;
 using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Raucse;
+using System;
 using System.Linq;
 
 
 namespace Ripple.AST
 {
-	class Index : Expression
+	public class Index : Expression
 	{
 		public readonly Expression Indexed;
 		public readonly Token OpenBracket;

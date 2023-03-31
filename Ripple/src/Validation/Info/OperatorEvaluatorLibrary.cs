@@ -10,7 +10,7 @@ using Raucse.Extensions;
 
 namespace Ripple.Validation.Info
 {
-    class OperatorEvaluatorLibrary
+    public class OperatorEvaluatorLibrary
     {
         public readonly OperatorEvaluator<TokenType, ValueInfo> Unaries =
             new OperatorEvaluator<TokenType, ValueInfo>(

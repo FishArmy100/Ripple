@@ -11,7 +11,7 @@ using Raucse;
 
 namespace Ripple.Validation.Info
 {
-    class FunctionInfo
+    public class FunctionInfo
     {
         public readonly bool IsUnsafe;
         public readonly Token NameToken;

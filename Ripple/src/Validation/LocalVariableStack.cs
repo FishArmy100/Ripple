@@ -5,7 +5,7 @@ using Ripple.Lexing;
 
 namespace Ripple.Validation
 {
-    class LocalVariableStack
+    public class LocalVariableStack
     {
         private readonly Stack<Dictionary<string, VariableInfo>> m_VariableStack = new Stack<Dictionary<string, VariableInfo>>();
         public LifetimeInfo CurrentLifetime => new LifetimeInfo(m_VariableStack.Count);

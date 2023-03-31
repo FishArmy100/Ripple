@@ -1,16 +1,14 @@
-using System;
 using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Raucse;
-using System.Linq;
-using System.Linq;
+using System;
 using System.Linq;
 
 
 namespace Ripple.AST
 {
-	class PointerType : TypeName
+	public class PointerType : TypeName
 	{
 		public readonly TypeName BaseType;
 		public readonly Token? MutToken;

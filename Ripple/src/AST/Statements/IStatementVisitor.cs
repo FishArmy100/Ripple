@@ -1,9 +1,8 @@
-using System;
 
 
 namespace Ripple.AST
 {
-	interface IStatementVisitor
+	public interface IStatementVisitor
 	{
 		public abstract void VisitExprStmt(ExprStmt exprStmt);
 		public abstract void VisitBlockStmt(BlockStmt blockStmt);
@@ -24,7 +23,7 @@ namespace Ripple.AST
 		public abstract void VisitProgramStmt(ProgramStmt programStmt);
 	}
 
-	interface IStatementVisitor<T>
+	public interface IStatementVisitor<T>
 	{
 		public abstract T VisitExprStmt(ExprStmt exprStmt);
 		public abstract T VisitBlockStmt(BlockStmt blockStmt);
@@ -45,7 +44,7 @@ namespace Ripple.AST
 		public abstract T VisitProgramStmt(ProgramStmt programStmt);
 	}
 
-	interface IStatementVisitor<TReturn, TArg>
+	public interface IStatementVisitor<TReturn, TArg>
 	{
 		public abstract TReturn VisitExprStmt(ExprStmt exprStmt, TArg arg);
 		public abstract TReturn VisitBlockStmt(BlockStmt blockStmt, TArg arg);
@@ -65,7 +64,7 @@ namespace Ripple.AST
 		public abstract TReturn VisitFileStmt(FileStmt fileStmt, TArg arg);
 		public abstract TReturn VisitProgramStmt(ProgramStmt programStmt, TArg arg);
 	}
-	interface IStatementVisitorWithArg<TArg>
+	public interface IStatementVisitorWithArg<TArg>
 	{
 		public abstract void VisitExprStmt(ExprStmt exprStmt, TArg arg);
 		public abstract void VisitBlockStmt(BlockStmt blockStmt, TArg arg);

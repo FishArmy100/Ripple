@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Raucse;
 using Ripple.Validation;
@@ -6,13 +5,13 @@ using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info;
 using Ripple.Validation.Info.Expressions;
 using Ripple.Lexing;
-using System.Linq;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Validation.Info.Expressions
 {
-	class TypedCast : TypedExpression
+	public class TypedCast : TypedExpression
 	{
 		public readonly TypedExpression Casted;
 		public readonly TypeInfo TypeToCastTo;

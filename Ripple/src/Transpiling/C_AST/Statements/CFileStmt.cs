@@ -1,14 +1,12 @@
-using System;
 using System.Collections.Generic;
 using Raucse;
-using System.Linq;
-using System.Linq;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CFileStmt : CStatement
+	public class CFileStmt : CStatement
 	{
 		public readonly List<CIncludeStmt> Includes;
 		public readonly List<CStatement> Statements;

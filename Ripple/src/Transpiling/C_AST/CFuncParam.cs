@@ -5,7 +5,7 @@ using Ripple.Utils;
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CFuncParam
+	public class CFuncParam
 	{
 		public readonly CType Type;
 		public readonly string Name;

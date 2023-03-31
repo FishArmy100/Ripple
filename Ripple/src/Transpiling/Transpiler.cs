@@ -11,7 +11,7 @@ using Ripple.Transpiling.SourceGeneration;
 
 namespace Ripple.Transpiling
 {
-	static class Transpiler
+	public static class Transpiler
 	{
 		public const string CORE_TYPE_PREDEFS_FILE = "CORE_TYPE_PREDEFS.h";
 		public const string CORE_PREDEFS_FILE = "CORE_PREDEFS.h";

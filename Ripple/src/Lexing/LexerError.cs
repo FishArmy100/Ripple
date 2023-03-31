@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.Lexing
 {
-    struct LexerError
+    public struct LexerError
     {
         public readonly string Message;
         public readonly int Line;

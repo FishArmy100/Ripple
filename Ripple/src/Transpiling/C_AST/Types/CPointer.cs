@@ -1,12 +1,12 @@
-using System;
 using System.Collections.Generic;
 using Raucse;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CPointer : CType
+	public class CPointer : CType
 	{
 		public readonly CType BaseType;
 		public readonly bool IsConst;

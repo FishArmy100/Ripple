@@ -1,13 +1,12 @@
-using System;
 using System.Collections.Generic;
 using Raucse;
-using System.Linq;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CCompoundLiteral : CExpression
+	public class CCompoundLiteral : CExpression
 	{
 		public readonly CType Type;
 		public readonly CInitalizerList Initalizer;

@@ -1,14 +1,12 @@
-using System;
 using System.Collections.Generic;
 using Raucse;
-using System.Linq;
-using System.Linq;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CStructDef : CStatement
+	public class CStructDef : CStatement
 	{
 		public readonly string Name;
 		public readonly List<CStructMember> Members;

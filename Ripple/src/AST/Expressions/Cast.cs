@@ -1,14 +1,14 @@
-using System;
 using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Raucse;
+using System;
 using System.Linq;
 
 
 namespace Ripple.AST
 {
-	class Cast : Expression
+	public class Cast : Expression
 	{
 		public readonly Expression Castee;
 		public readonly Token AsToken;

@@ -1,9 +1,8 @@
-using System;
 
 
 namespace Ripple.AST
 {
-	interface ITypeNameVisitor
+	public interface ITypeNameVisitor
 	{
 		public abstract void VisitBasicType(BasicType basicType);
 		public abstract void VisitGroupedType(GroupedType groupedType);
@@ -13,7 +12,7 @@ namespace Ripple.AST
 		public abstract void VisitFuncPtr(FuncPtr funcPtr);
 	}
 
-	interface ITypeNameVisitor<T>
+	public interface ITypeNameVisitor<T>
 	{
 		public abstract T VisitBasicType(BasicType basicType);
 		public abstract T VisitGroupedType(GroupedType groupedType);
@@ -23,7 +22,7 @@ namespace Ripple.AST
 		public abstract T VisitFuncPtr(FuncPtr funcPtr);
 	}
 
-	interface ITypeNameVisitor<TReturn, TArg>
+	public interface ITypeNameVisitor<TReturn, TArg>
 	{
 		public abstract TReturn VisitBasicType(BasicType basicType, TArg arg);
 		public abstract TReturn VisitGroupedType(GroupedType groupedType, TArg arg);
@@ -32,7 +31,7 @@ namespace Ripple.AST
 		public abstract TReturn VisitArrayType(ArrayType arrayType, TArg arg);
 		public abstract TReturn VisitFuncPtr(FuncPtr funcPtr, TArg arg);
 	}
-	interface ITypeNameVisitorWithArg<TArg>
+	public interface ITypeNameVisitorWithArg<TArg>
 	{
 		public abstract void VisitBasicType(BasicType basicType, TArg arg);
 		public abstract void VisitGroupedType(GroupedType groupedType, TArg arg);

@@ -7,7 +7,7 @@ using Raucse.Extensions;
 
 namespace Ripple.Lexing
 {
-    struct Token
+    public struct Token
     {
         public readonly string Text;
         public readonly TokenType Type;

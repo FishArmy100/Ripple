@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Raucse;
 using Ripple.Validation;
@@ -6,12 +5,13 @@ using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info;
 using Ripple.Validation.Info.Expressions;
 using Ripple.Lexing;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Validation.Info.Statements
 {
-	class TypedWhileStmt : TypedStatement
+	public class TypedWhileStmt : TypedStatement
 	{
 		public readonly TypedExpression Condition;
 		public readonly TypedStatement Body;

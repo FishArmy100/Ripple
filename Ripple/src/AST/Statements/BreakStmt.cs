@@ -1,15 +1,14 @@
-using System;
 using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Raucse;
-using System.Linq;
+using System;
 using System.Linq;
 
 
 namespace Ripple.AST
 {
-	class BreakStmt : Statement
+	public class BreakStmt : Statement
 	{
 		public readonly Token BreakToken;
 		public readonly Token SemiColon;

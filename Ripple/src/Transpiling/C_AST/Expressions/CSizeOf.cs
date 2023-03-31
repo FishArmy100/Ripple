@@ -1,13 +1,12 @@
-using System;
 using System.Collections.Generic;
 using Raucse;
-using System.Linq;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CSizeOf : CExpression
+	public class CSizeOf : CExpression
 	{
 		public readonly CType Type;
 

@@ -14,7 +14,6 @@ namespace ASTGeneration
         public static void GenerateCode(BasicCodeData data, List<NodeData> nodes, List<string> additionalUsings)
         {
             string visitorName = "I" + data.BaseName + "Visitor";
-            additionalUsings.Add("System.Linq");
 
             foreach (NodeData node in nodes)
             {
@@ -35,7 +34,7 @@ namespace ASTGeneration
             StringBuilder builder = new StringBuilder();
             BeginCodeFile(nodeData.NamespaceName, builder, additionalUsings);
 
-            builder.AppendLine("\tclass " + nodeData.Name + " : " + nodeData.BaseName);
+            builder.AppendLine("\tpublic class " + nodeData.Name + " : " + nodeData.BaseName);
             builder.AppendLine("\t{");
 
             GenFeilds(nodeData, builder);
@@ -72,7 +71,7 @@ namespace ASTGeneration
             StringBuilder builder = new StringBuilder();
             BeginCodeFile(namespaceName, builder, additionalUsings);
 
-            builder.AppendLine("\tabstract class " + name);
+            builder.AppendLine("\tpublic abstract class " + name);
             builder.AppendLine("\t{");
 
             foreach (var (propType, propName) in baseProperties)
@@ -116,7 +115,7 @@ namespace ASTGeneration
             BeginCodeFile(namespaceName, builder, new List<string>());
 
             // void visitor
-            builder.AppendLine("\tinterface " + name);
+            builder.AppendLine("\tpublic interface " + name);
             builder.AppendLine("\t{");
 
             foreach (string s in nodeNames)
@@ -127,7 +126,7 @@ namespace ASTGeneration
             // return visitor
             builder.AppendLine();
 
-            builder.AppendLine("\tinterface " + name + "<T>");
+            builder.AppendLine("\tpublic interface " + name + "<T>");
             builder.AppendLine("\t{");
 
             foreach (string s in nodeNames)
@@ -138,7 +137,7 @@ namespace ASTGeneration
             builder.AppendLine();
 
             // argument and return visitor
-            builder.AppendLine("\tinterface " + name + "<TReturn, TArg>");
+            builder.AppendLine("\tpublic interface " + name + "<TReturn, TArg>");
             builder.AppendLine("\t{");
 
             foreach (string s in nodeNames)
@@ -148,7 +147,7 @@ namespace ASTGeneration
             builder.AppendLine("\t}");
 
             // argumentVisitor
-            builder.AppendLine("\tinterface " + name + "WithArg" + "<TArg>");
+            builder.AppendLine("\tpublic interface " + name + "WithArg" + "<TArg>");
             builder.AppendLine("\t{");
 
             foreach (string s in nodeNames)
@@ -168,8 +167,6 @@ namespace ASTGeneration
 
         private static void BeginCodeFile(string namespaceName, StringBuilder builder, List<string> additionalUsings)
         {
-            builder.AppendLine("using System;");
-
             foreach (string s in additionalUsings)
                 builder.AppendLine("using " + s + ";");
 

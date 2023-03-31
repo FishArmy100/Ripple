@@ -1,9 +1,8 @@
-using System;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	interface ICExpressionVisitor
+	public interface ICExpressionVisitor
 	{
 		public abstract void VisitCBinary(CBinary cBinary);
 		public abstract void VisitCUnary(CUnary cUnary);
@@ -18,7 +17,7 @@ namespace Ripple.Transpiling.C_AST
 		public abstract void VisitCInitalizerList(CInitalizerList cInitalizerList);
 	}
 
-	interface ICExpressionVisitor<T>
+	public interface ICExpressionVisitor<T>
 	{
 		public abstract T VisitCBinary(CBinary cBinary);
 		public abstract T VisitCUnary(CUnary cUnary);
@@ -33,7 +32,7 @@ namespace Ripple.Transpiling.C_AST
 		public abstract T VisitCInitalizerList(CInitalizerList cInitalizerList);
 	}
 
-	interface ICExpressionVisitor<TReturn, TArg>
+	public interface ICExpressionVisitor<TReturn, TArg>
 	{
 		public abstract TReturn VisitCBinary(CBinary cBinary, TArg arg);
 		public abstract TReturn VisitCUnary(CUnary cUnary, TArg arg);
@@ -47,7 +46,7 @@ namespace Ripple.Transpiling.C_AST
 		public abstract TReturn VisitCCompoundLiteral(CCompoundLiteral cCompoundLiteral, TArg arg);
 		public abstract TReturn VisitCInitalizerList(CInitalizerList cInitalizerList, TArg arg);
 	}
-	interface ICExpressionVisitorWithArg<TArg>
+	public interface ICExpressionVisitorWithArg<TArg>
 	{
 		public abstract void VisitCBinary(CBinary cBinary, TArg arg);
 		public abstract void VisitCUnary(CUnary cUnary, TArg arg);

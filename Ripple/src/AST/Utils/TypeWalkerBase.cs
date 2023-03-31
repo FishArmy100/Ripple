@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.AST.Utils
 {
-    class TypeWalkerBase : ITypeNameVisitor
+    public class TypeWalkerBase : ITypeNameVisitor
     {
         public virtual void VisitArrayType(ArrayType arrayType)
         {

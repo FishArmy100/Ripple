@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.Validation.Info
 {
-	struct GenericLifetime
+	public struct GenericLifetime
 	{
 		public readonly int LifetimeIndex;
 		public readonly int FunctionIndex;

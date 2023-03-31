@@ -8,7 +8,7 @@ using Raucse;
 
 namespace Ripple.Compiling
 {
-    class SourceData
+    public class SourceData
     {
         public readonly string StartPath;
         public readonly List<SourceFile> Files;

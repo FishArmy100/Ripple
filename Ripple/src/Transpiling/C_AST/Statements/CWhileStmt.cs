@@ -1,14 +1,12 @@
-using System;
 using System.Collections.Generic;
 using Raucse;
-using System.Linq;
-using System.Linq;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CWhileStmt : CStatement
+	public class CWhileStmt : CStatement
 	{
 		public readonly CExpression Condition;
 		public readonly CStatement Body;

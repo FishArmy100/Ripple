@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Sharprompt;
 using System.IO;
 
-namespace Ripple.App
+namespace RippleCLI
 {
     static class FileBrowser
     {

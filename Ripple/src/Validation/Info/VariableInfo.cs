@@ -12,7 +12,7 @@ using Ripple.Validation.Info.Expressions;
 
 namespace Ripple.Validation.Info
 {
-    class VariableInfo
+    public class VariableInfo
     {
         public readonly Token NameToken;
         public readonly TypeInfo Type;

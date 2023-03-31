@@ -9,7 +9,7 @@ using Ripple.Compiling;
 
 namespace Ripple.Lexing
 {
-    static class Lexer
+    public static class Lexer
     {
         public static Result<List<Token>, List<LexerError>> Scan(string src, string relativePath)
         {

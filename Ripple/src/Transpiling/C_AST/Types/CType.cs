@@ -1,12 +1,12 @@
-using System;
 using System.Collections.Generic;
 using Raucse;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	abstract class CType
+	public abstract class CType
 	{
 
 		public CType()

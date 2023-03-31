@@ -15,10 +15,11 @@ using Ripple.Transpiling.C_AST;
 using System.Diagnostics;
 using Raucse.Extensions;
 using Raucse;
+using System.IO;
 
 namespace Ripple.Compiling
 {
-    static class Compiler
+    public static class Compiler
     {
         public const string INTERMEDIATE_FOLDER_NAME = "intermediates";
         public const string BIN_FOLDER_NAME = "bin";
@@ -82,7 +83,7 @@ namespace Ripple.Compiling
                     List<string> files = new List<string>();
                     foreach (CFileInfo info in ok)
                     {
-                        FileUtils.WriteToFile($"{intermediatesDirectory}\\{info.RelativePath}", info.Source);
+                        WriteToFile($"{intermediatesDirectory}\\{info.RelativePath}", info.Source);
                         
                         if(info.FileType == CFileType.Source)
                             files.Add(info.RelativePath);
@@ -115,6 +116,21 @@ namespace Ripple.Compiling
             return self.Match(
                 ok   => new Result<TSuccess, List<CompilerError>>(ok),
                 fail => fail.ConvertAll(converter));
+        }
+
+        private static void WriteToFile(string path, string text)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.Create(path).Dispose();
+            File.WriteAllText(path, text);
+        }
+
+        private static Option<string> ReadFromFile(string path)
+        {
+            if (File.Exists(path))
+                return File.ReadAllText(path);
+
+            return new Option<string>();
         }
     }
 }

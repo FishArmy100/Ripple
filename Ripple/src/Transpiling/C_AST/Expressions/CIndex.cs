@@ -1,13 +1,12 @@
-using System;
 using System.Collections.Generic;
 using Raucse;
-using System.Linq;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CIndex : CExpression
+	public class CIndex : CExpression
 	{
 		public readonly CExpression Indexee;
 		public readonly CExpression Argument;

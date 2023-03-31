@@ -11,7 +11,7 @@ using Raucse.Extensions;
 
 namespace Ripple.Validation.Info
 {
-    class FunctionList
+    public class FunctionList
     {
         private readonly Dictionary<string, List<FunctionInfo>> m_Functions = new Dictionary<string, List<FunctionInfo>>();
 

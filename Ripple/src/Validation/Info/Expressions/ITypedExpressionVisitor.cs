@@ -1,9 +1,8 @@
-using System;
 
 
 namespace Ripple.Validation.Info.Expressions
 {
-	interface ITypedExpressionVisitor
+	public interface ITypedExpressionVisitor
 	{
 		public abstract void VisitTypedIdentifier(TypedIdentifier typedIdentifier);
 		public abstract void VisitTypedInitalizerList(TypedInitalizerList typedInitalizerList);
@@ -16,7 +15,7 @@ namespace Ripple.Validation.Info.Expressions
 		public abstract void VisitTypedUnary(TypedUnary typedUnary);
 	}
 
-	interface ITypedExpressionVisitor<T>
+	public interface ITypedExpressionVisitor<T>
 	{
 		public abstract T VisitTypedIdentifier(TypedIdentifier typedIdentifier);
 		public abstract T VisitTypedInitalizerList(TypedInitalizerList typedInitalizerList);
@@ -29,7 +28,7 @@ namespace Ripple.Validation.Info.Expressions
 		public abstract T VisitTypedUnary(TypedUnary typedUnary);
 	}
 
-	interface ITypedExpressionVisitor<TReturn, TArg>
+	public interface ITypedExpressionVisitor<TReturn, TArg>
 	{
 		public abstract TReturn VisitTypedIdentifier(TypedIdentifier typedIdentifier, TArg arg);
 		public abstract TReturn VisitTypedInitalizerList(TypedInitalizerList typedInitalizerList, TArg arg);
@@ -41,7 +40,7 @@ namespace Ripple.Validation.Info.Expressions
 		public abstract TReturn VisitTypedBinary(TypedBinary typedBinary, TArg arg);
 		public abstract TReturn VisitTypedUnary(TypedUnary typedUnary, TArg arg);
 	}
-	interface ITypedExpressionVisitorWithArg<TArg>
+	public interface ITypedExpressionVisitorWithArg<TArg>
 	{
 		public abstract void VisitTypedIdentifier(TypedIdentifier typedIdentifier, TArg arg);
 		public abstract void VisitTypedInitalizerList(TypedInitalizerList typedInitalizerList, TArg arg);

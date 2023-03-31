@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.Transpiling.C_AST
 {
-	enum CBinaryOperator
+	public enum CBinaryOperator
 	{
 		Plus,
 		Minus,
@@ -24,7 +24,7 @@ namespace Ripple.Transpiling.C_AST
 		PipePipe,
 	}
 
-	static class CBinaryOperatorExtensions
+	public static class CBinaryOperatorExtensions
 	{
 		public static string ToCCode(this CBinaryOperator self)
 		{

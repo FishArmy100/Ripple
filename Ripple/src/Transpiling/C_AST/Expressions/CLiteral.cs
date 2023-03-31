@@ -1,13 +1,12 @@
-using System;
 using System.Collections.Generic;
 using Raucse;
-using System.Linq;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CLiteral : CExpression
+	public class CLiteral : CExpression
 	{
 		public readonly object Value;
 		public readonly CLiteralType Type;

@@ -11,7 +11,7 @@ using Raucse;
 
 namespace Ripple.Validation.Info
 {
-    class ExpressionCheckerVisitor : IExpressionVisitor<Pair<ValueInfo, TypedExpression>, Option<TypeInfo>>
+    public class ExpressionCheckerVisitor : IExpressionVisitor<Pair<ValueInfo, TypedExpression>, Option<TypeInfo>>
     {
         private readonly LocalVariableStack m_VariableStack;
         private readonly FunctionList m_Functions;

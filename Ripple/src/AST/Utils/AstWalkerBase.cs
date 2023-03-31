@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.AST.Utils
 {
-    abstract class ASTWalkerBase : IStatementVisitor, IExpressionVisitor
+    public abstract class ASTWalkerBase : IStatementVisitor, IExpressionVisitor
     {
         public virtual void VisitBinary(Binary binary)
         {

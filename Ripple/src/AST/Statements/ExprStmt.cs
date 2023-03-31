@@ -1,15 +1,14 @@
-using System;
 using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Raucse;
-using System.Linq;
+using System;
 using System.Linq;
 
 
 namespace Ripple.AST
 {
-	class ExprStmt : Statement
+	public class ExprStmt : Statement
 	{
 		public readonly Expression Expr;
 		public readonly Token SemiColin;

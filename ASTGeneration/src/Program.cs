@@ -25,7 +25,7 @@ namespace ASTGeneration
 
         private static void GenerateCAST()
 		{
-            List<string> additionalUsings = new List<string>() { "System.Collections.Generic", "Raucse" };
+            List<string> additionalUsings = new List<string>() { "System.Collections.Generic", "Raucse", "System", "System.Linq" };
 
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Transpiling\\C_AST\\Types", "Ripple.Transpiling.C_AST", "CType", "", new List<string>()
             {
@@ -74,7 +74,7 @@ namespace ASTGeneration
 
         private static void GenerateRippleAst()
         {
-            List<string> additionalUsings = new List<string>() { "System.Collections.Generic", "Ripple.Lexing", "Ripple.Parsing", "Raucse" };
+            List<string> additionalUsings = new List<string>() { "System.Collections.Generic", "Ripple.Lexing", "Ripple.Parsing", "Raucse", "System", "System.Linq" };
 
             // Expressions
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Expressions", "Ripple.AST", "Expression", "", new List<string>()
@@ -141,7 +141,9 @@ namespace ASTGeneration
                 "Ripple.Validation.Info.Types",
                 "Ripple.Validation.Info",
                 "Ripple.Validation.Info.Expressions",
-                "Ripple.Lexing"
+                "Ripple.Lexing",
+                "System",
+                "System.Linq",
             };
 
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Validation\\Info\\Statements", "Ripple.Validation.Info.Statements", "TypedStatement",

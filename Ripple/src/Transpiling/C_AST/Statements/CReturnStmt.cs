@@ -1,14 +1,12 @@
-using System;
 using System.Collections.Generic;
 using Raucse;
-using System.Linq;
-using System.Linq;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CReturnStmt : CStatement
+	public class CReturnStmt : CStatement
 	{
 		public readonly Option<CExpression> Expression;
 

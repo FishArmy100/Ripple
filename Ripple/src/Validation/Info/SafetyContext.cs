@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.Validation.Info
 {
-    struct SafetyContext
+    public struct SafetyContext
     {
         public readonly bool IsSafe;
 
@@ -24,6 +24,16 @@ namespace Ripple.Validation.Info
         public override int GetHashCode()
         {
             return HashCode.Combine(IsSafe);
+        }
+
+        public static bool operator ==(SafetyContext left, SafetyContext right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(SafetyContext left, SafetyContext right)
+        {
+            return !(left == right);
         }
     }
 }

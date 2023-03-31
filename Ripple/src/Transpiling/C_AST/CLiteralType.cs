@@ -7,7 +7,7 @@ using Ripple.Transpiling.SourceGeneration;
 
 namespace Ripple.Transpiling.C_AST
 {
-	enum CLiteralType
+	public enum CLiteralType
 	{
 		String,
 		Intager,

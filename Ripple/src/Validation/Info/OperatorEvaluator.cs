@@ -11,7 +11,7 @@ using Raucse;
 
 namespace Ripple.Validation.Info
 {
-    class OperatorEvaluator<TPrimary, TArg>
+    public class OperatorEvaluator<TPrimary, TArg>
     {
         private readonly List<Func<TPrimary, TArg, LifetimeInfo, Option<ValueInfo>>> m_EvaluationFunctions = new ();
         private readonly Func<TPrimary, TArg, Token, ASTInfoError> m_TooManyOperatorsErrorGenerator;

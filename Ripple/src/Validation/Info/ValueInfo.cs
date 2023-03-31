@@ -11,7 +11,7 @@ using Ripple.AST;
 
 namespace Ripple.Validation.Info
 {
-    class ValueInfo
+    public class ValueInfo
     {
         public readonly TypeInfo Type;
         public readonly LifetimeInfo Lifetime;

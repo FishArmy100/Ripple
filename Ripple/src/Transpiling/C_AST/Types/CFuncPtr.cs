@@ -1,12 +1,12 @@
-using System;
 using System.Collections.Generic;
 using Raucse;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CFuncPtr : CType
+	public class CFuncPtr : CType
 	{
 		public readonly CType Returned;
 		public readonly List<CType> Parameters;

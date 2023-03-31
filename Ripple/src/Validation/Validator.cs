@@ -14,7 +14,7 @@ using Raucse;
 
 namespace Ripple.Validation
 {
-    static class Validator
+    public static class Validator
     {
         public static Result<TypedProgramStmt, List<ValidationError>> ValidateAst(ProgramStmt programStmt)
         {

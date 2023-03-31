@@ -7,7 +7,7 @@ using Ripple.Lexing;
 
 namespace Ripple.Parsing
 {
-    struct ParserError
+    public struct ParserError
     {
         public string Message;
         public Token Tok;

@@ -7,7 +7,7 @@ using Ripple.Transpiling.C_AST;
 
 namespace Ripple.Transpiling
 {
-    class CFileInfo
+    public class CFileInfo
     {
         public readonly string RelativePath;
         public readonly string Source;

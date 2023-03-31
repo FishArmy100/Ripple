@@ -1,15 +1,14 @@
-using System;
 using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Raucse;
-using System.Linq;
+using System;
 using System.Linq;
 
 
 namespace Ripple.AST
 {
-	class BlockStmt : Statement
+	public class BlockStmt : Statement
 	{
 		public readonly Token OpenBrace;
 		public readonly List<Statement> Statements;

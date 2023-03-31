@@ -7,7 +7,7 @@ using Ripple.Lexing;
 
 namespace Ripple.Validation
 {
-    struct ValidationError
+    public struct ValidationError
     {
         public readonly string Message;
         public readonly Token ErrorToken;

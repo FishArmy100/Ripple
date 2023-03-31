@@ -9,7 +9,7 @@ using Raucse;
 
 namespace Ripple.Validation.Info
 {
-    class LifetimeInfo
+    public class LifetimeInfo
     {
         public static readonly LifetimeInfo Static = new LifetimeInfo(new Token("static", TokenType.Lifetime, -1, -1));
 

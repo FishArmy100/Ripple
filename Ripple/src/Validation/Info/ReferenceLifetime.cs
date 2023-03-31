@@ -8,7 +8,7 @@ using Raucse;
 
 namespace Ripple.Validation.Info
 {
-	class ReferenceLifetime
+	public class ReferenceLifetime
 	{
 		private readonly Either<GenericLifetime, LifetimeInfo> m_LifetimeInfo;
 

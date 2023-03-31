@@ -8,7 +8,7 @@ using Ripple.Lexing;
 
 namespace Ripple.AST.Utils
 {
-    static class TypeNamePrinter
+    public static class TypeNamePrinter
     {
         public static string PrintType(TypeName typeName)
         {
