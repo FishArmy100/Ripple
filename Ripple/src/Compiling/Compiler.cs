@@ -15,7 +15,7 @@ using Ripple.Transpiling.C_AST;
 using System.Diagnostics;
 using Raucse.Extensions;
 using Raucse;
-using System.IO;
+using Raucse.FileManagement;
 
 namespace Ripple.Compiling
 {
@@ -83,7 +83,7 @@ namespace Ripple.Compiling
                     List<string> files = new List<string>();
                     foreach (CFileInfo info in ok)
                     {
-                        WriteToFile($"{intermediatesDirectory}\\{info.RelativePath}", info.Source);
+                        FileUtils.WriteToFile($"{intermediatesDirectory}\\{info.RelativePath}", info.Source);
                         
                         if(info.FileType == CFileType.Source)
                             files.Add(info.RelativePath);
@@ -116,21 +116,6 @@ namespace Ripple.Compiling
             return self.Match(
                 ok   => new Result<TSuccess, List<CompilerError>>(ok),
                 fail => fail.ConvertAll(converter));
-        }
-
-        private static void WriteToFile(string path, string text)
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-            File.Create(path).Dispose();
-            File.WriteAllText(path, text);
-        }
-
-        private static Option<string> ReadFromFile(string path)
-        {
-            if (File.Exists(path))
-                return File.ReadAllText(path);
-
-            return new Option<string>();
         }
     }
 }

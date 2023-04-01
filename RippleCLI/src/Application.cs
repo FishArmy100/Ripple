@@ -22,7 +22,7 @@ namespace RippleCLI
         {
             get
             {
-                string text = FileUtils.ReadFromFile(ModeSavePath);
+                string text = FileUtils.ReadFromFile(ModeSavePath).Value;
                 if(Enum.TryParse(typeof(CompilerMode), text, out object mode))
                 {
                     return (CompilerMode)mode;
@@ -40,7 +40,7 @@ namespace RippleCLI
         {
             get
             {
-                string text = FileUtils.ReadFromFile(PathSavePath);
+                string text = FileUtils.ReadFromFile(PathSavePath).Value;
                 if (!text.IsNullOrEmpty())
                     return text.RemoveWhitespace();
 
