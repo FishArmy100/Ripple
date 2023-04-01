@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.Transpiling.C_AST
 {
-	enum CUnaryOperator
+	public enum CUnaryOperator
 	{
 		Negate,
 		Bang,
@@ -14,7 +14,7 @@ namespace Ripple.Transpiling.C_AST
 		Dereference,
 	}
 
-	static class CUnaryOperatorExtensions
+	public static class CUnaryOperatorExtensions
 	{
 		public static string ToCCode(this CUnaryOperator self)
 		{

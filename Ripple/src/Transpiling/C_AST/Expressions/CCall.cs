@@ -1,13 +1,12 @@
-using System;
 using System.Collections.Generic;
-using Ripple.Utils;
-using System.Linq;
+using Raucse;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CCall : CExpression
+	public class CCall : CExpression
 	{
 		public readonly CExpression Callee;
 		public readonly List<CExpression> Arguments;

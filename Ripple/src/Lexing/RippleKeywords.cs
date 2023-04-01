@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.Lexing
 {
-    static class RippleKeywords
+    public static class RippleKeywords
     {
         public static readonly Dictionary<string, TokenType> Keywords = new Dictionary<string, TokenType>
         {

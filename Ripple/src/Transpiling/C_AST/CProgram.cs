@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CProgram
+	public class CProgram
 	{
 		public readonly List<CFileStmt> Files;
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.Core
 {
-    static class FileExtensions
+    public static class FileExtensions
     {
         public const string RippleFileExtension = ".ripl";
     }

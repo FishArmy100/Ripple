@@ -10,7 +10,7 @@ using Ripple.Validation.Info.Types;
 
 namespace Ripple.AST.Utils
 {
-    static class RipplePrimitives
+    public static class RipplePrimitives
     {
         public const string Int32Name = "int";
         public const string Float32Name = "float";

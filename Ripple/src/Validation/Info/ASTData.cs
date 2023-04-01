@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.Validation.Info
 {
-	class ASTData
+	public class ASTData
 	{
         public readonly IReadOnlyList<string> PrimaryTypes;
         public readonly FunctionList Functions;

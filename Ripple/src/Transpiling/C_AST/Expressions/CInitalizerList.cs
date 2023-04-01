@@ -1,13 +1,12 @@
-using System;
 using System.Collections.Generic;
-using Ripple.Utils;
-using System.Linq;
+using Raucse;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CInitalizerList : CExpression
+	public class CInitalizerList : CExpression
 	{
 		public readonly List<CExpression> Expressions;
 

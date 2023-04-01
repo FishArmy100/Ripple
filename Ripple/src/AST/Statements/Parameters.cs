@@ -1,15 +1,14 @@
-using System;
 using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
-using Ripple.Utils;
-using System.Linq;
+using Raucse;
+using System;
 using System.Linq;
 
 
 namespace Ripple.AST
 {
-	class Parameters : Statement
+	public class Parameters : Statement
 	{
 		public readonly Token OpenParen;
 		public readonly List<(TypeName,Token)> ParamList;

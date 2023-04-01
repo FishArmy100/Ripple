@@ -1,17 +1,17 @@
-using System;
 using System.Collections.Generic;
-using Ripple.Utils;
+using Raucse;
 using Ripple.Validation;
 using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info;
 using Ripple.Validation.Info.Expressions;
 using Ripple.Lexing;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Validation.Info.Statements
 {
-	class TypedIfStmt : TypedStatement
+	public class TypedIfStmt : TypedStatement
 	{
 		public readonly TypedExpression Condition;
 		public readonly TypedStatement Body;

@@ -1,9 +1,8 @@
-using System;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	interface ICStatementVisitor
+	public interface ICStatementVisitor
 	{
 		public abstract void VisitCExprStmt(CExprStmt cExprStmt);
 		public abstract void VisitCIfStmt(CIfStmt cIfStmt);
@@ -24,7 +23,7 @@ namespace Ripple.Transpiling.C_AST
 		public abstract void VisitCFileStmt(CFileStmt cFileStmt);
 	}
 
-	interface ICStatementVisitor<T>
+	public interface ICStatementVisitor<T>
 	{
 		public abstract T VisitCExprStmt(CExprStmt cExprStmt);
 		public abstract T VisitCIfStmt(CIfStmt cIfStmt);
@@ -45,7 +44,7 @@ namespace Ripple.Transpiling.C_AST
 		public abstract T VisitCFileStmt(CFileStmt cFileStmt);
 	}
 
-	interface ICStatementVisitor<TReturn, TArg>
+	public interface ICStatementVisitor<TReturn, TArg>
 	{
 		public abstract TReturn VisitCExprStmt(CExprStmt cExprStmt, TArg arg);
 		public abstract TReturn VisitCIfStmt(CIfStmt cIfStmt, TArg arg);
@@ -65,7 +64,7 @@ namespace Ripple.Transpiling.C_AST
 		public abstract TReturn VisitCIncludeStmt(CIncludeStmt cIncludeStmt, TArg arg);
 		public abstract TReturn VisitCFileStmt(CFileStmt cFileStmt, TArg arg);
 	}
-	interface ICStatementVisitorWithArg<TArg>
+	public interface ICStatementVisitorWithArg<TArg>
 	{
 		public abstract void VisitCExprStmt(CExprStmt cExprStmt, TArg arg);
 		public abstract void VisitCIfStmt(CIfStmt cIfStmt, TArg arg);

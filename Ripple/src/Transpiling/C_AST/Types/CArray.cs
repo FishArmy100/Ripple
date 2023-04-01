@@ -1,12 +1,12 @@
-using System;
 using System.Collections.Generic;
-using Ripple.Utils;
+using Raucse;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CArray : CType
+	public class CArray : CType
 	{
 		public readonly CType BaseType;
 		public readonly Option<int> Size;

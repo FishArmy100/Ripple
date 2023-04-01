@@ -1,14 +1,12 @@
-using System;
 using System.Collections.Generic;
-using Ripple.Utils;
-using System.Linq;
-using System.Linq;
+using Raucse;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CFuncDef : CStatement
+	public class CFuncDef : CStatement
 	{
 		public readonly CType Returned;
 		public readonly string Name;

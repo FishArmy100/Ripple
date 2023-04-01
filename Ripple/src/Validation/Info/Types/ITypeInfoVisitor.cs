@@ -1,9 +1,8 @@
-using System;
 
 
 namespace Ripple.Validation.Info.Types
 {
-	interface ITypeInfoVisitor
+	public interface ITypeInfoVisitor
 	{
 		public abstract void VisitBasicTypeInfo(BasicTypeInfo basicTypeInfo);
 		public abstract void VisitPointerInfo(PointerInfo pointerInfo);
@@ -12,7 +11,7 @@ namespace Ripple.Validation.Info.Types
 		public abstract void VisitFuncPtrInfo(FuncPtrInfo funcPtrInfo);
 	}
 
-	interface ITypeInfoVisitor<T>
+	public interface ITypeInfoVisitor<T>
 	{
 		public abstract T VisitBasicTypeInfo(BasicTypeInfo basicTypeInfo);
 		public abstract T VisitPointerInfo(PointerInfo pointerInfo);
@@ -21,7 +20,7 @@ namespace Ripple.Validation.Info.Types
 		public abstract T VisitFuncPtrInfo(FuncPtrInfo funcPtrInfo);
 	}
 
-	interface ITypeInfoVisitor<TReturn, TArg>
+	public interface ITypeInfoVisitor<TReturn, TArg>
 	{
 		public abstract TReturn VisitBasicTypeInfo(BasicTypeInfo basicTypeInfo, TArg arg);
 		public abstract TReturn VisitPointerInfo(PointerInfo pointerInfo, TArg arg);
@@ -29,7 +28,7 @@ namespace Ripple.Validation.Info.Types
 		public abstract TReturn VisitArrayInfo(ArrayInfo arrayInfo, TArg arg);
 		public abstract TReturn VisitFuncPtrInfo(FuncPtrInfo funcPtrInfo, TArg arg);
 	}
-	interface ITypeInfoVisitorWithArg<TArg>
+	public interface ITypeInfoVisitorWithArg<TArg>
 	{
 		public abstract void VisitBasicTypeInfo(BasicTypeInfo basicTypeInfo, TArg arg);
 		public abstract void VisitPointerInfo(PointerInfo pointerInfo, TArg arg);

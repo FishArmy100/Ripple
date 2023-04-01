@@ -7,7 +7,7 @@ using System.IO;
 
 namespace Ripple.Compiling
 {
-    struct SourceFile
+    public struct SourceFile
     {
         public readonly string StartPath;
         public readonly string RelativePath;

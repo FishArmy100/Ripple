@@ -10,7 +10,7 @@ using Ripple.Transpiling.SourceGeneration;
 using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info.Expressions;
 using Ripple.Validation.Info.Statements;
-using Ripple.Utils.Extensions;
+using Raucse;
 
 namespace Ripple.Transpiling.ASTConversion
 {

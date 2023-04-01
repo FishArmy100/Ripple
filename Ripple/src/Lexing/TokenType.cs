@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.Lexing
 {
-    enum TokenType
+    public enum TokenType
     {
         OpenParen, CloseParen, OpenBrace, CloseBrace,
         OpenBracket, CloseBracket,

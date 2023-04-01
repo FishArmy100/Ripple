@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.Utils;
-using Ripple.Utils.Extensions;
 using Ripple.Validation.Info.Types;
+using Raucse.Extensions;
 
 namespace Ripple.Validation.Info
 {
-    class OperatorEvaluatorLibrary
+    public class OperatorEvaluatorLibrary
     {
         public readonly OperatorEvaluator<TokenType, ValueInfo> Unaries =
             new OperatorEvaluator<TokenType, ValueInfo>(

@@ -1,18 +1,17 @@
-using System;
 using System.Collections.Generic;
-using Ripple.Utils;
+using Raucse;
 using Ripple.Validation;
 using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info;
 using Ripple.Validation.Info.Expressions;
 using Ripple.Lexing;
-using System.Linq;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Validation.Info.Expressions
 {
-	class TypedCall : TypedExpression
+	public class TypedCall : TypedExpression
 	{
 		public readonly TypedExpression Callee;
 		public readonly List<TypedExpression> Arguments;

@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.AST;
 using Ripple.Lexing;
-using Ripple.Utils.Extensions;
-using Ripple.Utils;
+using Raucse.Extensions;
+using Raucse;
 
 namespace Ripple.Parsing
 {
-    static class Parser
+    public static class Parser
     {
         public static Result<ProgramStmt, List<ParserError>> Parse(List<Token> tokens, string path)
         {
@@ -286,7 +286,7 @@ namespace Ripple.Parsing
             return true;
         }
 
-        public static bool TryParseUnsafeBlock(ref TokenReader reader, ref List<ParserError> errors, out UnsafeBlock unsafeBlock)
+        private static bool TryParseUnsafeBlock(ref TokenReader reader, ref List<ParserError> errors, out UnsafeBlock unsafeBlock)
         {
             unsafeBlock = null;
             if(reader.Match(TokenType.Unsafe))
@@ -308,7 +308,7 @@ namespace Ripple.Parsing
             return false;
         }
 
-        public static bool TryParseReturn(ref TokenReader reader, out Statement statement)
+        private static bool TryParseReturn(ref TokenReader reader, out Statement statement)
         {
             statement = null;
             if (!reader.Match(TokenType.Return))
@@ -329,7 +329,7 @@ namespace Ripple.Parsing
             return true;
         }
 
-        public static bool TryParseVarDecl(ref TokenReader reader, out Statement statement)
+        private static bool TryParseVarDecl(ref TokenReader reader, out Statement statement)
         {
             statement = null;
 

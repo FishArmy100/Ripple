@@ -1,15 +1,14 @@
-using System;
 using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
-using Ripple.Utils;
-using System.Linq;
+using Raucse;
+using System;
 using System.Linq;
 
 
 namespace Ripple.AST
 {
-	class GenericParameters : Statement
+	public class GenericParameters : Statement
 	{
 		public readonly Token LessThan;
 		public readonly List<Token> Lifetimes;

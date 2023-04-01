@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Ripple.Utils.Extensions;
+using Raucse.Extensions;
 using Ripple.Lexing;
 
 namespace Ripple.AST.Utils
 {
-    static class TypeNamePrinter
+    public static class TypeNamePrinter
     {
         public static string PrintType(TypeName typeName)
         {

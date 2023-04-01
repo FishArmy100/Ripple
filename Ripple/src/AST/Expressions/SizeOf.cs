@@ -1,14 +1,14 @@
-using System;
 using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
-using Ripple.Utils;
+using Raucse;
+using System;
 using System.Linq;
 
 
 namespace Ripple.AST
 {
-	class SizeOf : Expression
+	public class SizeOf : Expression
 	{
 		public readonly Token SizeofToken;
 		public readonly Token LessThan;

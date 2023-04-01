@@ -9,7 +9,7 @@ using Ripple.Validation.Info.Statements;
 using Ripple.Transpiling.C_AST;
 using Ripple.Transpiling.SourceGeneration;
 using Ripple.Utils;
-using Ripple.Utils.Extensions;
+using Raucse;
 using Ripple.Lexing;
 
 namespace Ripple.Transpiling.ASTConversion

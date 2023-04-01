@@ -5,10 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.Utils;
+using Raucse;
 
 namespace Ripple.Validation.Info
 {
-    class LifetimeInfo
+    public class LifetimeInfo
     {
         public static readonly LifetimeInfo Static = new LifetimeInfo(new Token("static", TokenType.Lifetime, -1, -1));
 

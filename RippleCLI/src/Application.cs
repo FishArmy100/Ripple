@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using Ripple.Compiling;
 using System.IO;
-using Ripple.Utils;
 using Ripple.Lexing;
 using Sharprompt;
+using Raucse.Extensions;
+using Raucse.FileManagement;
 using Ripple.AST.Utils;
-using Ripple.Utils.Extensions;
-using Ripple.Compiling.CCompilation;
+using Raucse;
+using Ripple.Core;
 
-namespace Ripple.App
+namespace RippleCLI
 {
     class Application
     {
@@ -21,8 +22,11 @@ namespace Ripple.App
         {
             get
             {
-                if (FileUtils.ReadFile(ModeSavePath, out string text))
-                    return (CompilerMode)Enum.Parse(typeof(CompilerMode), text);
+                string text = FileUtils.ReadFromFile(ModeSavePath).Value;
+                if(Enum.TryParse(typeof(CompilerMode), text, out object mode))
+                {
+                    return (CompilerMode)mode;
+                }
 
                 return null;
             }
@@ -36,7 +40,8 @@ namespace Ripple.App
         {
             get
             {
-                if (FileUtils.ReadFile(PathSavePath, out string text))
+                string text = FileUtils.ReadFromFile(PathSavePath).Value;
+                if (!text.IsNullOrEmpty())
                     return text.RemoveWhitespace();
 
                 return null;
@@ -94,7 +99,7 @@ namespace Ripple.App
             }
             else
             {
-                ConsoleHelper.WriteLineError("Unknown command: \'" + input + "\', try \'help\', to show a list of commands.");
+                ConsoleHelper.WriteError("Unknown command: \'" + input + "\', try \'help\', to show a list of commands.");
             }
         }
 
@@ -110,7 +115,7 @@ namespace Ripple.App
             if (CurrentMode.HasValue)
                 Console.WriteLine("Compiler Mode: " + CurrentMode.ToString());
             else
-                ConsoleHelper.WriteLineError("No compiler mode selected.");
+                ConsoleHelper.WriteError("No compiler mode selected.");
         }
 
         private static void PrintInputPath()
@@ -126,9 +131,9 @@ namespace Ripple.App
         private static void SelectFile()
         {
             if (string.IsNullOrEmpty(CurrentPath))
-                CurrentPath = FileBrowser.SelectFile(Directory.GetCurrentDirectory(), Core.FileExtensions.RippleFileExtension);
+                CurrentPath = FileBrowser.SelectFile(Directory.GetCurrentDirectory(), FileExtensions.RippleFileExtension);
             else
-                CurrentPath = FileBrowser.SelectFile(CurrentPath, Core.FileExtensions.RippleFileExtension);
+                CurrentPath = FileBrowser.SelectFile(CurrentPath, FileExtensions.RippleFileExtension);
         }
 
         private static void SelectFolder()
@@ -143,7 +148,7 @@ namespace Ripple.App
         {
             if(string.IsNullOrEmpty(CurrentPath))
             {
-                ConsoleHelper.WriteLineError("No file is selected.");
+                ConsoleHelper.WriteError("No file is selected.");
                 return;
             }
 
@@ -160,7 +165,7 @@ namespace Ripple.App
                         fail =>
                         {
                             foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteLineError(compilerError.ToString());
+                                ConsoleHelper.WriteError(compilerError.ToString());
                         });
                     break;
                 case CompilerMode.Parsing:
@@ -174,7 +179,7 @@ namespace Ripple.App
                         fail =>
                         {
                             foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteLineError(compilerError.ToString());
+                                ConsoleHelper.WriteError(compilerError.ToString());
                         });
                     break;
                 case CompilerMode.Validating:
@@ -188,7 +193,7 @@ namespace Ripple.App
                         fail =>
                         {
                             foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteLineError(compilerError.ToString());
+                                ConsoleHelper.WriteError(compilerError.ToString());
                         });
                     break;
                 case CompilerMode.Transpiling:
@@ -203,7 +208,7 @@ namespace Ripple.App
                         fail => 
                         {
                             foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteLineError(compilerError.ToString());
+                                ConsoleHelper.WriteError(compilerError.ToString());
                         });
                     break;
                 case CompilerMode.Compiling:
@@ -213,7 +218,7 @@ namespace Ripple.App
                         fail =>
                         {
                             foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteLineError(compilerError.ToString());
+                                ConsoleHelper.WriteError(compilerError.ToString());
                         });
                     break;
                 case CompilerMode.Running:
@@ -227,7 +232,7 @@ namespace Ripple.App
                         fail =>
                         {
                             foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteLineError(compilerError.ToString());
+                                ConsoleHelper.WriteError(compilerError.ToString());
                         });
                     break;
             }
@@ -237,23 +242,7 @@ namespace Ripple.App
         {
             SourceData.FromPath(CurrentPath).Match(
                 ok => CompileSource(ok),
-                () => ConsoleHelper.WriteLineError("Invalid current path, please select a new path"));
-        }
-
-        private List<SourceFile> GetSourceFiles(FolderData folderData)
-        {
-            List<SourceFile> sourceFiles = new List<SourceFile>();
-            foreach((string path, string src) in folderData.Files)
-            {
-                sourceFiles.Add(new SourceFile(path, src));
-            }
-
-            foreach(FolderData subFolder in folderData.Folders)
-            {
-                sourceFiles.AddRange(GetSourceFiles(subFolder));
-            }
-
-            return sourceFiles;
+                () => ConsoleHelper.WriteError("Invalid current path, please select a new path"));
         }
 
         private void Close()

@@ -8,7 +8,7 @@ using Ripple.Validation.Info.Types;
 
 namespace Ripple.Validation.Info
 {
-    class ParameterInfo
+    public class ParameterInfo
     {
         public readonly Token NameToken;
         public readonly TypeInfo Type;

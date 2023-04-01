@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ripple.Utils;
+using Raucse;
 
 namespace Ripple.Validation.Info
 {
-	class ReferenceLifetime
+	public class ReferenceLifetime
 	{
 		private readonly Either<GenericLifetime, LifetimeInfo> m_LifetimeInfo;
 

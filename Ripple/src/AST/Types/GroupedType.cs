@@ -1,16 +1,14 @@
-using System;
 using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
-using Ripple.Utils;
-using System.Linq;
-using System.Linq;
+using Raucse;
+using System;
 using System.Linq;
 
 
 namespace Ripple.AST
 {
-	class GroupedType : TypeName
+	public class GroupedType : TypeName
 	{
 		public readonly Token OpenParen;
 		public readonly TypeName Type;

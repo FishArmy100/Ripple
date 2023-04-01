@@ -6,14 +6,13 @@ using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.AST;
 using Ripple.AST.Utils;
-using Ripple.Utils;
-using Ripple.Utils.Extensions;
+using Raucse;
 using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info.Expressions;
 
 namespace Ripple.Validation.Info
 {
-    class VariableInfo
+    public class VariableInfo
     {
         public readonly Token NameToken;
         public readonly TypeInfo Type;

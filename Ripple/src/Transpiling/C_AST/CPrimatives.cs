@@ -7,7 +7,7 @@ using Ripple.Transpiling.SourceGeneration;
 
 namespace Ripple.Transpiling.C_AST
 {
-	static class CPrimatives
+	public static class CPrimatives
 	{
 		public static readonly CBasicType Int =		new CBasicType(CKeywords.INT, false, false);
 		public static readonly CBasicType Float =	new CBasicType(CKeywords.FLOAT, false, false);

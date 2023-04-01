@@ -1,14 +1,12 @@
-using System;
 using System.Collections.Generic;
-using Ripple.Utils;
-using System.Linq;
-using System.Linq;
+using Raucse;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CForStmt : CStatement
+	public class CForStmt : CStatement
 	{
 		public readonly Option<CVarDecl> Initalizer;
 		public readonly Option<CExpression> Condition;

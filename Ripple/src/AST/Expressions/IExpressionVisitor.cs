@@ -1,9 +1,8 @@
-using System;
 
 
 namespace Ripple.AST
 {
-	interface IExpressionVisitor
+	public interface IExpressionVisitor
 	{
 		public abstract void VisitLiteral(Literal literal);
 		public abstract void VisitGrouping(Grouping grouping);
@@ -18,7 +17,7 @@ namespace Ripple.AST
 		public abstract void VisitSizeOf(SizeOf sizeOf);
 	}
 
-	interface IExpressionVisitor<T>
+	public interface IExpressionVisitor<T>
 	{
 		public abstract T VisitLiteral(Literal literal);
 		public abstract T VisitGrouping(Grouping grouping);
@@ -33,7 +32,7 @@ namespace Ripple.AST
 		public abstract T VisitSizeOf(SizeOf sizeOf);
 	}
 
-	interface IExpressionVisitor<TReturn, TArg>
+	public interface IExpressionVisitor<TReturn, TArg>
 	{
 		public abstract TReturn VisitLiteral(Literal literal, TArg arg);
 		public abstract TReturn VisitGrouping(Grouping grouping, TArg arg);
@@ -47,7 +46,7 @@ namespace Ripple.AST
 		public abstract TReturn VisitInitializerList(InitializerList initializerList, TArg arg);
 		public abstract TReturn VisitSizeOf(SizeOf sizeOf, TArg arg);
 	}
-	interface IExpressionVisitorWithArg<TArg>
+	public interface IExpressionVisitorWithArg<TArg>
 	{
 		public abstract void VisitLiteral(Literal literal, TArg arg);
 		public abstract void VisitGrouping(Grouping grouping, TArg arg);

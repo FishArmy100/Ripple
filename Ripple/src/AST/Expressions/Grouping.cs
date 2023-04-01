@@ -1,14 +1,14 @@
-using System;
 using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
-using Ripple.Utils;
+using Raucse;
+using System;
 using System.Linq;
 
 
 namespace Ripple.AST
 {
-	class Grouping : Expression
+	public class Grouping : Expression
 	{
 		public readonly Token LeftParen;
 		public readonly Expression Expr;

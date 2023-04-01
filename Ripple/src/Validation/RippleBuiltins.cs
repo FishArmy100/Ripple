@@ -4,11 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
-using Ripple.Utils.Extensions;
 using Ripple.Validation.Info;
 using Ripple.Utils;
 using Ripple.Validation.Info.Types;
 using Ripple.AST.Utils;
+using Raucse;
+using Raucse.Extensions;
 
 namespace Ripple.Validation
 {

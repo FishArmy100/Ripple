@@ -4,14 +4,14 @@ using System.Linq;
 using Ripple.Lexing;
 using Ripple.Utils;
 using Ripple.AST.Utils;
-using Ripple.Utils.Extensions;
 using Ripple.Validation.Info.Types;
 using Ripple.AST;
 using Ripple.Validation.Info.Expressions;
+using Raucse;
 
 namespace Ripple.Validation.Info
 {
-    class ExpressionCheckerVisitor : IExpressionVisitor<Pair<ValueInfo, TypedExpression>, Option<TypeInfo>>
+    public class ExpressionCheckerVisitor : IExpressionVisitor<Pair<ValueInfo, TypedExpression>, Option<TypeInfo>>
     {
         private readonly LocalVariableStack m_VariableStack;
         private readonly FunctionList m_Functions;

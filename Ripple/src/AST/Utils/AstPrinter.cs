@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
-using Ripple.Utils.Extensions;
+using Raucse.Extensions;
 
 namespace Ripple.AST.Utils
 {
-    class AstPrinter : IStatementVisitor, IExpressionVisitor
+    public class AstPrinter : IStatementVisitor, IExpressionVisitor
     {
         private int m_Index = 0;
         private readonly string m_Seperator;

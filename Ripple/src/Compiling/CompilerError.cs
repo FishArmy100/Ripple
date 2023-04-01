@@ -9,7 +9,7 @@ using Ripple.Validation;
 
 namespace Ripple.Compiling
 {
-    struct CompilerError
+    public struct CompilerError
     {
         public readonly string Message;
         public readonly Token Token;

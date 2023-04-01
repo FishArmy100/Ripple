@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ripple.Transpiling.C_AST
 {
-	enum CFileType
+	public enum CFileType
 	{
 		Header,
 		Source

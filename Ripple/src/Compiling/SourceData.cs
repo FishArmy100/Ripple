@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-using Ripple.Utils;
+using Raucse;
 
 namespace Ripple.Compiling
 {
-    class SourceData
+    public class SourceData
     {
         public readonly string StartPath;
         public readonly List<SourceFile> Files;

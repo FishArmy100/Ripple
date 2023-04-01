@@ -10,6 +10,8 @@ using Ripple.Validation.Info.Types;
 using Ripple.Lexing;
 using Ripple.Utils;
 using Ripple.AST.Utils;
+using Raucse;
+using Raucse.Extensions;
 
 namespace Ripple.Validation.Info
 {

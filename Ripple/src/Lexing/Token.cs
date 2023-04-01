@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Ripple.Utils.Extensions;
+using Raucse.Extensions;
 
 namespace Ripple.Lexing
 {
-    struct Token
+    public struct Token
     {
         public readonly string Text;
         public readonly TokenType Type;

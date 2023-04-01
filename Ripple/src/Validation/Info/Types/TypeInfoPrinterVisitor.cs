@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Ripple.Utils.Extensions;
-using Ripple.Utils;
+using Raucse;
+using Raucse.Extensions;
 
 namespace Ripple.Validation.Info.Types
 {

@@ -1,13 +1,12 @@
-using System;
 using System.Collections.Generic;
-using Ripple.Utils;
-using System.Linq;
+using Raucse;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CBinary : CExpression
+	public class CBinary : CExpression
 	{
 		public readonly CExpression Left;
 		public readonly CBinaryOperator Op;

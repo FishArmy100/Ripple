@@ -1,9 +1,8 @@
-using System;
 
 
 namespace Ripple.Validation.Info.Statements
 {
-	interface ITypedStatementVisitor
+	public interface ITypedStatementVisitor
 	{
 		public abstract void VisitTypedExprStmt(TypedExprStmt typedExprStmt);
 		public abstract void VisitTypedBlockStmt(TypedBlockStmt typedBlockStmt);
@@ -21,7 +20,7 @@ namespace Ripple.Validation.Info.Statements
 		public abstract void VisitTypedProgramStmt(TypedProgramStmt typedProgramStmt);
 	}
 
-	interface ITypedStatementVisitor<T>
+	public interface ITypedStatementVisitor<T>
 	{
 		public abstract T VisitTypedExprStmt(TypedExprStmt typedExprStmt);
 		public abstract T VisitTypedBlockStmt(TypedBlockStmt typedBlockStmt);
@@ -39,7 +38,7 @@ namespace Ripple.Validation.Info.Statements
 		public abstract T VisitTypedProgramStmt(TypedProgramStmt typedProgramStmt);
 	}
 
-	interface ITypedStatementVisitor<TReturn, TArg>
+	public interface ITypedStatementVisitor<TReturn, TArg>
 	{
 		public abstract TReturn VisitTypedExprStmt(TypedExprStmt typedExprStmt, TArg arg);
 		public abstract TReturn VisitTypedBlockStmt(TypedBlockStmt typedBlockStmt, TArg arg);
@@ -56,7 +55,7 @@ namespace Ripple.Validation.Info.Statements
 		public abstract TReturn VisitTypedFileStmt(TypedFileStmt typedFileStmt, TArg arg);
 		public abstract TReturn VisitTypedProgramStmt(TypedProgramStmt typedProgramStmt, TArg arg);
 	}
-	interface ITypedStatementVisitorWithArg<TArg>
+	public interface ITypedStatementVisitorWithArg<TArg>
 	{
 		public abstract void VisitTypedExprStmt(TypedExprStmt typedExprStmt, TArg arg);
 		public abstract void VisitTypedBlockStmt(TypedBlockStmt typedBlockStmt, TArg arg);

@@ -13,11 +13,13 @@ using Ripple.Transpiling;
 using Ripple.Compiling.CCompilation;
 using Ripple.Transpiling.C_AST;
 using System.Diagnostics;
-using Ripple.Utils.Extensions;
+using Raucse.Extensions;
+using Raucse;
+using Raucse.FileManagement;
 
 namespace Ripple.Compiling
 {
-    static class Compiler
+    public static class Compiler
     {
         public const string INTERMEDIATE_FOLDER_NAME = "intermediates";
         public const string BIN_FOLDER_NAME = "bin";

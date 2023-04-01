@@ -1,12 +1,12 @@
-using System;
 using System.Collections.Generic;
-using Ripple.Utils;
+using Raucse;
+using System;
 using System.Linq;
 
 
 namespace Ripple.Transpiling.C_AST
 {
-	class CBasicType : CType
+	public class CBasicType : CType
 	{
 		public readonly string Name;
 		public readonly bool IsConst;
