@@ -23,7 +23,7 @@ namespace Ripple.Compiling
         public CompilerError(LexerError error)
         {
             Message = error.Message;
-            Token = new Token("Unknown", TokenType.Unknown, error.Line, error.Column);
+            Token = new Token();
         }
 
         public CompilerError(ParserError error)
@@ -40,7 +40,7 @@ namespace Ripple.Compiling
 
         public override string ToString()
         {
-            return Message + ": [" + Token.Line + ", " + Token.Column + "]";
+            return Message;
         }
     }
 }

@@ -33,25 +33,6 @@ namespace Ripple.Validation.Info
             ReturnType = returnType;
         }
 
-        /// <summary>
-        /// For internal uses only, does not perform any safety checks. For builtins like the print() function, ect
-        /// </summary>
-        /// <param name="isUnsafe"></param>
-        /// <param name="name"></param>
-        /// <param name="returned"></param>
-        /// <param name="arguments"></param>
-        /// <returns></returns>
-        public static FunctionInfo CreateFunction(bool isUnsafe, string name, TypeInfo returned, List<ParameterInfo> parameters)
-		{
-            return new FunctionInfo(
-                new FuncPtrInfo(false, 0, 0, parameters.Select(p => p.Type).ToList(), returned), 
-                isUnsafe, 
-                new Token(name, TokenType.Identifier, -1, -1), 
-                new List<Token>(), 
-                parameters, 
-                returned);
-		}
-
         public static Result<FunctionInfo, List<ASTInfoError>> FromASTFunction(FuncDecl funcDecl, IReadOnlyList<string> primaries)
         {
             var result = TypeInfoGeneratorVisitor.GenerateFromFuncDecl(funcDecl, primaries);

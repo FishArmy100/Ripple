@@ -34,6 +34,6 @@ namespace Ripple.Lexing
         
         Where, Class, Public, Private, Unsafe, Sizeof,
 
-        Unknown, EOF,
+        EOF,
     }
 }

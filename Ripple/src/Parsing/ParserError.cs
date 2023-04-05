@@ -17,10 +17,5 @@ namespace Ripple.Parsing
             Message = message;
             Tok = tok;
         }
-
-        public override string ToString()
-        {
-            return "Parser Error: " + Message + " [" + Tok.Line + ", " + Tok.Column + "]";
-        }
     }
 }

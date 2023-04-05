@@ -7,6 +7,7 @@ using Ripple.AST;
 using Ripple.Lexing;
 using Raucse.Extensions;
 using Raucse;
+using Ripple.Core;
 
 namespace Ripple.Parsing
 {
@@ -452,7 +453,12 @@ namespace Ripple.Parsing
                 Token anpersand1 = reader.Advance();
                 Token anpersand2 = reader.Advance();
 
-                Token op = new Token(anpersand1.Text + anpersand2.Text, TokenType.AmpersandAmpersand, anpersand1.Line, anpersand1.Column);
+                if (anpersand1.HasSpaceAfter)
+                    throw new ParserExeption(anpersand1, "Cannot have a space after this anpersand");
+
+                SourceLocation location = anpersand1.Location + anpersand2.Location;
+
+                Token op = new Token(new Option<object>(), location, TokenType.AmpersandAmpersand, anpersand2.HasSpaceAfter);
                 Expression right = ParseEquality(reader);
                 expr = new Binary(expr, op, right);
             }
@@ -484,8 +490,15 @@ namespace Ripple.Parsing
             {
                 Token anpersand = reader.Advance();
                 Token mut = reader.Advance();
+
+                if (anpersand.HasSpaceAfter)
+                    throw new ParserExeption(anpersand, "Cannot have a space after this anpersand");
+
                 Expression expr = ParseUnaryExpr(reader);
-                Token refMut = new Token(anpersand.Text + mut.Text, TokenType.RefMut, anpersand.Line, anpersand.Column);
+
+                SourceLocation location = anpersand.Location + mut.Location;
+
+                Token refMut = new Token(new Option<object>(), location, TokenType.RefMut, mut.HasSpaceAfter);
                 return new Unary(refMut, expr);
             }
 

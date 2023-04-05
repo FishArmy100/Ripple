@@ -10,6 +10,8 @@ using Ripple.Validation.Info.Types;
 using Ripple.AST.Utils;
 using Raucse;
 using Raucse.Extensions;
+using Ripple.AST;
+using Ripple.Core;
 
 namespace Ripple.Validation
 {
@@ -59,9 +61,9 @@ namespace Ripple.Validation
         public static Linker GetBuiltInLinker()
         {
             List<Pair<FunctionInfo, string>> externals = new List<Pair<FunctionInfo, string>>();
-            externals.Add(new Pair<FunctionInfo, string>(GenFunctionData("printf", new List<(TypeInfo, string)>()
+            externals.Add(new Pair<FunctionInfo, string>(GenFunctionData("printf", new List<(TypeName, string)>()
             {
-                (RipplePrimitives.CString, "fmt")
+               (GenPointerType("char"), "fmt")
             }, RipplePrimitives.VoidName, true), "stdio.h"));
 
             return new Linker(externals);
@@ -388,17 +390,23 @@ namespace Ripple.Validation
 		}
         private static Token GenIdTok(string name)
         {
-            return new Token(name, TokenType.Identifier, -1, -1);
+            return new Token(name, new SourceLocation(), TokenType.Identifier, false);
         }
 
-        private static FunctionInfo GenFunctionData(string name, List<(TypeInfo, string)> paramaters, string returnTypeName, bool isUnsafe)
+        private static TypeName GenBasicTypeName(string name)
         {
-            Token funcName = GenIdTok(name);
-            TypeInfo returnType = GenBasicType(returnTypeName);
-            List<ParameterInfo> parameterInfos = paramaters
-                .ConvertAll(p => new ParameterInfo(GenIdTok(p.Item2), p.Item1));
+            return new BasicType(null, GenIdTok(name));
+        }
 
-            return FunctionInfo.CreateFunction(isUnsafe, name, returnType, parameterInfos);
+        private static TypeName GenPointerType(string name)
+        {
+            return new PointerType(GenBasicTypeName(name), null, new Token());
+        }
+
+        private static FunctionInfo GenFunctionData(string name, List<(TypeName, string)> paramaters, string returnTypeName, bool isUnsafe)
+        {
+            Parameters parameters = new Parameters(new Token(), paramaters.Select(p => (p.Item1, GenIdTok(p.Item2))).ToList(), new Token());
+            return FunctionInfo.FromASTExternalFunction(new ExternalFuncDecl(new Token(), new Token(), new Token(), GenIdTok(name), parameters, new Token(), GenBasicTypeName(name), new Token()), GetPrimitives()).Value;
         }
 
         private static TypeInfo GenBasicType(string name)

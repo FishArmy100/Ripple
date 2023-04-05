@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.Utils;
 using Raucse;
+using Ripple.Core;
 
 namespace Ripple.Validation.Info
 {
     public class LifetimeInfo
     {
-        public static readonly LifetimeInfo Static = new LifetimeInfo(new Token("static", TokenType.Lifetime, -1, -1));
+        public static readonly LifetimeInfo Static = new LifetimeInfo(new Token("static", new SourceLocation(), TokenType.Lifetime, false));
 
         private readonly Either<int, Token> m_LifetimeValue;
 

@@ -27,30 +27,7 @@ namespace Ripple.Compiling
 
         public static Result<List<Token>, List<CompilerError>> RunLexer(SourceData sourceFiles)
         {
-            var results = sourceFiles.Files
-                .ConvertAll(f => Lexer.Scan(f.Read(), f.RelativePath))
-                .ConvertAll(lr => lr.ConvertToCompilerResult(e => new CompilerError(e)));
-
-            List<Token> tokens = new List<Token>();
-            List<CompilerError> compilerErrors = new List<CompilerError>();
-
-            foreach(var result in results)
-            {
-                result.Match(
-                    ok =>
-                    {
-                        tokens.AddRange(ok);
-                    },
-                    fail =>
-                    {
-                        compilerErrors.AddRange(fail);
-                    });
-            }
-
-            if (compilerErrors.Count > 0)
-                return compilerErrors;
-            else
-                return tokens;
+            return Lexer.Scan(sourceFiles).ConvertToCompilerResult(e => new CompilerError(e));
         }
 
         public static Result<ProgramStmt, List<CompilerError>> RunParser(SourceData sourceFiles)

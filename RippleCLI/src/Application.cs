@@ -9,6 +9,7 @@ using Raucse.FileManagement;
 using Ripple.AST.Utils;
 using Raucse;
 using Ripple.Core;
+using System.Linq;
 
 namespace RippleCLI
 {
@@ -159,8 +160,8 @@ namespace RippleCLI
                     lexerResult.Match(
                         ok =>
                         {
-                            foreach (Token token in ok)
-                                Console.WriteLine(token.ToPrettyString());
+                            foreach (Token t in ok)
+                                Console.WriteLine(t.ToString());
                         },
                         fail =>
                         {
