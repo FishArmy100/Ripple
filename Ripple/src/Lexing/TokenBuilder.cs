@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Raucse;
 using Raucse.Extensions;
 using Ripple.Core;
+using Ripple.Lexing.Errors;
 
 namespace Ripple.Lexing
 {
@@ -53,7 +54,8 @@ namespace Ripple.Lexing
                 return charLit;
 
             string unknown = m_Reader.Advance().ToString();
-            return CreateError($"Unknown charactor '{unknown}'");
+            SourceLocation location = GetLocationAndAdvance();
+            return CreateError(new UnknownTokenError(location, unknown));
         }
 
         public bool IsAtEnd() => m_Reader.IsAtEnd();
@@ -84,7 +86,7 @@ namespace Ripple.Lexing
                     else
                     {
                         m_Reader.Advance();
-                        return CreateError("Float literal must have a digit after the decimal point. you can use .0");
+                        return CreateError(new FloatPointFormatError(GetLocationAndAdvance()));
                     }
                 }
 
@@ -111,7 +113,7 @@ namespace Ripple.Lexing
                         if (!m_Reader.IsAtEnd())
                             text += m_Reader.Advance();
                         else
-                            return CreateError("Expected another charactor.");
+                            return CreateError(new ExpectedACharactorError(GetLocationAndAdvance()));
                     }
                     else
                     {
@@ -120,7 +122,7 @@ namespace Ripple.Lexing
                 }
 
                 if (m_Reader.IsAtEnd())
-                    return CreateError("Unterminated string.");
+                    return CreateError(new UnterminatedStringError(GetLocationAndAdvance()));
 
                 text += m_Reader.Advance();
 
@@ -155,18 +157,18 @@ namespace Ripple.Lexing
             {
                 string text = m_Reader.Advance().ToString();
                 if (m_Reader.IsAtEnd())
-                    return CreateError("Expected a charactor.");
+                    return CreateError(new ExpectedACharactorError(GetLocationAndAdvance()));
 
                 char c = m_Reader.Advance();
                 if (c == '\'')
-                    return CreateError("Expected a charactor.");
+                    return CreateError(new ExpectedACharactorError(GetLocationAndAdvance()));
 
                 text += c;
 
                 if(c == '\\')
                 {
                     if (m_Reader.IsAtEnd())
-                        return CreateError("Expected a charactor.");
+                        return CreateError(new ExpectedACharactorError(GetLocationAndAdvance()));
                     char special = m_Reader.Advance();
                     text += special;
                 }
@@ -178,7 +180,7 @@ namespace Ripple.Lexing
                 }
 
                 if (!text[1].IsAlpha()) // ie: '1
-                    return CreateError("Lifetime must start with an alpha charactor");
+                    return CreateError(new LifetimeNameError(GetLocationAndAdvance()));
 
                 while (!m_Reader.IsAtEnd() && m_Reader.Current().IsAlphaNumeric())
                     text += m_Reader.Advance();
@@ -342,12 +344,18 @@ namespace Ripple.Lexing
             return false;
         }
 
-        private Token CreateToken(TokenType type, Option<object> value)
+        private SourceLocation GetLocationAndAdvance()
         {
             SourceLocation location = new SourceLocation(m_FirstCharOfToken, m_Reader.Index, m_FilePath);
+            m_FirstCharOfToken = m_Reader.Index;
+            return location;
+        }
+
+        private Token CreateToken(TokenType type, Option<object> value)
+        {
+            SourceLocation location = GetLocationAndAdvance();
             bool hasSpaceAfter = !m_Reader.IsAtEnd() && m_Reader.Current().IsWhiteSpace();
             Token token = new Token(value, location, type, hasSpaceAfter);
-            m_FirstCharOfToken = m_Reader.Index;
             return token;
         }
 
@@ -356,9 +364,9 @@ namespace Ripple.Lexing
             return new Option<Result<Token, LexerError>>(new Result<Token, LexerError>(CreateToken(type, text)));
         }
 
-        private Option<Result<Token, LexerError>> CreateError(string errorText)
+        private Option<Result<Token, LexerError>> CreateError(LexerError error)
         {
-            return new Option<Result<Token, LexerError>>(new Result<Token, LexerError>(new LexerError(errorText, m_Reader.Line, m_Reader.Column)));
+            return new Option<Result<Token, LexerError>>(new Result<Token, LexerError>(error));
         }
     }
 }

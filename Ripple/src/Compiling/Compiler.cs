@@ -27,20 +27,20 @@ namespace Ripple.Compiling
 
         public static Result<List<Token>, List<CompilerError>> RunLexer(SourceData sourceFiles)
         {
-            return Lexer.Scan(sourceFiles).ConvertToCompilerResult(e => new CompilerError(e));
+            return Lexer.Scan(sourceFiles).ConvertToCompilerResult(e => e);
         }
 
         public static Result<ProgramStmt, List<CompilerError>> RunParser(SourceData sourceFiles)
         {
             return RunLexer(sourceFiles).Match(
-                    ok => Parser.Parse(ok, sourceFiles.StartPath).ConvertToCompilerResult(e => new CompilerError(e)), 
+                    ok => Parser.Parse(ok, sourceFiles.StartPath).ConvertToCompilerResult(e => null), 
                     fail => new Result<ProgramStmt, List<CompilerError>>(fail));
         }
 
         public static Result<TypedProgramStmt, List<CompilerError>> RunValidator(SourceData sourceFiles)
         {
             return RunParser(sourceFiles).Match(
-                    ok => Validator.ValidateAst(ok).ConvertToCompilerResult(e => new CompilerError(e)),
+                    ok => Validator.ValidateAst(ok).ConvertToCompilerResult(e => null),
                     fail => new Result<TypedProgramStmt, List<CompilerError>>(fail));
         }
 

@@ -6,41 +6,19 @@ using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.Parsing;
 using Ripple.Validation;
+using Ripple.Core;
 
 namespace Ripple.Compiling
 {
-    public struct CompilerError
+    public abstract class CompilerError
     {
-        public readonly string Message;
-        public readonly Token Token;
+        public readonly SourceLocation Location;
 
-        public CompilerError(string message, Token token)
+        protected CompilerError(SourceLocation location)
         {
-            Message = message;
-            Token = token;
+            Location = location;
         }
 
-        public CompilerError(LexerError error)
-        {
-            Message = error.Message;
-            Token = new Token();
-        }
-
-        public CompilerError(ParserError error)
-        {
-            Message = error.Message;
-            Token = error.Tok;
-        }
-
-        public CompilerError(ValidationError error)
-        {
-            Message = error.Message;
-            Token = error.ErrorToken;
-        }
-
-        public override string ToString()
-        {
-            return Message;
-        }
+        public abstract string GetMessage();
     }
 }
