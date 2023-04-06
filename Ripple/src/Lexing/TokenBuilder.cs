@@ -127,7 +127,7 @@ namespace Ripple.Lexing
                 text += m_Reader.Advance();
 
                 return prefix.Match(
-                    ok => CreateTokenResult(TokenType.CStringLiteral, prefix + text),
+                    ok => CreateTokenResult(TokenType.CStringLiteral, ok + text),
                     () => CreateTokenResult(TokenType.StringLiteral, text));
             }
 
@@ -309,32 +309,20 @@ namespace Ripple.Lexing
 
         private bool ClearComments()
         {
-            char c = m_Reader.Current();
-            char? nc = m_Reader.Peek();
-
-            if (nc == null)
-                return false;
-
-            if (c == '/' && nc.Value == '/')
+            if (m_Reader.CheckSequence('/', '/'))
             {
                 while (!m_Reader.IsAtEnd() && m_Reader.Current() != '\n')
                     m_Reader.Advance();
 
                 return true;
             }
-            else if (c == '/' && nc.Value == '*')
+            else if (m_Reader.CheckSequence('/', '*'))
             {
                 m_Reader.Advance();
                 m_Reader.Advance();
 
-                while (!m_Reader.IsAtEnd())
-                {
-                    c = m_Reader.Advance();
-                    nc = m_Reader.Peek();
-
-                    if (nc.HasValue && c == '*' && nc.Value == '/')
-                        break;
-                }
+                while (!m_Reader.IsAtEnd() && !m_Reader.CheckSequence('*', '/'))
+                    m_Reader.Advance();
 
                 m_Reader.Advance();
                 m_Reader.Advance();

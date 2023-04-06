@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
+using Ripple.Parsing.Errors;
+using Ripple.Core;
 
 namespace Ripple.Parsing
 {
@@ -78,15 +80,23 @@ namespace Ripple.Parsing
 
         public bool IsAtEnd() => Index >= m_Tokens.Count;
 
-        public Token Consume(TokenType tokenType, string errorMessage)
+        public Token Consume<TError>(TokenType tokenType, TError error) where TError : ParserError
         {
             if (IsAtEnd())
-                throw new ParserExeption(Last(), errorMessage);
+                throw new ParserExeption(error);
 
             if (Match(tokenType))
                 return Previous();
 
-            throw new ParserExeption(Current(), errorMessage);
+            throw new ParserExeption(error);
+        }
+
+        public SourceLocation CurrentLocation() => IsAtEnd() ? Previous().Location : Current().Location;
+
+        public Token Consume(TokenType tokenType)
+        {
+            SourceLocation location = CurrentLocation();
+            return Consume(tokenType, new ExpectedTokenError(location, tokenType));
         }
 
         public void SyncronizeTo(Func<TokenReader, bool> predicate)

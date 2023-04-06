@@ -5,12 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Raucse.Extensions;
+using Ripple.Core;
 
 namespace Ripple.Compiling
 {
     public static class CompilerErrorFormatter
     {
-        public static List<string> Format(List<CompilerError> errors)
+        public static List<string> Format(IEnumerable<CompilerError> errors)
         {
             return errors
                 .GroupBy(e => e.Location.File)
@@ -28,19 +29,33 @@ namespace Ripple.Compiling
 
         private static string FormatError(CompilerError error, string fileSource)
         {
-            
-        }
+            SourceLocation location = error.Location;
+            TextCoordinate coordinate = TextCoordinate.FromIndex(fileSource, location.Start);
+            string text = $"{location.File}:{coordinate.Line}:{coordinate.Row}\n";
+            text += $"error: {error.GetMessage()}\n";
 
-        private static string FormatErrorLine(string line, int lineNumber)
-        {
-            string lineNumberText = lineNumber.ToString();
-            string text = $"{lineNumber} | {line}\n";
+            string slice = fileSource[location.Start..location.End];
+            string[] lines = slice.Split('\n');
+            int maxLineCharCount = (coordinate.Line + lines.Length - 1).ToString().Length;
 
-            string offset = new string(' ', lineNumberText.Length);
-            string squigles = new string('~', line.Length);
-            text += $"{offset} | {squigles}\n";
+            for(int i = 0; i < lines.Length; i++)
+            {
+                text += FormatErrorLine(lines[i], coordinate.Line + i, maxLineCharCount);
+            }
 
             return text;
+        }
+
+        private static string FormatErrorLine(string line, int lineNumber, int lineCharCount)
+        {
+            int numberSpacerLength = lineCharCount - lineNumber.ToString().Length;
+            string text = $" {new string(' ', numberSpacerLength)}{lineNumber} | {line}\n";
+
+            string offset = new string(' ', lineCharCount);
+            string squigles = new string('~', line.Length);
+            text += $" {offset} | {squigles}\n";
+
+            return text; 
         }
     }
 }

@@ -8,6 +8,7 @@ using Ripple.Lexing;
 using Raucse.Extensions;
 using Raucse;
 using Ripple.Core;
+using Ripple.Parsing.Errors;
 
 namespace Ripple.Parsing
 {
@@ -28,16 +29,11 @@ namespace Ripple.Parsing
                 }
                 catch (ParserExeption e)
                 {
-                    errors.Add(new ParserError(e.Message, e.Tok));
+                    errors.Add(e.Error);
                     reader.SyncronizeTo(TokenType.EOF);
 
                     if (!reader.IsAtEnd())
                         reader.Advance(); // go passed EOF token
-                }
-                catch(ReaderAtEndExeption)
-                {
-                    errors.Add(new ParserError("Reader passed the end of the token list.", new Token()));
-                    break;
                 }
             }
 
@@ -60,7 +56,7 @@ namespace Ripple.Parsing
                 }
                 catch (ParserExeption e)
                 {
-                    errors.Add(new ParserError(e.Message, e.Tok));
+                    errors.Add(e.Error);
                     reader.SyncronizeTo(reader =>
                     {
                         return reader.Current().IsType(TokenType.Func) || 
@@ -70,7 +66,7 @@ namespace Ripple.Parsing
                 }
             }
 
-            Token eof = reader.Consume(TokenType.EOF, "Expected end of file.");
+            Token eof = reader.Consume(TokenType.EOF);
             return new FileStmt(declarations, eof.Text, eof);
         }
 
@@ -83,7 +79,8 @@ namespace Ripple.Parsing
             else if (TryParseExernalFunctionDecl(ref reader, out ExternalFuncDecl funcDecl))
                 return funcDecl;
 
-            throw new ParserExeption(reader.Current(), "Expected a declaration.");
+            ParserError error = new ExpectedDeclarationError(reader.CurrentLocation());
+            throw new ParserExeption(error);
         }
 
         private static bool TryParseFunctionDecl(ref TokenReader reader, ref List<ParserError> errors, out FuncDecl funcDecl)
@@ -97,15 +94,18 @@ namespace Ripple.Parsing
                 return false;
 
             Token func = reader.Previous();
-            Token name = reader.Consume(TokenType.Identifier, "Expected function name.");
+            Token name = reader.Consume(TokenType.Identifier);
             Option<GenericParameters> genericParameters = ParseGenericParameters(ref reader);
             Parameters parameters = ParseParameters(ref reader);
-            Token arrow = reader.Consume(TokenType.RightThinArrow, "Expected '->'.");
+            Token arrow = reader.Consume(TokenType.RightThinArrow);
             TypeName returnType = ParseTypeName(ref reader);
             Option<WhereClause> whereClause = ParseWhereClause(ref reader);
 
             if (!TryParseBlock(ref reader, ref errors, out BlockStmt body))
-                throw new ParserExeption(reader.Current(), "Expected a function body.");
+            {
+                ParserError error = new ExpectedFunctionBodyError(reader.CurrentLocation());
+                throw new ParserExeption(error);
+            }
 
             funcDecl = new FuncDecl(unsafeToken, func, name, genericParameters, parameters, arrow, returnType, whereClause, body);
             return true;
@@ -118,13 +118,13 @@ namespace Ripple.Parsing
                 return false;
 
             Token externToken = reader.Previous();
-            Token stringLit = reader.Consume(TokenType.StringLiteral, "Expected a language name.");
-            Token funkToken = reader.Consume(TokenType.Func, "Expected 'func'.");
-            Token funcName = reader.Consume(TokenType.Identifier, "Expected a function name.");
+            Token stringLit = reader.Consume(TokenType.StringLiteral);
+            Token funkToken = reader.Consume(TokenType.Func);
+            Token funcName = reader.Consume(TokenType.Identifier);
             Parameters parameters = ParseParameters(ref reader);
-            Token arrow = reader.Consume(TokenType.RightThinArrow, "Expected '->'.");
+            Token arrow = reader.Consume(TokenType.RightThinArrow);
             TypeName returnType = TypeNameHelper.ParseTypeName(ref reader);
-            Token semiColon = reader.Consume(TokenType.SemiColon, "Expected a ';'.");
+            Token semiColon = reader.Consume(TokenType.SemiColon);
 
             externalFuncDecl = new ExternalFuncDecl(externToken, stringLit, funkToken, funcName, parameters, arrow, returnType, semiColon);
             return true;
@@ -139,10 +139,10 @@ namespace Ripple.Parsing
                 List<Token> lifetimes = new List<Token>();
                 while(!reader.Match(TokenType.GreaterThan))
                 {
-                    Token lifetime = reader.Consume(TokenType.Lifetime, "Expected a lifetime.");
+                    Token lifetime = reader.Consume(TokenType.Lifetime);
                     lifetimes.Add(lifetime);
                     if (reader.Current().Type != TokenType.GreaterThan)
-                        reader.Consume(TokenType.Comma, "Expected a ','.");
+                        reader.Consume(TokenType.Comma);
                 }
 
                 Token greaterThan = reader.Previous();
@@ -168,17 +168,17 @@ namespace Ripple.Parsing
 
         private static Parameters ParseParameters(ref TokenReader reader)
         {
-            Token openParen = reader.Consume(TokenType.OpenParen, "Expected '('.");
+            Token openParen = reader.Consume(TokenType.OpenParen);
             List<(TypeName, Token)> parameters = new List<(TypeName, Token)>();
             while(!reader.IsAtEnd() && !reader.Current().IsType(TokenType.CloseParen))
             {
                 reader.Match(TokenType.Comma);
                 TypeName typeName = ParseTypeName(ref reader);
-                Token paramName = reader.Consume(TokenType.Identifier, "Expected parameter name.");
+                Token paramName = reader.Consume(TokenType.Identifier);
                 parameters.Add((typeName, paramName));
             }
 
-            Token closeParen = reader.Consume(TokenType.CloseParen, "Expected ')'");
+            Token closeParen = reader.Consume(TokenType.CloseParen);
 
             return new Parameters(openParen, parameters, closeParen);
         }
@@ -210,9 +210,9 @@ namespace Ripple.Parsing
             statement = null;
 
             if (reader.Match(TokenType.Break))
-                statement = new BreakStmt(reader.Previous(), reader.Consume(TokenType.SemiColon, "Expected a ';'."));
+                statement = new BreakStmt(reader.Previous(), reader.Consume(TokenType.SemiColon));
             else if (reader.Match(TokenType.Continue))
-                statement = new ContinueStmt(reader.Previous(), reader.Consume(TokenType.SemiColon, "Expected a ';'."));
+                statement = new ContinueStmt(reader.Previous(), reader.Consume(TokenType.SemiColon));
 
             return statement != null;
         }
@@ -224,9 +224,9 @@ namespace Ripple.Parsing
                 return false;
 
             Token ifToken = reader.Previous();
-            Token openParen = reader.Consume(TokenType.OpenParen, "Expected '('.");
+            Token openParen = reader.Consume(TokenType.OpenParen);
             Expression expr = ParseExpression(ref reader);
-            Token closeParen = reader.Consume(TokenType.CloseParen, "Expected ')'.");
+            Token closeParen = reader.Consume(TokenType.CloseParen);
             Statement body = ParseStatement(ref reader, ref errors);
 
             Token? elseToken = null;
@@ -249,7 +249,7 @@ namespace Ripple.Parsing
 
             Token forToken = reader.Previous();
 
-            Token openParen = reader.Consume(TokenType.OpenParen, "Expected '('.");
+            Token openParen = reader.Consume(TokenType.OpenParen);
 
             if (!TryParseVarDecl(ref reader, out Statement init))
                 init = null;
@@ -257,12 +257,12 @@ namespace Ripple.Parsing
             Expression condition = null;
             if (reader.Current().Type != TokenType.SemiColon)
                 condition = ParseExpression(ref reader);
-            reader.Consume(TokenType.SemiColon, "Expected ';'.");
+            reader.Consume(TokenType.SemiColon);
 
             Expression itr = null;
             if (reader.Current().Type != TokenType.CloseParen)
                 itr = ParseExpression(ref reader);
-            Token closeParen = reader.Consume(TokenType.CloseParen, "Expected ')'.");
+            Token closeParen = reader.Consume(TokenType.CloseParen);
 
             Statement body = ParseStatement(ref reader, ref errors);
 
@@ -277,9 +277,9 @@ namespace Ripple.Parsing
                 return false;
 
             Token whileToken = reader.Previous();
-            Token openParen = reader.Consume(TokenType.OpenParen, "Expected a '('.");
+            Token openParen = reader.Consume(TokenType.OpenParen);
             Expression condition = ParseExpression(ref reader);
-            Token closeParen = reader.Consume(TokenType.CloseParen, "Expected a ')'.");
+            Token closeParen = reader.Consume(TokenType.CloseParen);
 
             Statement body = ParseStatement(ref reader, ref parserErrors);
 
@@ -293,7 +293,7 @@ namespace Ripple.Parsing
             if(reader.Match(TokenType.Unsafe))
             {
                 Token unsafeToken = reader.Previous();
-                Token openBrace = reader.Consume(TokenType.OpenBrace, "Expected a '{'");
+                Token openBrace = reader.Consume(TokenType.OpenBrace);
                 List<Statement> statements = new List<Statement>();
 
                 while (!reader.Match(TokenType.CloseBrace))
@@ -324,7 +324,7 @@ namespace Ripple.Parsing
 
             Expression expr = ParseExpression(ref reader);
 
-            Token semiColon = reader.Consume(TokenType.SemiColon, "Expected ';' after return statement");
+            Token semiColon = reader.Consume(TokenType.SemiColon);
 
             statement = new ReturnStmt(returnToken, expr, semiColon);
             return true;
@@ -352,13 +352,13 @@ namespace Ripple.Parsing
 
             while(reader.Match(TokenType.Comma))
             {
-                varNames.Add(reader.Consume(TokenType.Identifier, "Expected variable name."));
+                varNames.Add(reader.Consume(TokenType.Identifier));
             }
 
-            Token equel = reader.Consume(TokenType.Equal, "Expected '='.");
+            Token equel = reader.Consume(TokenType.Equal);
 
             Expression expr = ParseExpression(ref reader);
-            Token semiColon = reader.Consume(TokenType.SemiColon, "Expected ';' after variable declaration.");
+            Token semiColon = reader.Consume(TokenType.SemiColon);
 
             statement = new VarDecl(unsafeToken, type, varNames, equel, expr, semiColon);
             return true;
@@ -388,7 +388,7 @@ namespace Ripple.Parsing
                     try { statements.Add(ParseStatement(ref reader, ref errors)); }
                     catch(ParserExeption e) 
                     { 
-                        errors.Add(new ParserError(e.Message, e.Tok));
+                        errors.Add(e.Error);
                         reader.SyncronizeTo(TokenType.For, TokenType.If, TokenType.CloseBrace, TokenType.OpenBrace);
                     }
                 }
@@ -406,7 +406,7 @@ namespace Ripple.Parsing
         private static Statement ParseExpressionStatement(ref TokenReader reader)
         {
             Expression expr = ParseExpression(ref reader);
-            Token semiColon = reader.Consume(TokenType.SemiColon, "Expected ';' after expression.");
+            Token semiColon = reader.Consume(TokenType.SemiColon);
             return new ExprStmt(expr, semiColon);
         }
 
@@ -454,7 +454,10 @@ namespace Ripple.Parsing
                 Token anpersand2 = reader.Advance();
 
                 if (anpersand1.HasSpaceAfter)
-                    throw new ParserExeption(anpersand1, "Cannot have a space after this anpersand");
+                {
+                    ParserError error = new CannotHaveSpaceError(reader.CurrentLocation(), anpersand1.Type);
+                    throw new ParserExeption(error);
+                }
 
                 SourceLocation location = anpersand1.Location + anpersand2.Location;
 
@@ -492,7 +495,10 @@ namespace Ripple.Parsing
                 Token mut = reader.Advance();
 
                 if (anpersand.HasSpaceAfter)
-                    throw new ParserExeption(anpersand, "Cannot have a space after this anpersand");
+                {
+                    ParserError error = new CannotHaveSpaceError(reader.CurrentLocation(), anpersand.Type);
+                    throw new ParserExeption(error);
+                }
 
                 Expression expr = ParseUnaryExpr(reader);
 
@@ -531,9 +537,9 @@ namespace Ripple.Parsing
                     arguments.Add(ParseExpression(ref reader));
 
                     if (reader.Current().Type != TokenType.CloseParen)
-                        reader.Consume(TokenType.Comma, "Expected a ','.");
+                        reader.Consume(TokenType.Comma);
                 }
-                Token closeParen = reader.Consume(TokenType.CloseParen, "Expected a ')'.");
+                Token closeParen = reader.Consume(TokenType.CloseParen);
                 Expression call = new Call(callee, openParen, arguments, closeParen);
                 return ParseCallOrIndexArgs(reader, call);
             }
@@ -541,7 +547,7 @@ namespace Ripple.Parsing
             {
                 Token openBracket = reader.Previous();
                 Expression expression = ParseExpression(ref reader);
-                Token closeBracket = reader.Consume(TokenType.CloseBracket, "Expected a ']'.");
+                Token closeBracket = reader.Consume(TokenType.CloseBracket);
                 Expression index = new AST.Index(callee, openBracket, expression, closeBracket);
                 return ParseCallOrIndexArgs(reader, index);
             }
@@ -567,7 +573,8 @@ namespace Ripple.Parsing
                 return expr;
             else
             {
-                throw new ParserExeption(reader.Current(), "Expected expression");
+                ParserError error = new ExpectedExpressionError(reader.CurrentLocation());
+                throw new ParserExeption(error);
             }
         }
 
@@ -583,8 +590,8 @@ namespace Ripple.Parsing
 
                 while(!reader.Match(TokenType.GreaterThan))
                 {
-                    reader.Consume(TokenType.Comma, "Expected a ','.");
-                    Token lifetime = reader.Consume(TokenType.Lifetime, "Expected a lifetime.");
+                    reader.Consume(TokenType.Comma);
+                    Token lifetime = reader.Consume(TokenType.Lifetime);
                     lifetimes.Add(lifetime);
                 }
 
@@ -603,11 +610,11 @@ namespace Ripple.Parsing
             if(reader.Match(TokenType.Sizeof))
             {
                 Token sizeOfToken = reader.Previous();
-                Token lessThan = reader.Consume(TokenType.LessThan, "Expected a '<'.");
+                Token lessThan = reader.Consume(TokenType.LessThan);
                 TypeName typeName = TypeNameHelper.ParseTypeName(ref reader);
-                Token greaterThan = reader.Consume(TokenType.GreaterThan, "Expected a '>'.");
-                Token openParen = reader.Consume(TokenType.OpenParen, "Expected a '('.");
-                Token closeParen = reader.Consume(TokenType.CloseParen, "Expected a ')'.");
+                Token greaterThan = reader.Consume(TokenType.GreaterThan);
+                Token openParen = reader.Consume(TokenType.OpenParen);
+                Token closeParen = reader.Consume(TokenType.CloseParen);
 
                 sizeOf = new SizeOf(sizeOfToken, lessThan, typeName, greaterThan, openParen, closeParen);
                 return true;
@@ -629,9 +636,9 @@ namespace Ripple.Parsing
                 expressions.Add(ParseExpression(ref reader));
 
                 if (reader.Current().Type != TokenType.CloseBrace)
-                    reader.Consume(TokenType.Comma, "Expected a ','.");
+                    reader.Consume(TokenType.Comma);
             }
-            Token closeBrace = reader.Consume(TokenType.CloseBrace, "Expected a '}'.");
+            Token closeBrace = reader.Consume(TokenType.CloseBrace);
 
             initalizerList =  new InitializerList(openBrace, expressions, closeBrace);
             return true;
@@ -644,7 +651,7 @@ namespace Ripple.Parsing
                 Token openParen = reader.Previous();
                 Expression groupedExpr = ParseExpression(ref reader);
 
-                Token closeParen = reader.Consume(TokenType.CloseParen, "Expected ')' after grouped expression");
+                Token closeParen = reader.Consume(TokenType.CloseParen);
                 expr = new Grouping(openParen, groupedExpr, closeParen);
                 return true;
             }

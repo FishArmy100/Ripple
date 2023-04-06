@@ -33,7 +33,7 @@ namespace Ripple.Compiling
         public static Result<ProgramStmt, List<CompilerError>> RunParser(SourceData sourceFiles)
         {
             return RunLexer(sourceFiles).Match(
-                    ok => Parser.Parse(ok, sourceFiles.StartPath).ConvertToCompilerResult(e => null), 
+                    ok => Parser.Parse(ok, sourceFiles.StartPath).ConvertToCompilerResult(e => e), 
                     fail => new Result<ProgramStmt, List<CompilerError>>(fail));
         }
 

@@ -12,6 +12,7 @@ using Ripple.Utils;
 using Ripple.AST.Utils;
 using Raucse;
 using Raucse.Extensions;
+using Ripple.Validation.Errors;
 
 namespace Ripple.Validation.Info
 {

@@ -7,6 +7,7 @@ using Ripple.Lexing;
 using Ripple.AST;
 using Raucse;
 using Ripple.Utils;
+using Ripple.Parsing.Errors;
 
 namespace Ripple.Parsing
 {
@@ -56,7 +57,7 @@ namespace Ripple.Parsing
             if (reader.Match(TokenType.Mut))
                 mut = reader.Previous();
 
-            Token identifier = reader.Consume(TokenType.Identifier, "Expected an identifier.");
+            Token identifier = reader.Consume(TokenType.Identifier);
             TypeName type = new BasicType(mut, identifier);
             return ParseTypePrefixRecursive(ref reader, type);
         }
@@ -82,8 +83,8 @@ namespace Ripple.Parsing
             else if(reader.Match(TokenType.OpenBracket))
             {
                 Token openBracket = reader.Previous();
-                Token size = reader.Consume(TokenType.IntagerLiteral, "Expected a size.");
-                Token closeBracket = reader.Consume(TokenType.CloseBracket, "Expected a ']'");
+                Token size = reader.Consume(TokenType.IntagerLiteral);
+                Token closeBracket = reader.Consume(TokenType.CloseBracket);
                 TypeName arrType = new ArrayType(previous, mut, openBracket, size, closeBracket);
                 return ParseTypePrefixRecursive(ref reader, arrType);
             }
@@ -110,43 +111,44 @@ namespace Ripple.Parsing
             }
             else
             {
-                throw new ParserExeption(reader.Current(), "Expected a type name.");
+                ParserError error = new ExpectedTypeNameError(reader.CurrentLocation());
+                throw new ParserExeption(error);
             }
         }
 
         private static TypeName ParseFunctionPointerType(ref TokenReader reader)
         {
             Token? mutToken = reader.Match(TokenType.Mut) ? reader.Previous() : null;
-            Token funcToken = reader.Consume(TokenType.Func, "Expected 'func'.");
+            Token funcToken = reader.Consume(TokenType.Func);
             Option<List<Token>> lifetimes = new Option<List<Token>>();
             if(reader.CurrentType == TokenType.LessThan)
             {
-                reader.Consume(TokenType.LessThan, "Expected a '<'.");
+                reader.Consume(TokenType.LessThan);
                 List<Token> ls = new List<Token>();
                 while(true)
                 {
-                    ls.Add(reader.Consume(TokenType.Lifetime, "Expected a lifetime parameter."));
+                    ls.Add(reader.Consume(TokenType.Lifetime));
 
                     if (reader.Match(TokenType.GreaterThan))
                         break;
 
-                    reader.Consume(TokenType.Comma, "Expected a ','.");
+                    reader.Consume(TokenType.Comma);
                 }
 
                 lifetimes = ls;
             }
 
-            Token openParen = reader.Consume(TokenType.OpenParen, "Expected a '('.");
+            Token openParen = reader.Consume(TokenType.OpenParen);
             List<TypeName> parameters = new List<TypeName>();
             while(!reader.Match(TokenType.CloseParen))
             {
                 parameters.Add(ParseTypeName(ref reader));
                 if (reader.CurrentType != TokenType.CloseParen)
-                    reader.Consume(TokenType.Comma, "Expected a ','.");
+                    reader.Consume(TokenType.Comma);
             }
 
             Token closeParen = reader.Previous();
-            Token arrow = reader.Consume(TokenType.RightThinArrow, "Expected a '->'.");
+            Token arrow = reader.Consume(TokenType.RightThinArrow);
             TypeName returnType = ParseTypeName(ref reader);
 
             return new FuncPtr(mutToken, funcToken, lifetimes, openParen, parameters, closeParen, arrow, returnType);
@@ -154,9 +156,9 @@ namespace Ripple.Parsing
 
         private static TypeName ParseGroupedType(ref TokenReader reader)
         {
-            Token openParen = reader.Consume(TokenType.OpenParen, "Expected a '('.");
+            Token openParen = reader.Consume(TokenType.OpenParen);
             TypeName type = ParseTypeName(ref reader);
-            Token closeParen = reader.Consume(TokenType.CloseParen, "Expected a ')'.");
+            Token closeParen = reader.Consume(TokenType.CloseParen);
             return new GroupedType(openParen, type, closeParen);
         }
     }

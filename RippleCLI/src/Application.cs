@@ -165,8 +165,7 @@ namespace RippleCLI
                         },
                         fail =>
                         {
-                            foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteError(compilerError.ToString());
+                            PrintErrors(fail);
                         });
                     break;
                 case CompilerMode.Parsing:
@@ -179,8 +178,7 @@ namespace RippleCLI
                         },
                         fail =>
                         {
-                            foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteError(compilerError.ToString());
+                            PrintErrors(fail);
                         });
                     break;
                 case CompilerMode.Validating:
@@ -193,8 +191,7 @@ namespace RippleCLI
                         },
                         fail =>
                         {
-                            foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteError(compilerError.ToString());
+                            PrintErrors(fail);
                         });
                     break;
                 case CompilerMode.Transpiling:
@@ -208,8 +205,7 @@ namespace RippleCLI
                         },
                         fail => 
                         {
-                            foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteError(compilerError.ToString());
+                            PrintErrors(fail);
                         });
                     break;
                 case CompilerMode.Compiling:
@@ -218,8 +214,7 @@ namespace RippleCLI
                         ok => { },
                         fail =>
                         {
-                            foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteError(compilerError.ToString());
+                            PrintErrors(fail);
                         });
                     break;
                 case CompilerMode.Running:
@@ -232,10 +227,17 @@ namespace RippleCLI
                         },
                         fail =>
                         {
-                            foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteError(compilerError.ToString());
+                            PrintErrors(fail);
                         });
                     break;
+            }
+        }
+
+        private static void PrintErrors(IEnumerable<CompilerError> errors)
+        {
+            foreach(string error in CompilerErrorFormatter.Format(errors))
+            {
+                ConsoleHelper.WriteError(error);
             }
         }
 

@@ -1,3 +1,7 @@
 ﻿
+extern "C" func printf(char* fmt) -> void;
 
-'0hi
+func main() -> int
+{
+	printf(c"Hello World!");
+}
