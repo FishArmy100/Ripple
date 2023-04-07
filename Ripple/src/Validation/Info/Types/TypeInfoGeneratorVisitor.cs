@@ -159,7 +159,7 @@ namespace Ripple.Validation.Info.Types
         public Result<TypeInfo, List<ValidationError>> VisitPointerType(PointerType pointerType)
         {
             if (m_SafetyContext.IsSafe)
-                return BadResult<TypeInfo>(new UnsafeTypeIsInSafeContextError(pointerType.GetLocation(), pointerType));
+                return BadResult<TypeInfo>(new UnsafeThingIsInSafeContextError(pointerType.GetLocation(), pointerType));
 
             bool isMutable = pointerType.MutToken.HasValue;
             return pointerType.BaseType.Accept(this).Match(
