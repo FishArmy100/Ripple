@@ -340,7 +340,7 @@ namespace Ripple.Validation.Info
                     fail => new Result<TypedStatement, List<ValidationError>>(fail));
 		}
 
-        private Result<TypedStatement, List<ValidationError>> FromVarDecl(Result<Pair<List<VariableInfo>, TypedExpression>, List<ASTInfoError>> result)
+        private Result<TypedStatement, List<ValidationError>> FromVarDecl(Result<Pair<List<VariableInfo>, TypedExpression>, List<ValidationError>> result)
         {
             return result.Match(ok =>
             {

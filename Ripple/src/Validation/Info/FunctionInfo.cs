@@ -8,6 +8,7 @@ using Ripple.Utils;
 using Ripple.Validation.Info.Types;
 using Ripple.AST;
 using Raucse;
+using Ripple.Validation.Errors;
 
 namespace Ripple.Validation.Info
 {
@@ -33,7 +34,7 @@ namespace Ripple.Validation.Info
             ReturnType = returnType;
         }
 
-        public static Result<FunctionInfo, List<ASTInfoError>> FromASTFunction(FuncDecl funcDecl, IReadOnlyList<string> primaries)
+        public static Result<FunctionInfo, List<ValidationError>> FromASTFunction(FuncDecl funcDecl, IReadOnlyList<string> primaries)
         {
             var result = TypeInfoGeneratorVisitor.GenerateFromFuncDecl(funcDecl, primaries);
             return result.Match(ok =>
@@ -50,15 +51,15 @@ namespace Ripple.Validation.Info
                 List<ParameterInfo> parameterInfos = funcPtr.Parameters.Zip(parameterNames, (t, n) => new ParameterInfo(n, t)).ToList();
 
                 FunctionInfo info = new FunctionInfo(ok, isUnsafe, funcDecl.Name, lifetimes, parameterInfos, funcPtr.Returned);
-                return new Result<FunctionInfo, List<ASTInfoError>>(info);
+                return new Result<FunctionInfo, List<ValidationError>>(info);
             },
             fail =>
             {
-                return new Result<FunctionInfo, List<ASTInfoError>>(fail);
+                return new Result<FunctionInfo, List<ValidationError>>(fail);
             });
         }
 
-        public static Result<FunctionInfo, List<ASTInfoError>> FromASTExternalFunction(ExternalFuncDecl funcDecl, IReadOnlyList<string> primaries)
+        public static Result<FunctionInfo, List<ValidationError>> FromASTExternalFunction(ExternalFuncDecl funcDecl, IReadOnlyList<string> primaries)
         {
             var result = TypeInfoGeneratorVisitor.GenerateFromExternalFuncDecl(funcDecl, primaries);
             return result.Match(ok =>
@@ -70,11 +71,11 @@ namespace Ripple.Validation.Info
                 List<ParameterInfo> parameterInfos = funcPtr.Parameters.Zip(parameterNames, (t, n) => new ParameterInfo(n, t)).ToList();
 
                 FunctionInfo info = new FunctionInfo(ok, true, funcDecl.Name, new List<Token>(), parameterInfos, funcPtr.Returned);
-                return new Result<FunctionInfo, List<ASTInfoError>>(info);
+                return new Result<FunctionInfo, List<ValidationError>>(info);
             },
             fail =>
             {
-                return new Result<FunctionInfo, List<ASTInfoError>>(fail);
+                return new Result<FunctionInfo, List<ValidationError>>(fail);
             });
         }
 

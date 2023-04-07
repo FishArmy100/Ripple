@@ -8,22 +8,23 @@ using Ripple.Utils;
 using Ripple.Validation.Info.Expressions;
 using Ripple.Validation.Info.Types;
 using Raucse;
+using Ripple.Validation.Errors;
 
 namespace Ripple.Validation.Info
 {
     public class OperatorEvaluator<TPrimary, TArg>
     {
         private readonly List<Func<TPrimary, TArg, LifetimeInfo, Option<ValueInfo>>> m_EvaluationFunctions = new ();
-        private readonly Func<TPrimary, TArg, Token, ASTInfoError> m_TooManyOperatorsErrorGenerator;
-        private readonly Func<TPrimary, TArg, Token, ASTInfoError> m_NoOperatorsErrorGenerator;
+        private readonly Func<TPrimary, TArg, Token, ValidationError> m_TooManyOperatorsErrorGenerator;
+        private readonly Func<TPrimary, TArg, Token, ValidationError> m_NoOperatorsErrorGenerator;
 
-        public OperatorEvaluator(Func<TPrimary, TArg, Token, ASTInfoError> tooManyOperatorsErrorGenerator, Func<TPrimary, TArg, Token, ASTInfoError> noOperatorsErrorGenerator)
+        public OperatorEvaluator(Func<TPrimary, TArg, Token, ValidationError> tooManyOperatorsErrorGenerator, Func<TPrimary, TArg, Token, ValidationError> noOperatorsErrorGenerator)
         {
             m_TooManyOperatorsErrorGenerator = tooManyOperatorsErrorGenerator;
             m_NoOperatorsErrorGenerator = noOperatorsErrorGenerator;
         }
 
-        public Result<ValueInfo, ASTInfoError> Evaluate(TPrimary primary, TArg arg, LifetimeInfo currentLifetime, Token errorToken)
+        public Result<ValueInfo, ValidationError> Evaluate(TPrimary primary, TArg arg, LifetimeInfo currentLifetime, Token errorToken)
         {
             List<ValueInfo> results = new List<ValueInfo>();
             foreach(var evaluator in m_EvaluationFunctions)

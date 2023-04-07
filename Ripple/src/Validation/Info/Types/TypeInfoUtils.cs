@@ -7,6 +7,7 @@ using Ripple.Utils;
 using Ripple.AST;
 using Raucse;
 using Raucse.Extensions;
+using Ripple.Validation.Errors;
 
 namespace Ripple.Validation.Info.Types
 {
@@ -88,7 +89,7 @@ namespace Ripple.Validation.Info.Types
             }
         }
 
-        public static Result<TypeInfo, List<ASTInfoError>> FromASTType(TypeName typeName, IReadOnlyList<string> primaryTypes, List<string> activeLifetimes, SafetyContext safetyContext, bool requireLifetimes = false)
+        public static Result<TypeInfo, List<ValidationError>> FromASTType(TypeName typeName, IReadOnlyList<string> primaryTypes, List<string> activeLifetimes, SafetyContext safetyContext, bool requireLifetimes = false)
         {
             TypeInfoGeneratorVisitor visitor = new TypeInfoGeneratorVisitor(primaryTypes, activeLifetimes, requireLifetimes, safetyContext);
             return typeName.Accept(visitor);

@@ -53,4 +53,12 @@ namespace Ripple.Core
             return new SourceLocation(start, end, left.File);
         }
     }
+
+    public static class SourceLocationExtensions
+    {
+        public static SourceLocation Sum(this IEnumerable<SourceLocation> locations)
+        {
+            return locations.Aggregate((a, b) => a + b);
+        }
+    }
 }

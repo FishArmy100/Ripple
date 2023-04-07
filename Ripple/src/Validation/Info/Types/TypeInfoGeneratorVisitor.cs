@@ -8,10 +8,11 @@ using Ripple.Lexing;
 using Ripple.AST.Utils;
 using Ripple.AST;
 using Raucse;
+using Ripple.Validation.Errors;
 
 namespace Ripple.Validation.Info.Types
 {
-    class TypeInfoGeneratorVisitor : ITypeNameVisitor<Result<TypeInfo, List<ASTInfoError>>>
+    class TypeInfoGeneratorVisitor : ITypeNameVisitor<Result<TypeInfo, List<ValidationError>>>
     {
         private readonly IReadOnlyList<string> m_PrimaryTypes;
         private readonly List<string> m_ExternalLifetimes = new List<string>();
@@ -29,7 +30,7 @@ namespace Ripple.Validation.Info.Types
             m_SafetyContext = safetyContext;
         }
 
-        public static Result<FuncPtrInfo, List<ASTInfoError>> GenerateFromFuncDecl(FuncDecl funcDecl, IReadOnlyList<string> primaryTypes)
+        public static Result<FuncPtrInfo, List<ValidationError>> GenerateFromFuncDecl(FuncDecl funcDecl, IReadOnlyList<string> primaryTypes)
 		{
             SafetyContext context = new SafetyContext(!funcDecl.UnsafeToken.HasValue);
             TypeInfoGeneratorVisitor visitor = new TypeInfoGeneratorVisitor(primaryTypes, new List<string>(), true, context);
@@ -40,27 +41,27 @@ namespace Ripple.Validation.Info.Types
 
 			List<TypeName> parameterTypes = funcDecl.Param.ParamList.Select(p => p.Item1).ToList();
             FuncPtr funcPtr = new FuncPtr(null, new Token(), lifetimes, new Token(), parameterTypes, new Token(), new Token(), funcDecl.ReturnType);
-            return funcPtr.Accept(visitor).Match(ok => new Result<FuncPtrInfo, List<ASTInfoError>>(ok as FuncPtrInfo), fail => new Result<FuncPtrInfo, List<ASTInfoError>>(fail));
+            return funcPtr.Accept(visitor).Match(ok => new Result<FuncPtrInfo, List<ValidationError>>(ok as FuncPtrInfo), fail => new Result<FuncPtrInfo, List<ValidationError>>(fail));
 		}
 
-        public static Result<FuncPtrInfo, List<ASTInfoError>> GenerateFromExternalFuncDecl(ExternalFuncDecl funcDecl, IReadOnlyList<string> primaryTypes)
+        public static Result<FuncPtrInfo, List<ValidationError>> GenerateFromExternalFuncDecl(ExternalFuncDecl funcDecl, IReadOnlyList<string> primaryTypes)
         {
             SafetyContext context = new SafetyContext(false);
             TypeInfoGeneratorVisitor visitor = new TypeInfoGeneratorVisitor(primaryTypes, new List<string>(), true, context);
 
             List<TypeName> parameterTypes = funcDecl.Parameters.ParamList.Select(p => p.Item1).ToList();
             FuncPtr funcPtr = new FuncPtr(null, new Token(), new Option<List<Token>>(), new Token(), parameterTypes, new Token(), new Token(), funcDecl.ReturnType);
-            return funcPtr.Accept(visitor).Match(ok => new Result<FuncPtrInfo, List<ASTInfoError>>(ok as FuncPtrInfo), fail => new Result<FuncPtrInfo, List<ASTInfoError>>(fail));
+            return funcPtr.Accept(visitor).Match(ok => new Result<FuncPtrInfo, List<ValidationError>>(ok as FuncPtrInfo), fail => new Result<FuncPtrInfo, List<ValidationError>>(fail));
         }
 
-        public Result<TypeInfo, List<ASTInfoError>> VisitArrayType(ArrayType arrayType)
+        public Result<TypeInfo, List<ValidationError>> VisitArrayType(ArrayType arrayType)
         {
             return arrayType.BaseType.Accept(this).Match(ok =>
             {
                 bool isMutable = arrayType.MutToken.HasValue;
                 int size = int.Parse(arrayType.Size.Text);
                 if (ok is BasicTypeInfo b && b.Name == RipplePrimitives.VoidName)
-                    return BadResult<TypeInfo>(new ASTInfoError("Void can only be used in the context of a return type, or as a void*.", (arrayType.BaseType as BasicType).Identifier));
+                    return BadResult<TypeInfo>(new VoidPlacementError((arrayType.BaseType as BasicType).Identifier.Location));
                 else
                     return GoodResult<TypeInfo>(new ArrayInfo(isMutable, ok, size));
             },
@@ -70,20 +71,20 @@ namespace Ripple.Validation.Info.Types
             });
         }
 
-        public Result<TypeInfo, List<ASTInfoError>> VisitBasicType(BasicType basicType)
+        public Result<TypeInfo, List<ValidationError>> VisitBasicType(BasicType basicType)
         {
             string typeName = basicType.Identifier.Text;
             bool isMutable = basicType.MutToken.HasValue;
 
             if (m_PrimaryTypes.Contains(typeName))
                 return GoodResult<TypeInfo>(new BasicTypeInfo(isMutable, typeName));
-            return BadResult<TypeInfo>(new ASTInfoError("Type name '" + typeName + "' has not been defiend.", basicType.Identifier));
+            return BadResult<TypeInfo>(new DefinitionError.Type(basicType.Identifier.Location, false, basicType));
         }
 
-        public Result<TypeInfo, List<ASTInfoError>> VisitFuncPtr(FuncPtr funcPtr)
+        public Result<TypeInfo, List<ValidationError>> VisitFuncPtr(FuncPtr funcPtr)
         {
             bool isMutable = funcPtr.MutToken.HasValue;
-            List<ASTInfoError> errors = new List<ASTInfoError>();
+            List<ValidationError> errors = new List<ValidationError>();
             List<TypeInfo> parameters = new List<TypeInfo>();
             List<string> lifetimes = new List<string>();
 
@@ -112,14 +113,14 @@ namespace Ripple.Validation.Info.Types
             return info;
         }
 
-        private void CheckParameters(FuncPtr funcPtr, List<ASTInfoError> errors, List<TypeInfo> parameters)
+        private void CheckParameters(FuncPtr funcPtr, List<ValidationError> errors, List<TypeInfo> parameters)
         {
             foreach (TypeName name in funcPtr.Parameters)
             {
                 name.Accept(this).Match(ok =>
                 {
                     if (ok is BasicTypeInfo b && b.Name == RipplePrimitives.VoidName)
-                        errors.Add(new ASTInfoError("Void can only be used in the context of a return type, or as a void*.", (name as BasicType).Identifier));
+                        errors.Add(new VoidPlacementError((name as BasicType).Identifier.Location));
                     else
                         parameters.Add(ok);
                 },
@@ -130,14 +131,14 @@ namespace Ripple.Validation.Info.Types
             }
         }
 
-        private void CheckLifetimes(List<Token> lifetimeTokens, List<ASTInfoError> errors, List<string> lifetimes)
+        private void CheckLifetimes(List<Token> lifetimeTokens, List<ValidationError> errors, List<string> lifetimes)
         {
             foreach (Token token in lifetimeTokens)
             {
                 string lifetime = token.Text;
                 if (IsLifetimeDeclared(lifetime) || lifetimes.Contains(lifetime))
                 {
-                    errors.Add(new ASTInfoError("Lifetime '" + token.Text + "' has already been defined.", token));
+                    errors.Add(new DefinitionError.Lifetime(token.Location, true, lifetime));
                 }
                 else
                 {
@@ -150,15 +151,15 @@ namespace Ripple.Validation.Info.Types
             m_ExternalLifetimes.Contains(lifetime) || 
             m_ActiveLifetimes.Any(l => l.Lifetimes.Contains(lifetime));
 
-		public Result<TypeInfo, List<ASTInfoError>> VisitGroupedType(GroupedType groupedType)
+		public Result<TypeInfo, List<ValidationError>> VisitGroupedType(GroupedType groupedType)
         {
             return groupedType.Type.Accept(this);
         }
 
-        public Result<TypeInfo, List<ASTInfoError>> VisitPointerType(PointerType pointerType)
+        public Result<TypeInfo, List<ValidationError>> VisitPointerType(PointerType pointerType)
         {
             if (m_SafetyContext.IsSafe)
-                return BadResult<TypeInfo>(new ASTInfoError("Pointer type cannot be used in a safe context.", pointerType.Star));
+                return BadResult<TypeInfo>(new UnsafeTypeIsInSafeContextError(pointerType.GetLocation(), pointerType));
 
             bool isMutable = pointerType.MutToken.HasValue;
             return pointerType.BaseType.Accept(this).Match(
@@ -166,7 +167,7 @@ namespace Ripple.Validation.Info.Types
                 fail => BadResult<TypeInfo>(fail));
         }
 
-        public Result<TypeInfo, List<ASTInfoError>> VisitReferenceType(ReferenceType referenceType)
+        public Result<TypeInfo, List<ValidationError>> VisitReferenceType(ReferenceType referenceType)
         {
             Option<Token> lifetime = referenceType.Lifetime ?? new Option<Token>();
             var result = CheckReferenceLifetime(lifetime, referenceType.Ampersand);
@@ -178,17 +179,17 @@ namespace Ripple.Validation.Info.Types
                 ok => 
                 {
                     if (ok is BasicTypeInfo b && b.Name == RipplePrimitives.VoidName)
-                        return BadResult<TypeInfo>(new ASTInfoError("Void can only be used in the context of a return type, or as a void*.", (referenceType.BaseType as BasicType).Identifier));
+                        return BadResult<TypeInfo>(new VoidPlacementError(referenceType.GetLocation()));
                     else
                         return GoodResult<TypeInfo>(new ReferenceInfo(isMutable, ok, result.Value)); 
                 },
                 fail => BadResult<TypeInfo>(fail));
         }
 
-        private Result<Option<ReferenceLifetime>, List<ASTInfoError>> CheckReferenceLifetime(Option<Token> lifetimeOption, Token errorToken)
+        private Result<Option<ReferenceLifetime>, List<ValidationError>> CheckReferenceLifetime(Option<Token> lifetimeOption, Token errorToken)
 		{
             if (!lifetimeOption.HasValue() && m_RequireLifetimes)
-                return BadResult<Option<ReferenceLifetime>>(new ASTInfoError("Lifetime is required in this context.", errorToken));
+                return BadResult<Option<ReferenceLifetime>>(new LifetimeRequiredError(errorToken.Location));
 
             if (!lifetimeOption.HasValue())
                 return new Option<ReferenceLifetime>();
@@ -206,22 +207,22 @@ namespace Ripple.Validation.Info.Types
                     return new Option<ReferenceLifetime>(new ReferenceLifetime(new GenericLifetime(index, m_FunctionPointerIndex)));
 			}
 
-            return BadResult<Option<ReferenceLifetime>>(new ASTInfoError("Lifetime '" + lifetimeText + "' is not defined", lifetime));
+            return BadResult<Option<ReferenceLifetime>>(new DefinitionError.Lifetime(lifetime.Location, false, lifetimeText));
         }
 
-        private static Result<T, List<ASTInfoError>> GoodResult<T>(T info)
+        private static Result<T, List<ValidationError>> GoodResult<T>(T info)
         {
-            return new Result<T, List<ASTInfoError>>(info);
+            return new Result<T, List<ValidationError>>(info);
         }
 
-        private static Result<T, List<ASTInfoError>> BadResult<T>(ASTInfoError error)
+        private static Result<T, List<ValidationError>> BadResult<T>(ValidationError error)
         {
-            return new Result<T, List<ASTInfoError>>(new List<ASTInfoError> { error });
+            return new Result<T, List<ValidationError>>(new List<ValidationError> { error });
         }
 
-        private static Result<T, List<ASTInfoError>> BadResult<T>(List<ASTInfoError> errors)
+        private static Result<T, List<ValidationError>> BadResult<T>(List<ValidationError> errors)
         {
-            return new Result<T, List<ASTInfoError>>(errors);
+            return new Result<T, List<ValidationError>>(errors);
 		}
 
 		private struct FunctionLifetimes

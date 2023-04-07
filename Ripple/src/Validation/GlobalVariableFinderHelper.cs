@@ -7,6 +7,7 @@ using Ripple.AST;
 using Ripple.AST.Utils;
 using Ripple.Lexing;
 using Ripple.Validation.Info;
+using Ripple.Validation.Errors;
 
 namespace Ripple.Validation
 {
@@ -17,7 +18,7 @@ namespace Ripple.Validation
         private readonly List<string> m_FunctionNames;
         private readonly OperatorEvaluatorLibrary m_Operators;
 
-        public readonly List<ASTInfoError> Errors = new List<ASTInfoError>();
+        public readonly List<ValidationError> Errors = new List<ValidationError>();
         public readonly Dictionary<string, VariableInfo> GlobalVariables = new Dictionary<string, VariableInfo>();
 
         public GlobalVariableFinderHelper(ProgramStmt ast, List<string> primaries, FunctionList functions, OperatorEvaluatorLibrary operators)
@@ -53,22 +54,17 @@ namespace Ripple.Validation
             string varName = variableInfo.Name;
             if (m_FunctionNames.Contains(varName))
             {
-                AddError("Variable name '" + varName + "' is already used as a function name.", variableInfo.NameToken);
+                Errors.Add(new DefinitionError.Variable(variableInfo.NameToken.Location, true, varName));
                 return;
             }
 
             if (GlobalVariables.ContainsKey(varName))
             {
-                AddError("Global variable with name '" + varName + "' already exists.", variableInfo.NameToken);
+                Errors.Add(new DefinitionError.Variable(variableInfo.NameToken.Location, true, varName));
                 return;
             }
 
             GlobalVariables.Add(varName, variableInfo);
-        }
-
-        private void AddError(string name, Token token)
-        {
-            Errors.Add(new ASTInfoError(name, token));
         }
     }
 }

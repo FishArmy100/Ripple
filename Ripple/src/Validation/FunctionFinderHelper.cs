@@ -7,6 +7,7 @@ using Ripple.AST;
 using Ripple.AST.Utils;
 using Ripple.Lexing;
 using Ripple.Validation.Info;
+using Ripple.Validation.Errors;
 
 namespace Ripple.Validation
 {
@@ -15,7 +16,7 @@ namespace Ripple.Validation
         private readonly List<string> m_Primaries;
         private readonly List<string> m_GlobalVariableNames = new List<string>();
 
-        public List<ASTInfoError> Errors { get; private set; } = new List<ASTInfoError>();
+        public List<ValidationError> Errors { get; private set; } = new List<ValidationError>();
         public FunctionList Functions { get; private set; }
 
         public FunctionFinderHelper(ProgramStmt ast, List<string> primaries, FunctionList additionalFunctions)
@@ -53,17 +54,12 @@ namespace Ripple.Validation
         {
             if (m_GlobalVariableNames.Contains(info.Name))
             {
-                AddError("Variable with the name: " + info.Name + ", has already been defined.", info.NameToken);
+                Errors.Add(new DefinitionError.Variable(info.NameToken.Location, true, info.Name));
             }
             else if (!Functions.TryAddFunction(info))
             {
-                Errors.Add(new ASTInfoError("Function " + info.Name + ", has already been defined.", info.NameToken));
+                Errors.Add(new DefinitionError.Function(info.NameToken.Location, true, info.Name));
             }
-        }
-
-        private void AddError(string message, Token token)
-        {
-            Errors.Add(new ASTInfoError(message, token));
         }
     }
 }
