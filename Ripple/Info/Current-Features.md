@@ -8,7 +8,7 @@ Ripple currently supports:
   - Please note, this is subject to change, and will be replaced by a 16 bit characters that are utf compliant
 
 ## Expressions:
-### Binary operators:
+### Binary Operators:
 - `+`: Add
 - `-`: Subtract 
 - `*`: Multiply
@@ -18,3 +18,22 @@ Ripple currently supports:
 - `||`: Logical Or
 - `<`, `>`, `<=`, `>=`: Comparison 
 - `==`, `!=`: Equality
+### Unary Operators:
+- `&`: Immutable reference of
+- `&mut`: Mutable reference of
+- `-`: Negation 
+- `!`: Inverse 
+- `*`: Dereference
+### Call;
+Any function, or function pointer can be called.
+`expression "(" comma seperated arguments ")"`
+```swift
+func Add(int a, int b) -> int
+{
+  return a + b:
+}
+
+func(int,int)->int func_ptr = Add;
+int v1 = Add(5, 6); // v1 == 11
+int v2 = func_ptr(2, 3); // v2 == 5
+```
