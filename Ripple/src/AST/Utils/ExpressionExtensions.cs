@@ -68,7 +68,7 @@ namespace Ripple.AST.Utils
 
             public SourceLocation VisitUnary(Unary unary)
             {
-                throw new NotImplementedException();
+                return unary.Op.Location + unary.Expr.GetLocation();
             }
         }
     }

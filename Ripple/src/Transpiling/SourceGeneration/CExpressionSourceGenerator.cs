@@ -75,10 +75,11 @@ namespace Ripple.Transpiling.SourceGeneration
 				{
 					CLiteralType.String => $"\"{(string)literal.Value}\"",
 					CLiteralType.Intager => $"{(int)literal.Value}",
-					CLiteralType.Charactor => $"\'{(char)literal.Value}\'",
-					CLiteralType.Float => $"{(int)literal.Value}",
+					CLiteralType.Charactor => $"\'{(string)literal.Value}\'",
+					CLiteralType.Float => $"{(float)literal.Value}",
 					CLiteralType.True => CKeywords.TRUE,
 					CLiteralType.False => CKeywords.FALSE,
+					CLiteralType.Nullptr => CKeywords.NULLPTR,
 					_ => throw new ArgumentException("Unknown literal type " + literal.Type),
 				};
 			}

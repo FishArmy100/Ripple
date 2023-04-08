@@ -24,7 +24,7 @@ namespace Ripple.Parsing
             {
                 try
                 {
-                    FileStmt file = ParseFile(ref reader, ref errors);
+                    FileStmt file = ParseFile(ref reader, ref errors, path);
                     files.Add(file);
                 }
                 catch (ParserExeption e)
@@ -43,7 +43,7 @@ namespace Ripple.Parsing
             return new ProgramStmt(files, path);
         }
 
-        private static FileStmt ParseFile(ref TokenReader reader, ref List<ParserError> errors)
+        private static FileStmt ParseFile(ref TokenReader reader, ref List<ParserError> errors, string startPath)
         {
             List<Statement> declarations = new List<Statement>();
 
@@ -67,7 +67,9 @@ namespace Ripple.Parsing
             }
 
             Token eof = reader.Consume(TokenType.EOF);
-            return new FileStmt(declarations, eof.Text, eof);
+            string fullPath = eof.Text;
+            string relativePath = fullPath.Substring(startPath.Length + 1, fullPath.Length - startPath.Length - 1);
+            return new FileStmt(declarations, relativePath, eof);
         }
 
         private static Statement ParseDeclaration(ref TokenReader reader, ref List<ParserError> errors)

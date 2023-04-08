@@ -53,7 +53,7 @@ namespace Ripple.Validation.Info
 
             TokenType operatorType = binary.Op.Type;
 
-            return m_OperatorLibrary.Binaries.Evaluate(operatorType, (left.First, right.First), currentLifetime, binary.Op).Match(
+            return m_OperatorLibrary.Binaries.Evaluate(operatorType, (left.First, right.First), currentLifetime, binary.GetLocation()).Match(
                 ok =>
                 {
                     TypedBinary bin = new TypedBinary(left.Second, operatorType, right.Second, ok.Type);
@@ -85,7 +85,7 @@ namespace Ripple.Validation.Info
 
             var operand = unary.Expr.Accept(this, innerExpected);
 
-            return m_OperatorLibrary.Unaries.Evaluate(operatorType, operand.First, m_VariableStack.CurrentLifetime, unary.Op).Match(
+            return m_OperatorLibrary.Unaries.Evaluate(operatorType, operand.First, m_VariableStack.CurrentLifetime, unary.GetLocation()).Match(
                 ok => 
                 {
                     if(operatorType.IsType(TokenType.Ampersand, TokenType.RefMut))
@@ -117,7 +117,7 @@ namespace Ripple.Validation.Info
 
             var callee = call.Callee.Accept(this, new Option<TypeInfo>());
             var args = call.Args.Select(a => a.Accept(this, new Option<TypeInfo>()));
-            return m_OperatorLibrary.Calls.Evaluate(callee.First, args.Select(a => a.First), m_VariableStack.CurrentLifetime, call.OpenParen).Match(
+            return m_OperatorLibrary.Calls.Evaluate(callee.First, args.Select(a => a.First), m_VariableStack.CurrentLifetime, call.GetLocation()).Match(
                 ok => 
                 {
                     TypedCall typedCall = new TypedCall(callee.Second, args.Select(a => a.Second).ToList(), ok.Type);
@@ -182,7 +182,7 @@ namespace Ripple.Validation.Info
             if (funcInfo.IsUnsafe && m_SafetyContext.IsSafe)
                 throw new ExpressionCheckerException(UnsafeThingIsInSafeContextError.Function(call.GetLocation(), name));
 
-            IEnumerable<ValueInfo> args = arguments.Select(at => at.Match(ok => ok, () => throw new ExpressionCheckerException("Invalid expression at call.", id.Name)));
+            IEnumerable<ValueInfo> args = arguments.Select(at => at.Match(ok => ok, () => throw new ExpressionCheckerException(new InvalidExpressionError(id.GetLocation()))));
 
             var typedArgs = call.Args.Zip(funcInfo.Parameters.Select(p => p.Type)).Select(tuple =>
             {
@@ -190,7 +190,7 @@ namespace Ripple.Validation.Info
                 return expression.Accept(this, expected).Second;
             }).ToList();
 
-            return m_OperatorLibrary.Calls.Evaluate(new ValueInfo(funcInfo.FunctionType, LifetimeInfo.Static), args, m_VariableStack.CurrentLifetime, id.Name)
+            return m_OperatorLibrary.Calls.Evaluate(new ValueInfo(funcInfo.FunctionType, LifetimeInfo.Static), args, m_VariableStack.CurrentLifetime, id.GetLocation())
                 .Match(
                 ok =>
                 {
@@ -230,7 +230,7 @@ namespace Ripple.Validation.Info
 
             var castee = cast.Castee.Accept(this, typeToCastTo);
 
-            return m_OperatorLibrary.Casts.Evaluate(typeToCastTo, castee.First, m_VariableStack.CurrentLifetime, cast.AsToken).Match(
+            return m_OperatorLibrary.Casts.Evaluate(typeToCastTo, castee.First, m_VariableStack.CurrentLifetime, cast.GetLocation()).Match(
                 ok =>
                 {
                     TypedCast typedCast = new TypedCast(castee.Second, typeToCastTo, ok.Type);
@@ -297,7 +297,7 @@ namespace Ripple.Validation.Info
         {
             var indexed = index.Indexed.Accept(this, new Option<TypeInfo>());
             var arg = index.Argument.Accept(this, RipplePrimitives.Int32);
-            return m_OperatorLibrary.Indexers.Evaluate(indexed.First, arg.First, m_VariableStack.CurrentLifetime, index.OpenBracket).Match(
+            return m_OperatorLibrary.Indexers.Evaluate(indexed.First, arg.First, m_VariableStack.CurrentLifetime, index.GetLocation()).Match(
                 ok =>
                 {
                     TypedIndex typedIndex = new TypedIndex(indexed.Second, arg.Second, ok.Type);
@@ -320,12 +320,12 @@ namespace Ripple.Validation.Info
                             ", but found an expression for: " +
                             info.ToPrettyString() + ".";
 
-                        throw new ExpressionCheckerException(message, initializerList.OpenBrace);
+                        throw new ExpressionCheckerException(new ArrayInitalizerListTypeArrayError(initializerList.GetLocation(), array.Contained, info));
                     }
                 }
 
                 if (initializerList.Expressions.Count > array.Size)
-                    throw new ExpressionCheckerException("Initializer list size is bigger than the array size.", initializerList.OpenBrace);
+                    throw new ExpressionCheckerException(new InitalizerListSizeError(initializerList.GetLocation()));
 
                 ValueInfo value = new ValueInfo(array, m_VariableStack.CurrentLifetime);
                 var typedExpressions = initializerList.Expressions

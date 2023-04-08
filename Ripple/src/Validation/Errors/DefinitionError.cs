@@ -23,8 +23,8 @@ namespace Ripple.Validation.Errors
 
         public override sealed string GetMessage() => 
             $"{Name()} {ObjectText()} has " + (WasDefined ? 
-            " already been defined." : 
-            " not been defined.");
+            "already been defined." : 
+            "not been defined.");
 
         public class Function : DefinitionError
         {

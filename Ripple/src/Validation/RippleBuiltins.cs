@@ -12,6 +12,7 @@ using Raucse;
 using Raucse.Extensions;
 using Ripple.AST;
 using Ripple.Core;
+using Ripple.Validation.Errors;
 
 namespace Ripple.Validation
 {
@@ -61,7 +62,7 @@ namespace Ripple.Validation
         public static Linker GetBuiltInLinker()
         {
             List<Pair<FunctionInfo, string>> externals = new List<Pair<FunctionInfo, string>>();
-            externals.Add(new Pair<FunctionInfo, string>(GenFunctionData("printf", new List<(TypeName, string)>()
+            externals.Add(new Pair<FunctionInfo, string>(GenLinkingFunction("printf", new List<(TypeName, string)>()
             {
                (GenPointerType("char"), "fmt")
             }, RipplePrimitives.VoidName, true), "stdio.h"));
@@ -383,7 +384,7 @@ namespace Ripple.Validation
                     },
                     bparam =>
                     {
-                        throw new ExpressionCheckerException(new ValidationError($"Cannot dicern between lifetime {aparam.Text} and {bparam.Text}.", aparam));
+                        throw new ExpressionCheckerException(new CannotDicernBetweenLifetimesError(aparam.Location, aparam, bparam));
                     });
                 });
             });
@@ -403,10 +404,11 @@ namespace Ripple.Validation
             return new PointerType(GenBasicTypeName(name), null, new Token());
         }
 
-        private static FunctionInfo GenFunctionData(string name, List<(TypeName, string)> paramaters, string returnTypeName, bool isUnsafe)
+        private static FunctionInfo GenLinkingFunction(string name, List<(TypeName, string)> paramaters, string returnTypeName, bool isUnsafe)
         {
             Parameters parameters = new Parameters(new Token(), paramaters.Select(p => (p.Item1, GenIdTok(p.Item2))).ToList(), new Token());
-            return FunctionInfo.FromASTExternalFunction(new ExternalFuncDecl(new Token(), new Token(), new Token(), GenIdTok(name), parameters, new Token(), GenBasicTypeName(name), new Token()), GetPrimitives()).Value;
+            var result = FunctionInfo.FromASTExternalFunction(new ExternalFuncDecl(new Token(), new Token(), new Token(), GenIdTok(name), parameters, new Token(), GenBasicTypeName(returnTypeName), new Token()), GetPrimitives());
+            return result.Value;
         }
 
         private static TypeInfo GenBasicType(string name)

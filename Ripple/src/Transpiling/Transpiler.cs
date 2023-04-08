@@ -20,9 +20,11 @@ namespace Ripple.Transpiling
         {
 			List<CFileStmt> files = ASTConverter.ConvertAST(programStmt);
 
-			return files
+			var cFiles = files
 				.Select(f => new CFileInfo(f.RelativePath, CStatementSourceGenerator.GenerateSource(f), f.FileType))
 				.ToList();
+
+			return cFiles;
         }
 	}
 }
