@@ -91,4 +91,4 @@ module Core
 
 ### Notes:
 - Ripple is *EXTREMELY* incomplete, and 90% of the above features are not implemented yet
-- [Here is a partial documentation of the current features of Ripple](/Ripple/Ripple/Info/Current-Features)
+- [Here is a partial documentation of the current features of Ripple](https://github.com/FishArmy100/Ripple/blob/main/Ripple/Info/Current-Features.md)
