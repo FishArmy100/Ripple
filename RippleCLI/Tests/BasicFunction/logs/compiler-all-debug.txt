@@ -1,0 +1,95 @@
+Lexing:
+[Unsafe]
+[Func]
+[Identifier: main]
+[OpenParen]
+[CloseParen]
+[RightThinArrow]
+[Identifier: int]
+[OpenBrace]
+[Identifier: printf]
+[OpenParen]
+[CStringLiteral: c"Hello World!"]
+[CloseParen]
+[SemiColon]
+[Return]
+[IntagerLiteral: 0]
+[SemiColon]
+[CloseBrace]
+[EOF: C:\dev\Ripple\RippleCLI\Tests\BasicFunction\BasicFunction.ripl]
+[Extern]
+[StringLiteral: "C"]
+[Func]
+[Identifier: printf]
+[OpenParen]
+[Identifier: char]
+[Star]
+[Identifier: fmt]
+[CloseParen]
+[RightThinArrow]
+[Identifier: void]
+[SemiColon]
+[EOF: C:\dev\Ripple\RippleCLI\Tests\BasicFunction\CLib.ripl]
+
+Parsing:
+Program:
+	File: BasicFunction.ripl
+		Unsafe Function Declaration:
+			Parameters: 
+			Return type: int
+			Block Statement:
+				Expression Statement: 
+					Call:
+						Callee:
+							Identifier: printf
+						Arguments:
+							Literal: c"Hello World!"
+				Return Statement:
+					Literal: 0
+	File: CLib.ripl
+		External Function Declaration:
+			Parameters: 
+				char* fmt
+			Return type: void
+
+
+Validating:
+Not implemented yet.
+
+Transpiling:
+### BasicFunction.c:
+#include "CORE_PREDEFS.h"
+#include "CORE_TYPE_PREDEFS.h"
+#include "CORE_PREDEFS.h"
+#include "CORE_TYPE_PREDEFS.h"
+
+int main()
+{
+	printf("Hello World!");
+	return 0;
+}
+
+
+### CLib.c:
+#include "CORE_PREDEFS.h"
+#include "CORE_TYPE_PREDEFS.h"
+#include "CORE_PREDEFS.h"
+#include "CORE_TYPE_PREDEFS.h"
+
+
+
+### CORE_PREDEFS.h:
+#pragma once
+#include "stdio.h"
+#include "CORE_TYPE_PREDEFS.h"
+
+int main();
+
+
+### CORE_TYPE_PREDEFS.h:
+#pragma once
+
+
+
+
+

@@ -1,0 +1,727 @@
+Lexing:
+[Extern]
+[StringLiteral: "C"]
+[Func]
+[Identifier: printf]
+[OpenParen]
+[Identifier: char]
+[Star]
+[Identifier: fmt]
+[CloseParen]
+[RightThinArrow]
+[Identifier: void]
+[SemiColon]
+[Func]
+[Identifier: ArrayTesting]
+[OpenParen]
+[CloseParen]
+[RightThinArrow]
+[Identifier: void]
+[OpenBrace]
+[Mut]
+[Identifier: int]
+[OpenBracket]
+[IntagerLiteral: 10]
+[CloseBracket]
+[Identifier: array]
+[Equal]
+[OpenBrace]
+[IntagerLiteral: 5]
+[Comma]
+[IntagerLiteral: 6]
+[Comma]
+[IntagerLiteral: 7]
+[CloseBrace]
+[SemiColon]
+[Mut]
+[Identifier: int]
+[Ampersand]
+[Identifier: ref]
+[Equal]
+[Ampersand]
+[Mut]
+[Identifier: array]
+[OpenBracket]
+[IntagerLiteral: 0]
+[CloseBracket]
+[SemiColon]
+[Identifier: int]
+[Ampersand]
+[OpenBracket]
+[IntagerLiteral: 1]
+[CloseBracket]
+[Ampersand]
+[Identifier: ref2]
+[Equal]
+[Ampersand]
+[OpenBrace]
+[Ampersand]
+[IntagerLiteral: 5]
+[CloseBrace]
+[SemiColon]
+[CloseBrace]
+[Unsafe]
+[Func]
+[Identifier: PointerTesting]
+[OpenParen]
+[CloseParen]
+[RightThinArrow]
+[Identifier: void]
+[OpenBrace]
+[Identifier: int]
+[Star]
+[Identifier: ptr1]
+[Equal]
+[Nullptr]
+[SemiColon]
+[Identifier: float]
+[Star]
+[Identifier: ptr2]
+[Equal]
+[Identifier: ptr1]
+[As]
+[Identifier: float]
+[Star]
+[SemiColon]
+[Identifier: float]
+[Ampersand]
+[Identifier: f1]
+[Equal]
+[Identifier: ptr2]
+[As]
+[Identifier: float]
+[Ampersand]
+[SemiColon]
+[Identifier: float]
+[Star]
+[Identifier: f2]
+[Equal]
+[Identifier: f1]
+[As]
+[Identifier: float]
+[Star]
+[SemiColon]
+[Identifier: int]
+[OpenBracket]
+[IntagerLiteral: 2]
+[CloseBracket]
+[Identifier: arr]
+[Equal]
+[OpenBrace]
+[IntagerLiteral: 1]
+[Comma]
+[IntagerLiteral: 2]
+[CloseBrace]
+[SemiColon]
+[Identifier: int]
+[Star]
+[Identifier: first]
+[Equal]
+[Ampersand]
+[Identifier: arr]
+[OpenBracket]
+[IntagerLiteral: 0]
+[CloseBracket]
+[As]
+[Identifier: int]
+[Star]
+[SemiColon]
+[Identifier: int]
+[Star]
+[Identifier: second]
+[Equal]
+[Identifier: first]
+[Plus]
+[IntagerLiteral: 1]
+[SemiColon]
+[Identifier: int]
+[Identifier: i]
+[Equal]
+[Identifier: arr]
+[OpenBracket]
+[IntagerLiteral: 1]
+[CloseBracket]
+[SemiColon]
+[Identifier: int]
+[Star]
+[Identifier: null]
+[Equal]
+[Nullptr]
+[SemiColon]
+[CloseBrace]
+[Func]
+[Identifier: ReferenceTesting]
+[OpenParen]
+[CloseParen]
+[RightThinArrow]
+[Identifier: void]
+[OpenBrace]
+[Identifier: int]
+[Ampersand]
+[Ampersand]
+[Identifier: r1]
+[Equal]
+[Ampersand]
+[Ampersand]
+[IntagerLiteral: 0]
+[SemiColon]
+[Mut]
+[Identifier: int]
+[Mut]
+[Ampersand]
+[Mut]
+[Ampersand]
+[Identifier: r2]
+[Equal]
+[Ampersand]
+[Mut]
+[Ampersand]
+[Mut]
+[IntagerLiteral: 5]
+[SemiColon]
+[Star]
+[Star]
+[Identifier: r2]
+[Equal]
+[IntagerLiteral: 4]
+[SemiColon]
+[CloseBrace]
+[Func]
+[Identifier: Add]
+[LessThan]
+[Lifetime: 'a]
+[Comma]
+[Lifetime: 'b]
+[GreaterThan]
+[OpenParen]
+[Identifier: int]
+[Ampersand]
+[Lifetime: 'a]
+[Identifier: a]
+[Comma]
+[Identifier: int]
+[Ampersand]
+[Lifetime: 'b]
+[Identifier: b]
+[CloseParen]
+[RightThinArrow]
+[Identifier: int]
+[OpenBrace]
+[Return]
+[Star]
+[Identifier: a]
+[Plus]
+[Star]
+[Identifier: b]
+[SemiColon]
+[CloseBrace]
+[Func]
+[Identifier: BasicOperatorTests]
+[OpenParen]
+[CloseParen]
+[RightThinArrow]
+[Identifier: void]
+[OpenBrace]
+[Identifier: int]
+[Identifier: i1]
+[Equal]
+[IntagerLiteral: 1]
+[SemiColon]
+[Identifier: int]
+[Identifier: i2]
+[Equal]
+[IntagerLiteral: 2]
+[SemiColon]
+[Identifier: float]
+[Identifier: f1]
+[Equal]
+[OpenParen]
+[Identifier: i1]
+[Plus]
+[Identifier: i2]
+[Minus]
+[Identifier: i1]
+[Star]
+[Identifier: i2]
+[Slash]
+[Identifier: i1]
+[Mod]
+[Identifier: i2]
+[CloseParen]
+[As]
+[Identifier: float]
+[SemiColon]
+[Identifier: int]
+[Identifier: i3]
+[Equal]
+[Identifier: f1]
+[As]
+[Identifier: int]
+[SemiColon]
+[Identifier: float]
+[Identifier: f2]
+[Equal]
+[FloatLiteral: 5.0]
+[SemiColon]
+[Identifier: float]
+[Identifier: f3]
+[Equal]
+[Identifier: f2]
+[Plus]
+[Identifier: f1]
+[Minus]
+[Identifier: f1]
+[Slash]
+[Identifier: f2]
+[Star]
+[Identifier: f2]
+[SemiColon]
+[Identifier: char]
+[Identifier: c1]
+[Equal]
+[CharactorLiteral: 'c']
+[SemiColon]
+[Identifier: char]
+[Identifier: c2]
+[Equal]
+[CharactorLiteral: 'b']
+[SemiColon]
+[Identifier: bool]
+[Identifier: b1]
+[Equal]
+[Identifier: c1]
+[EqualEqual]
+[Identifier: c2]
+[PipePipe]
+[Identifier: c1]
+[BangEqual]
+[Identifier: c2]
+[SemiColon]
+[Identifier: bool]
+[Identifier: b2]
+[Equal]
+[Identifier: f1]
+[GreaterThan]
+[Identifier: f2]
+[PipePipe]
+[Identifier: f2]
+[LessThan]
+[Identifier: f1]
+[Ampersand]
+[Ampersand]
+[Identifier: f3]
+[EqualEqual]
+[Identifier: f2]
+[PipePipe]
+[Identifier: f1]
+[BangEqual]
+[Identifier: f2]
+[SemiColon]
+[Identifier: bool]
+[Identifier: b3]
+[Equal]
+[Identifier: i1]
+[GreaterThan]
+[Identifier: i2]
+[PipePipe]
+[Identifier: i2]
+[LessThan]
+[Identifier: i1]
+[Ampersand]
+[Ampersand]
+[Identifier: i3]
+[EqualEqual]
+[Identifier: i2]
+[PipePipe]
+[Identifier: i1]
+[BangEqual]
+[Identifier: i2]
+[SemiColon]
+[CloseBrace]
+[Unsafe]
+[Func]
+[Identifier: CStringTests]
+[OpenParen]
+[CloseParen]
+[RightThinArrow]
+[Identifier: void]
+[OpenBrace]
+[Identifier: char]
+[Star]
+[Identifier: string]
+[Equal]
+[CStringLiteral: c"Hello World!"]
+[SemiColon]
+[Identifier: printf]
+[OpenParen]
+[Identifier: string]
+[CloseParen]
+[SemiColon]
+[CloseBrace]
+[EOF: C:\dev\Ripple\RippleCLI\Tests\BasicTests\BasicTests.ripl]
+
+Parsing:
+Program:
+	File: BasicTests.ripl
+		External Function Declaration:
+			Parameters: 
+				char* fmt
+			Return type: void
+		Function Declaration:
+			Parameters: 
+			Return type: void
+			Block Statement:
+				Variable Declaration:
+					Type: mut int[10]
+					Var Names: [Identifier: array]
+					Initializer: 
+						Initializer List:
+							Literal: 5
+							Literal: 6
+							Literal: 7
+				Variable Declaration:
+					Type: mut int&
+					Var Names: [Identifier: ref]
+					Initializer: 
+						Unary: &mut
+							Index:
+								Indexed:
+									Identifier: array
+								Argument:
+									Literal: 0
+				Variable Declaration:
+					Type: int&[1]&
+					Var Names: [Identifier: ref2]
+					Initializer: 
+						Unary: &
+							Initializer List:
+								Unary: &
+									Literal: 5
+		Unsafe Function Declaration:
+			Parameters: 
+			Return type: void
+			Block Statement:
+				Variable Declaration:
+					Type: int*
+					Var Names: [Identifier: ptr1]
+					Initializer: 
+						Literal: nullptr
+				Variable Declaration:
+					Type: float*
+					Var Names: [Identifier: ptr2]
+					Initializer: 
+						Cast: float*
+							Identifier: ptr1
+				Variable Declaration:
+					Type: float&
+					Var Names: [Identifier: f1]
+					Initializer: 
+						Cast: float&
+							Identifier: ptr2
+				Variable Declaration:
+					Type: float*
+					Var Names: [Identifier: f2]
+					Initializer: 
+						Cast: float*
+							Identifier: f1
+				Variable Declaration:
+					Type: int[2]
+					Var Names: [Identifier: arr]
+					Initializer: 
+						Initializer List:
+							Literal: 1
+							Literal: 2
+				Variable Declaration:
+					Type: int*
+					Var Names: [Identifier: first]
+					Initializer: 
+						Cast: int*
+							Unary: &
+								Index:
+									Indexed:
+										Identifier: arr
+									Argument:
+										Literal: 0
+				Variable Declaration:
+					Type: int*
+					Var Names: [Identifier: second]
+					Initializer: 
+						Binary: +
+							Identifier: first
+							Literal: 1
+				Variable Declaration:
+					Type: int
+					Var Names: [Identifier: i]
+					Initializer: 
+						Index:
+							Indexed:
+								Identifier: arr
+							Argument:
+								Literal: 1
+				Variable Declaration:
+					Type: int*
+					Var Names: [Identifier: null]
+					Initializer: 
+						Literal: nullptr
+		Function Declaration:
+			Parameters: 
+			Return type: void
+			Block Statement:
+				Variable Declaration:
+					Type: int&&
+					Var Names: [Identifier: r1]
+					Initializer: 
+						Unary: &
+							Unary: &
+								Literal: 0
+				Variable Declaration:
+					Type: mut int mut& mut&
+					Var Names: [Identifier: r2]
+					Initializer: 
+						Unary: &mut
+							Unary: &mut
+								Literal: 5
+				Expression Statement: 
+					Binary: =
+						Unary: *
+							Unary: *
+								Identifier: r2
+						Literal: 4
+		Function Declaration:
+			Parameters: 
+				int&'a a
+				int&'b b
+			Return type: int
+			Block Statement:
+				Return Statement:
+					Binary: +
+						Unary: *
+							Identifier: a
+						Unary: *
+							Identifier: b
+		Function Declaration:
+			Parameters: 
+			Return type: void
+			Block Statement:
+				Variable Declaration:
+					Type: int
+					Var Names: [Identifier: i1]
+					Initializer: 
+						Literal: 1
+				Variable Declaration:
+					Type: int
+					Var Names: [Identifier: i2]
+					Initializer: 
+						Literal: 2
+				Variable Declaration:
+					Type: float
+					Var Names: [Identifier: f1]
+					Initializer: 
+						Cast: float
+							Grouping
+								Binary: -
+									Binary: +
+										Identifier: i1
+										Identifier: i2
+									Binary: %
+										Binary: /
+											Binary: *
+												Identifier: i1
+												Identifier: i2
+											Identifier: i1
+										Identifier: i2
+				Variable Declaration:
+					Type: int
+					Var Names: [Identifier: i3]
+					Initializer: 
+						Cast: int
+							Identifier: f1
+				Variable Declaration:
+					Type: float
+					Var Names: [Identifier: f2]
+					Initializer: 
+						Literal: 5.0
+				Variable Declaration:
+					Type: float
+					Var Names: [Identifier: f3]
+					Initializer: 
+						Binary: -
+							Binary: +
+								Identifier: f2
+								Identifier: f1
+							Binary: *
+								Binary: /
+									Identifier: f1
+									Identifier: f2
+								Identifier: f2
+				Variable Declaration:
+					Type: char
+					Var Names: [Identifier: c1]
+					Initializer: 
+						Literal: 'c'
+				Variable Declaration:
+					Type: char
+					Var Names: [Identifier: c2]
+					Initializer: 
+						Literal: 'b'
+				Variable Declaration:
+					Type: bool
+					Var Names: [Identifier: b1]
+					Initializer: 
+						Binary: ||
+							Binary: ==
+								Identifier: c1
+								Identifier: c2
+							Binary: !=
+								Identifier: c1
+								Identifier: c2
+				Variable Declaration:
+					Type: bool
+					Var Names: [Identifier: b2]
+					Initializer: 
+						Binary: ||
+							Binary: ||
+								Binary: >
+									Identifier: f1
+									Identifier: f2
+								Binary: &&
+									Binary: <
+										Identifier: f2
+										Identifier: f1
+									Binary: ==
+										Identifier: f3
+										Identifier: f2
+							Binary: !=
+								Identifier: f1
+								Identifier: f2
+				Variable Declaration:
+					Type: bool
+					Var Names: [Identifier: b3]
+					Initializer: 
+						Binary: ||
+							Binary: ||
+								Binary: >
+									Identifier: i1
+									Identifier: i2
+								Binary: &&
+									Binary: <
+										Identifier: i2
+										Identifier: i1
+									Binary: ==
+										Identifier: i3
+										Identifier: i2
+							Binary: !=
+								Identifier: i1
+								Identifier: i2
+		Unsafe Function Declaration:
+			Parameters: 
+			Return type: void
+			Block Statement:
+				Variable Declaration:
+					Type: char*
+					Var Names: [Identifier: string]
+					Initializer: 
+						Literal: c"Hello World!"
+				Expression Statement: 
+					Call:
+						Callee:
+							Identifier: printf
+						Arguments:
+							Identifier: string
+
+
+Validating:
+Not implemented yet.
+
+Transpiling:
+### BasicTests.c:
+#include "CORE_PREDEFS.h"
+#include "CORE_TYPE_PREDEFS.h"
+
+void ArrayTesting()
+{
+	struct int_array_10 array = (struct int_array_10 ){{5, 6, 7}};
+	int *ref = &array.data[0];
+	int _temp_var_0_3_0_0 = 5;
+	struct ptr_int_array_1 _temp_var_1_3_0_0 = (struct ptr_int_array_1 ){{&_temp_var_0_3_0_0}};
+	struct ptr_int_array_1 *ref2 = &_temp_var_1_3_0_0;
+}
+void PointerTesting()
+{
+	int *ptr1 = nullptr;
+	float *ptr2 = (float *)ptr1;
+	float *f1 = (float *)ptr2;
+	float *f2 = (float *)f1;
+	struct int_array_2 arr = (struct int_array_2 ){{1, 2}};
+	int *first = (int *)&arr.data[0];
+	int *second = first + 1;
+	int i = arr.data[1];
+	int *null = nullptr;
+}
+void ReferenceTesting()
+{
+	int _temp_var_2_1_0_0 = 0;
+	int *_temp_var_3_1_0_0 = &_temp_var_2_1_0_0;
+	int **r1 = &_temp_var_3_1_0_0;
+	int _temp_var_4_2_0_0 = 5;
+	int *_temp_var_5_2_0_0 = &_temp_var_4_2_0_0;
+	int **r2 = &_temp_var_5_2_0_0;
+	**r2 = 4;
+}
+int Add(int *a, int *b)
+{
+	return *a + *b;
+}
+void BasicOperatorTests()
+{
+	int i1 = 1;
+	int i2 = 2;
+	float f1 = (float )(i1 + i2 - i1 * i2 / i1 % i2);
+	int i3 = (int )f1;
+	float f2 = 5;
+	float f3 = f2 + f1 - f1 / f2 * f2;
+	char c1 = 'c';
+	char c2 = 'b';
+	bool b1 = c1 == c2 || c1 != c2;
+	bool b2 = f1 > f2 || f2 < f1 && f3 == f2 || f1 != f2;
+	bool b3 = i1 > i2 || i2 < i1 && i3 == i2 || i1 != i2;
+}
+void CStringTests()
+{
+	char *string = "Hello World!";
+	printf(string);
+}
+
+
+### CORE_PREDEFS.h:
+#pragma once
+#include "stdio.h"
+#include "CORE_TYPE_PREDEFS.h"
+
+void ArrayTesting();
+void PointerTesting();
+void ReferenceTesting();
+int Add(int *a, int *b);
+void BasicOperatorTests();
+void CStringTests();
+
+
+### CORE_TYPE_PREDEFS.h:
+#pragma once
+
+struct int_array_10
+{
+	int data[10];
+};
+struct ptr_int_array_1
+{
+	int *data[1];
+};
+struct int_array_2
+{
+	int data[2];
+};
+
+
+
+
