@@ -12,10 +12,17 @@ namespace Ripple.AST.Utils
     {
         private int m_Index = 0;
         private readonly string m_Seperator;
+        private readonly Action<string> PrinterFunc;
 
         public AstPrinter(string seperator)
         {
             m_Seperator = seperator;
+            PrinterFunc = text => Console.WriteLine(text);
+        }
+
+        public AstPrinter(string seperator, Action<string> printerFunc) : this(seperator)
+        {
+            PrinterFunc = printerFunc;
         }
 
         public void PrintAst(Expression expr)
@@ -358,7 +365,7 @@ namespace Ripple.AST.Utils
         private void TabRight() { m_Index++; }
         private void TabLeft() { m_Index--; }
 
-        private void Print(string text) { Console.WriteLine(GetOffset() + text); }
+        private void Print(string text) { PrinterFunc(GetOffset() + text); }
 
         private string GetOffset()
         {

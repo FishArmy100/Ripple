@@ -9,6 +9,9 @@ using Ripple.AST.Utils;
 using Raucse;
 using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info.Expressions;
+using Ripple.Validation.Errors;
+using Ripple.Validation.Errors.ExpressionErrors;
+using Ripple.Core;
 
 namespace Ripple.Validation.Info
 {
@@ -29,20 +32,20 @@ namespace Ripple.Validation.Info
             Lifetime = lifetime;
         }
 
-        public static Result<VariableInfo, List<ASTInfoError>> FromFunctionParameter(TypeName type, Token name, LifetimeInfo lifetime, IReadOnlyList<string> primaries, List<string> lifetimes, SafetyContext safetyContext)
+        public static Result<VariableInfo, List<ValidationError>> FromFunctionParameter(TypeName type, Token name, LifetimeInfo lifetime, IReadOnlyList<string> primaries, List<string> lifetimes, SafetyContext safetyContext)
         {
             return TypeInfoUtils.FromASTType(type, primaries, lifetimes, safetyContext, true).Match(ok =>
             {
                 VariableInfo info = new VariableInfo(name, ok, !safetyContext.IsSafe, lifetime);
-                return new Result<VariableInfo, List<ASTInfoError>>(info);
+                return new Result<VariableInfo, List<ValidationError>>(info);
             },
             fail =>
             {
-                return new Result<VariableInfo, List<ASTInfoError>>(fail);
+                return new Result<VariableInfo, List<ValidationError>>(fail);
             });
         }
 
-        public static Result<Pair<List<VariableInfo>, TypedExpression>, List<ASTInfoError>> FromVarDecl(VarDecl varDecl, ExpressionCheckerVisitor visitor, IReadOnlyList<string> primaries, List<string> lifetimes, LifetimeInfo lifetime, SafetyContext safetyContext)
+        public static Result<Pair<List<VariableInfo>, TypedExpression>, List<ValidationError>> FromVarDecl(VarDecl varDecl, ExpressionCheckerVisitor visitor, IReadOnlyList<string> primaries, List<string> lifetimes, LifetimeInfo lifetime, SafetyContext safetyContext)
         {
             if (safetyContext.IsSafe && varDecl.UnsafeToken.HasValue)
                 safetyContext = new SafetyContext(false);
@@ -58,8 +61,9 @@ namespace Ripple.Validation.Info
                 if (!type.SetFirstMutable(false).IsEquatableTo(result.Value.SetFirstMutable(false)))
                 {
                     string varTypeName = TypeNamePrinter.PrintType(varDecl.Type);
-                    ASTInfoError error = new ASTInfoError("Cannot assign type '" + type.ToString() + "', to a variable of type '" + varTypeName + "'.", varDecl.VarNames[0]);
-                    return new Result<Pair<List<VariableInfo>, TypedExpression>, List<ASTInfoError>>(new List<ASTInfoError> { error });
+                    SourceLocation location = varDecl.Type.GetLocation() + varDecl.VarNames.Select(v => v.Location).Sum();
+                    ValidationError error = new AssignmentError(location, result.Value, type);
+                    return new Result<Pair<List<VariableInfo>, TypedExpression>, List<ValidationError>>(new List<ValidationError> { error });
                 }
 
                 List<VariableInfo> vars = varDecl.VarNames.ConvertAll(n =>
@@ -68,15 +72,15 @@ namespace Ripple.Validation.Info
                 });
 
                 var pair = new Pair<List<VariableInfo>, TypedExpression>(vars, ok.Second);
-                return new Result<Pair<List<VariableInfo>, TypedExpression>, List<ASTInfoError>>(pair);
+                return new Result<Pair<List<VariableInfo>, TypedExpression>, List<ValidationError>>(pair);
             },
             fail =>
             {
-                return new Result<Pair<List<VariableInfo>, TypedExpression>, List<ASTInfoError>>(fail);
+                return new Result<Pair<List<VariableInfo>, TypedExpression>, List<ValidationError>>(fail);
             });
         }
 
-        private static Result<Pair<ValueInfo, TypedExpression>, List<ASTInfoError>> CheckExpression(Expression expression, ExpressionCheckerVisitor visitor, Option<TypeInfo> expected)
+        private static Result<Pair<ValueInfo, TypedExpression>, List<ValidationError>> CheckExpression(Expression expression, ExpressionCheckerVisitor visitor, Option<TypeInfo> expected)
         {
             try
             {

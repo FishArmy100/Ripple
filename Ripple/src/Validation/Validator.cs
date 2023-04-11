@@ -11,6 +11,7 @@ using Ripple.AST.Utils;
 using Ripple.Validation.Info;
 using Ripple.Validation.Info.Statements;
 using Raucse;
+using Ripple.Validation.Errors;
 
 namespace Ripple.Validation
 {
@@ -42,10 +43,10 @@ namespace Ripple.Validation
             List<ValidationError> errors = new List<ValidationError>();
 
             functions = functionFinder.Functions;
-            errors.AddRange(functionFinder.Errors.Select(e => new ValidationError(e.Message, e.Token)));
+            errors.AddRange(functionFinder.Errors);
 
             Dictionary<string, VariableInfo> globalVariables = globalVariableFinder.GlobalVariables;
-            errors.AddRange(globalVariableFinder.Errors.Select(e => new ValidationError(e.Message, e.Token)));
+            errors.AddRange(globalVariableFinder.Errors);
 
             ASTData data = new ASTData(primaries, functions, globalVariables, library);
             return new Pair<ASTData, List<ValidationError>>(data, errors);

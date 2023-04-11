@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,65 +16,115 @@ using System.Diagnostics;
 using Raucse.Extensions;
 using Raucse;
 using Raucse.FileManagement;
+using Ripple.Parsing.Errors;
+using Ripple.AST.Utils;
+using Ripple.Validation.Errors;
 
 namespace Ripple.Compiling
 {
-    public static class Compiler
+    public class Compiler
     {
         public const string INTERMEDIATE_FOLDER_NAME = "intermediates";
         public const string BIN_FOLDER_NAME = "bin";
         public const string CLANG_LOG_FILE_NAME = "clang-log.txt";
 
-        public static Result<List<Token>, List<CompilerError>> RunLexer(SourceData sourceFiles)
+        public const string LEXER_LOG_FILE = "lexer-debug.txt";
+        public const string PARSER_DEBUG_FILE = "parser-debug.txt";
+        public const string VALIDATOR_DEBUG_FILE = "validator-debug.txt";
+        public const string TRANSPILER_DEBUG_FILE = "transpiler-debug.txt";
+        public const string CCOMPILATION_DEBUG_FILE = "c-compilation-debug.txt";
+
+        public const string COMPILER_ALL_DEBUG_FILE = "compiler-all-debug.txt";
+
+        public readonly CompilerSettings Settings;
+
+        public Compiler(CompilerSettings settings)
         {
-            var results = sourceFiles.Files
-                .ConvertAll(f => Lexer.Scan(f.Read(), f.RelativePath))
-                .ConvertAll(lr => lr.ConvertToCompilerResult(e => new CompilerError(e)));
-
-            List<Token> tokens = new List<Token>();
-            List<CompilerError> compilerErrors = new List<CompilerError>();
-
-            foreach(var result in results)
-            {
-                result.Match(
-                    ok =>
-                    {
-                        tokens.AddRange(ok);
-                    },
-                    fail =>
-                    {
-                        compilerErrors.AddRange(fail);
-                    });
-            }
-
-            if (compilerErrors.Count > 0)
-                return compilerErrors;
-            else
-                return tokens;
+            Settings = settings;
         }
 
-        public static Result<ProgramStmt, List<CompilerError>> RunParser(SourceData sourceFiles)
+        public Compiler()
+        {
+            Settings = new CompilerSettings();
+        }
+
+        public Result<List<Token>, List<CompilerError>> RunLexer(SourceData sourceFiles)
+        {
+            ClearLogInfo(sourceFiles.StartPath);
+            return Lexer.Scan(sourceFiles).Match(
+                ok => 
+                { 
+                    if(Settings.UseDebugging && Settings.StagesFlags.Is(DebugStagesFlags.Lexing))
+                    {
+                        string data = ok.Select(t => t.ToString()).Concat("\n");
+                        LogInfo(data, sourceFiles.StartPath, DebugPhase.Lexing);
+                    }
+
+                    return ok;
+                },
+                fail => GetErrorResult<List<Token>, LexerError>(fail));
+        }
+
+        public Result<ProgramStmt, List<CompilerError>> RunParser(SourceData sourceFiles)
         {
             return RunLexer(sourceFiles).Match(
-                    ok => Parser.Parse(ok, sourceFiles.StartPath).ConvertToCompilerResult(e => new CompilerError(e)), 
+                    ok => Parser.Parse(ok, sourceFiles.StartPath).Match(
+                        ok => 
+                        {
+                            if (Settings.UseDebugging && Settings.StagesFlags.Is(DebugStagesFlags.Parsing))
+                            {
+                                StringBuilder builder = new StringBuilder();
+                                AstPrinter printer = new AstPrinter("\t", text => builder.AppendLine(text));
+                                 printer.PrintAst(ok);
+                                LogInfo(builder.ToString(), sourceFiles.StartPath, DebugPhase.Parsing);
+                            }
+
+                            return ok;
+                        },
+                        fail => GetErrorResult<ProgramStmt, ParserError>(fail)), 
                     fail => new Result<ProgramStmt, List<CompilerError>>(fail));
         }
 
-        public static Result<TypedProgramStmt, List<CompilerError>> RunValidator(SourceData sourceFiles)
+        public Result<TypedProgramStmt, List<CompilerError>> RunValidator(SourceData sourceFiles)
         {
             return RunParser(sourceFiles).Match(
-                    ok => Validator.ValidateAst(ok).ConvertToCompilerResult(e => new CompilerError(e)),
+                    ok => Validator.ValidateAst(ok).Match(
+                        ok =>
+                        {
+                            if (Settings.UseDebugging && Settings.StagesFlags.Is(DebugStagesFlags.Validation))
+                                LogInfo("Not implemented yet.", sourceFiles.StartPath, DebugPhase.Validating);
+
+                            return ok;
+                        },
+                        fail => GetErrorResult<TypedProgramStmt, ValidationError>(fail)),
                     fail => new Result<TypedProgramStmt, List<CompilerError>>(fail));
         }
 
-        public static Result<List<CFileInfo>, List<CompilerError>> RunTranspiler(SourceData sourceFiles)
+        public Result<List<CFileInfo>, List<CompilerError>> RunTranspiler(SourceData sourceFiles)
         {
             return RunValidator(sourceFiles).Match(
-                    ok => Transpiler.Transpile(ok),
+                    ok =>
+                    {
+                        List<CFileInfo> cfiles = Transpiler.Transpile(ok);
+                        if (Settings.UseDebugging && Settings.StagesFlags.Is(DebugStagesFlags.Transpiling))
+                        {
+                            StringBuilder builder = new StringBuilder();
+                            foreach (CFileInfo info in cfiles)
+                            {
+                                builder.AppendLine($"### {info.RelativePath}:");
+                                builder.AppendLine(info.Source);
+                                builder.AppendLine();
+                            }
+
+                            LogInfo(builder.ToString(), sourceFiles.StartPath, DebugPhase.Transpiling);
+                        }
+
+                        return cfiles;
+                    },
                     fail => new Result<List<CFileInfo>, List<CompilerError>>(fail));
         }
 
-        public static Result<string, List<CompilerError>> RunClangCompiler(SourceData sourceFiles)
+        public Result<string, List<CompilerError>> RunClangCompiler(SourceData sourceFiles)
         {
             return RunTranspiler(sourceFiles)
                 .Match(ok =>
@@ -94,12 +144,17 @@ namespace Ripple.Compiling
                     string logPath = $"{intermediatesDirectory}\\{CLANG_LOG_FILE_NAME}";
 
                     ClangCompilerInterface.CompileFiles(intermediatesDirectory, files, outputPath, logPath);
+
+
+                    if (Settings.UseDebugging && Settings.StagesFlags.Is(DebugStagesFlags.CCompilation))
+                        LogInfo(FileUtils.ReadFromFile(logPath).Value, sourceFiles.StartPath, DebugPhase.CCompilation);
+
                     return outputPath;
                 },
                 fail => new Result<string, List<CompilerError>>(fail));
         }
 
-        public static Result<Pair<string, int>, List<CompilerError>> CompileAndRun(SourceData source, params string[] args)
+        public Result<Pair<string, int>, List<CompilerError>> CompileAndRun(SourceData source, params string[] args)
         {
             return RunClangCompiler(source).Match(
                 ok =>
@@ -111,11 +166,68 @@ namespace Ripple.Compiling
                 fail => new Result<Pair<string, int>, List<CompilerError>>(fail));
         }
 
-        private static Result<TSuccess, List<CompilerError>> ConvertToCompilerResult<TSuccess, TError>(this Result<TSuccess, List<TError>> self, Converter<TError, CompilerError> converter)
+        private void LogInfo(string logData, string startPath, DebugPhase phase)
         {
-            return self.Match(
-                ok   => new Result<TSuccess, List<CompilerError>>(ok),
-                fail => fail.ConvertAll(converter));
+            if(Settings.UseSameFile)
+            {
+                string previous = FileUtils.ReadFromFile(GetSinglePath(startPath)).MatchOrEmpty();
+                previous += $"{phase}:\n";
+                previous += logData;
+                previous += "\n\n";
+                FileUtils.WriteToFile(GetSinglePath(startPath), previous);
+            }
+            else
+            {
+                FileUtils.WriteToFile(GetDebugFilePath(phase, startPath), logData);
+            }
+        }
+
+        private void ClearLogInfo(string startPath)
+        {
+            if(Settings.UseSameFile)
+            {
+                FileUtils.WriteToFile(GetSinglePath(startPath), string.Empty);
+            }
+            else
+            {
+                FileUtils.WriteToFile(GetDebugFilePath(DebugPhase.Lexing, startPath), string.Empty);
+                FileUtils.WriteToFile(GetDebugFilePath(DebugPhase.Parsing, startPath), string.Empty);
+                FileUtils.WriteToFile(GetDebugFilePath(DebugPhase.Validating, startPath), string.Empty);
+                FileUtils.WriteToFile(GetDebugFilePath(DebugPhase.Transpiling, startPath), string.Empty);
+                FileUtils.WriteToFile(GetDebugFilePath(DebugPhase.CCompilation, startPath), string.Empty);
+            }
+        }
+
+        private string GetSinglePath(string startPath)
+        {
+            return $"{startPath}\\{Settings.OutputRelativePath}\\{COMPILER_ALL_DEBUG_FILE}";
+        }
+
+        private string GetDebugFilePath(DebugPhase phase, string startPath)
+        {
+            return phase switch
+            {
+                DebugPhase.Lexing =>        $"{startPath}\\{Settings.OutputRelativePath}\\{LEXER_LOG_FILE}",
+                DebugPhase.Parsing =>       $"{startPath}\\{Settings.OutputRelativePath}\\{PARSER_DEBUG_FILE}",
+                DebugPhase.Validating =>    $"{startPath}\\{Settings.OutputRelativePath}\\{VALIDATOR_DEBUG_FILE}",
+                DebugPhase.Transpiling =>   $"{startPath}\\{Settings.OutputRelativePath}\\{TRANSPILER_DEBUG_FILE}",
+                DebugPhase.CCompilation =>  $"{startPath}\\{Settings.OutputRelativePath}\\{CCOMPILATION_DEBUG_FILE}",
+                _ => throw new NotImplementedException(),
+            };
+        }
+
+        private static Result<T, List<CompilerError>> GetErrorResult<T, E>(List<E> errors) where E : CompilerError
+        {
+            return new Result<T, List<CompilerError>>(errors.Cast<CompilerError>().ToList());
+        }
+
+        private enum DebugPhase
+        {
+            Lexing,
+            Parsing,
+            Validating,
+            Transpiling,
+            CCompilation,
         }
     }
 }

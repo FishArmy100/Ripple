@@ -18,7 +18,7 @@ namespace Ripple.Compiling
         {
             RelativePath = relativePath;
             StartPath = startPath;
-            Name = Path.GetFileName(StartPath + RelativePath);
+            Name = Path.GetFileName(StartPath + "\\" + RelativePath);
         }
 
         public string Read() => File.ReadAllText(FullPath);

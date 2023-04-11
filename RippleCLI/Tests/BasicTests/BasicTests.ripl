@@ -1,5 +1,5 @@
 ﻿
-extern "C" func print(char* fmt) -> void; 
+extern "C" func printf(char* fmt) -> void; 
 
 func ArrayTesting() -> void
 {
@@ -15,7 +15,7 @@ unsafe func PointerTesting() -> void
 	float* ptr2 = ptr1 as float*;
 
 	float& f1 = ptr2 as float&;
-	float* f2 = f1 as float&;
+	float* f2 = f1 as float*;
 
 	int[2] arr = { 1, 2 };
 	int* first = &arr[0] as int*;
@@ -38,13 +38,6 @@ func Add<'a, 'b>(int&'a a, int&'b b) -> int
 	return *a + *b;
 }
 
-// Commented out
-//func FunctionPointerTesting() -> void
-//{
-//	  func<'a, 'b>(int&'a, int&'b)->int func_ptr = Add<'a, 'b>;
-//	  int sum = func_ptr(&5, &5);
-//}
-
 func BasicOperatorTests() -> void
 {
 	int i1 = 1;
@@ -64,8 +57,8 @@ func BasicOperatorTests() -> void
 	bool b3 = i1 > i2 || i2 < i1 && i3 == i2 || i1 != i2;
 }
 
-func CStringTests() -> void
+unsafe func CStringTests() -> void
 {
-	char* string = "Hello World!";
+	char* string = c"Hello World!";
 	printf(string);
 }

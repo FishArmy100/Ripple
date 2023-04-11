@@ -4,22 +4,40 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Raucse.Extensions;
+using Raucse;
+using Ripple.Core;
 
 namespace Ripple.Lexing
 {
     public struct Token
     {
-        public readonly string Text;
+        public readonly Option<object> Value;
+        public readonly SourceLocation Location;
         public readonly TokenType Type;
-        public readonly int Line;
-        public readonly int Column;
+        public readonly bool HasSpaceAfter;
 
-        public Token(string text, TokenType type, int line, int column)
+        public Token(Option<object> value, SourceLocation location, TokenType type, bool hasSpaceAfter)
         {
-            Text = text;
+            Value = value;
+            Location = location;
             Type = type;
-            Line = line;
-            Column = column;
+            HasSpaceAfter = hasSpaceAfter;
+        }
+
+        public string Text
+        {
+            get
+            {
+                if(Type.IsType(TokenType.Identifier, TokenType.Lifetime, 
+                               TokenType.IntagerLiteral, TokenType.FloatLiteral, 
+                               TokenType.CharactorLiteral, TokenType.CStringLiteral, 
+                               TokenType.EOF, TokenType.StringLiteral))
+                {
+                    return Value.Value.ToString();
+                }
+
+                return Type.ToPrettyString();
+            }
         }
 
         public bool IsType(params TokenType[] tokenTypes)
@@ -29,22 +47,17 @@ namespace Ripple.Lexing
 
         public override string ToString()
         {
-            return Text;
-        }
-
-        public string ToPrettyString()
-        {
-            if(Type.IsType(TokenType.Identifier, TokenType.CharactorLiteral, TokenType.StringLiteral, TokenType.CStringLiteral, TokenType.IntagerLiteral, TokenType.FloatLiteral))
-                return "[" + Type.ToString() + ": " + Text + ": " + Line + ", " + Column + "]";
+            if (Type.IsType(TokenType.Identifier, TokenType.Lifetime,
+                            TokenType.IntagerLiteral, TokenType.FloatLiteral,
+                            TokenType.CharactorLiteral, TokenType.CStringLiteral,
+                            TokenType.EOF, TokenType.StringLiteral))
+            {
+                return $"[{Type}{Value.Match(ok => ": " + ok, () => "")}]";
+            }
             else
-                return "[" + Type.ToString() + ": " + Line + ", " + Column + "]";
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is Token other &&
-                other.Type == Type &&
-                other.Text == Text;
+            {
+                return $"[{Type}]";
+            }
         }
 
         public bool StrictEquals(Token token)
@@ -52,9 +65,26 @@ namespace Ripple.Lexing
             return base.Equals(token);
         }
 
+        public override bool Equals(object obj)
+        {
+            return obj is Token token &&
+                   EqualityComparer<Option<object>>.Default.Equals(Value, token.Value) &&
+                   Type == token.Type;
+        }
+
         public override int GetHashCode()
         {
-            return HashCode.Combine(Type, Text);
+            return HashCode.Combine(Value, Type);
+        }
+
+        public static bool operator ==(Token left, Token right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Token left, Token right)
+        {
+            return !(left == right);
         }
     }
 }

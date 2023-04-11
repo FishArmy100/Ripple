@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Raucse.Extensions;
 
 namespace Ripple.Lexing
 {
@@ -46,6 +47,9 @@ namespace Ripple.Lexing
 
         public bool Match(params char[] cs)
         {
+            if (IsAtEnd())
+                return false;
+
             if(cs.Contains(Current()))
             {
                 Advance();
@@ -53,6 +57,24 @@ namespace Ripple.Lexing
             }
 
             return false;
+        }
+
+        public bool CheckSequence(params char[] cs)
+        {
+            for(int i = 0; i < cs.Length; i++)
+            {
+                if(Peek(i) is char c)
+                {
+                    if (c != cs[i])
+                        return false;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public bool IsAtEnd() { return Index >= Src.Length; }

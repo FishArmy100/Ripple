@@ -1,26 +1,22 @@
 ﻿using System;
 using Ripple.Lexing;
 using System.Collections.Generic;
+using Ripple.Validation.Errors;
 
 namespace Ripple.Validation.Info
 {
     class ExpressionCheckerException : Exception
     {
-        public readonly IReadOnlyList<ASTInfoError> Errors;
+        public readonly IReadOnlyList<ValidationError> Errors;
 
-        public ExpressionCheckerException(IReadOnlyList<ASTInfoError> errors)
+        public ExpressionCheckerException(IReadOnlyList<ValidationError> errors)
         {
             Errors = errors;
         }
 
-        public ExpressionCheckerException(ASTInfoError error)
+        public ExpressionCheckerException(ValidationError error)
         {
-            Errors = new List<ASTInfoError> { error };
-        }
-
-        public ExpressionCheckerException(string message, Token errorToken)
-        {
-            Errors = new List<ASTInfoError> { new ASTInfoError(message, errorToken) };
+            Errors = new List<ValidationError> { error };
         }
     }
 }

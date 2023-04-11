@@ -12,6 +12,8 @@ using Ripple.Utils;
 using Ripple.AST.Utils;
 using Raucse;
 using Raucse.Extensions;
+using Ripple.Validation.Errors;
+using Ripple.Core;
 
 namespace Ripple.Validation.Info
 {
@@ -43,7 +45,7 @@ namespace Ripple.Validation.Info
 		{
             return ExpressionChecker.CheckExpression(exprStmt.Expr, m_ASTData, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList()).Match(
                 ok => new Result<TypedStatement, List<ValidationError>>(new TypedExprStmt(ok.Second)),
-                fail => fail.Select(e => new ValidationError(e.Message, e.Token)).ToList());
+                fail => fail);
         }
 
 		public Result<TypedStatement, List<ValidationError>> VisitBlockStmt(BlockStmt blockStmt)
@@ -116,7 +118,7 @@ namespace Ripple.Validation.Info
                 return ExpressionChecker.CheckExpression(ok, m_ASTData, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList())
                     .Match(
                         ok => new Result<TypedExpression, List<ValidationError>>(ok.Second), 
-                        fail => new Result<TypedExpression, List<ValidationError>>(fail.Select(e => new ValidationError(e.Message, e.Token)).ToList()));
+                        fail => new Result<TypedExpression, List<ValidationError>>(fail));
                 
             }, () => new Option<Result<TypedExpression, List<ValidationError>>>());
 
@@ -191,7 +193,8 @@ namespace Ripple.Validation.Info
                 {
                     if (!ok.First.Type.EqualsWithoutFirstMutable(m_CurrentReturnType))
                     {
-                        return CreateError("Cannot return value of type '" + ok.First.Type + "' from a function that returns '" + m_CurrentReturnType + "'.", returnStmt.ReturnTok);
+                        SourceLocation location = returnStmt.ReturnTok.Location + returnStmt.Expr.Value.GetLocation() + returnStmt.SemiColin.Location;
+                        return CreateError<TypedStatement>(new InvalidReturnTypeError(location, ok.First.Type, m_CurrentReturnType));
                     }
 
                     TypedReturnStmt typedReturn = new TypedReturnStmt(ok.Second);
@@ -199,14 +202,14 @@ namespace Ripple.Validation.Info
                 },
                 fail =>
                 {
-                    return fail.ConvertAll(e => new ValidationError(e.Message, e.Token));
+                    return fail;
                 });
             },
             () =>
             {
                 if (!m_CurrentReturnType.Equals(RipplePrimitives.Void))
                 {
-                    return CreateError("Cannot return a expression from a void function.", returnStmt.ReturnTok);
+                    return CreateError<TypedStatement>(new InvalidReturnTypeError(returnStmt.ReturnTok.Location + returnStmt.SemiColin.Location, RipplePrimitives.Void, m_CurrentReturnType));
                 }
 
                 TypedReturnStmt success = new TypedReturnStmt(new Option<TypedExpression>());
@@ -218,7 +221,7 @@ namespace Ripple.Validation.Info
 		{
             if (!IsInLoop())
             {
-                return CreateError("Continue statement must be in the context of a for or while loop.", continueStmt.ContinueToken);
+                return CreateError<TypedStatement>(new ContinueStatementError(continueStmt.ContinueToken.Location));
             }
 
             return new TypedContinueStmt();
@@ -228,7 +231,7 @@ namespace Ripple.Validation.Info
 		{
 			if(!IsInLoop())
             {
-                return CreateError("Break statement must be in the context of a for or while loop.", breakStmt.BreakToken);
+                return CreateError<TypedStatement>(new BreakStatementError(breakStmt.BreakToken.Location));
             }
 
             return new TypedBreakStmt();
@@ -302,7 +305,7 @@ namespace Ripple.Validation.Info
                 {
                     Option<string> file = m_Linker.TryGetHeader(ok);
                     if (!file.HasValue())
-                        return CreateError("No external function of type " + ok.FunctionType.ToPrettyString() + " exists.", externalFuncDecl.Name);
+                        return CreateError<TypedStatement>(new ExternFunctionLinkerError(ok.NameToken.Location, ok.Name, ok.FunctionType));
 
                     return new Result<TypedStatement, List<ValidationError>>(new TypedExternalFuncDecl(ok, file.Value));
                 },
@@ -339,7 +342,7 @@ namespace Ripple.Validation.Info
                     fail => new Result<TypedStatement, List<ValidationError>>(fail));
 		}
 
-        private Result<TypedStatement, List<ValidationError>> FromVarDecl(Result<Pair<List<VariableInfo>, TypedExpression>, List<ASTInfoError>> result)
+        private Result<TypedStatement, List<ValidationError>> FromVarDecl(Result<Pair<List<VariableInfo>, TypedExpression>, List<ValidationError>> result)
         {
             return result.Match(ok =>
             {
@@ -348,7 +351,7 @@ namespace Ripple.Validation.Info
                 {
                     if (!m_VariableStack.TryAddVariable(variable))
                     {
-                        ValidationError error = new ValidationError("Variable '" + variable.Name + "' has already been defined.", variable.NameToken);
+                        ValidationError error = new DefinitionError.Variable(variable.NameToken.Location, true, variable.Name);
                         errors.Add(error);
                     }
                 }
@@ -366,7 +369,7 @@ namespace Ripple.Validation.Info
             },
             fail =>
             {
-                return fail.ConvertAll(e => new ValidationError(e.Message, e.Token)).ToList();
+                return fail;
             });
         }
 
@@ -382,9 +385,9 @@ namespace Ripple.Validation.Info
             {
                 if (ok.First.Type.EqualsWithoutFirstMutable(RipplePrimitives.Bool))
                     return new Result<TypedExpression, List<ValidationError>>(ok.Second);
-                return CreateError("Conditional expression must evaluate to a bool.", errorToken);
+                return CreateError<TypedExpression>(new ConditionalValueError(errorToken.Location));
             },
-            fail => fail.Select(e => new ValidationError(e.Message, e.Token)).ToList());
+            fail => fail);
         }
 
         private Result<TypedBlockStmt, List<ValidationError>> UpdateFunctionData(FuncDecl decl)
@@ -421,7 +424,7 @@ namespace Ripple.Validation.Info
 
             if (!m_CurrentReturnType.Equals(RipplePrimitives.Void) && !m_BlocksReturn.Peek().Any(v => v))
             {
-                return CreateError("Not all code paths return a value.", decl.FuncTok);
+                return CreateError<TypedBlockStmt>(new NotAllCodePathsReturnAValueError(decl.FuncTok.Location));
             }
             m_BlocksReturn.Pop();
 
@@ -455,9 +458,9 @@ namespace Ripple.Validation.Info
             m_IsUnsafe = oldUnsafe;
         }
 
-        private List<ValidationError> CreateError(string text, Token token)
-		{
-            return new List<ValidationError> { new ValidationError(text, token) };
-		}
+        private Result<T, List<ValidationError>> CreateError<T>(ValidationError error)
+        {
+            return new Result<T, List<ValidationError>>(new List<ValidationError> { error });
+        }
     }
 }

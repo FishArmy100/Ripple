@@ -9,6 +9,7 @@ using Raucse.FileManagement;
 using Ripple.AST.Utils;
 using Raucse;
 using Ripple.Core;
+using System.Linq;
 
 namespace RippleCLI
 {
@@ -152,77 +153,85 @@ namespace RippleCLI
                 return;
             }
 
+            Compiler compiler = GetCompiler();
             switch (CurrentMode)
             {
                 case CompilerMode.Lexing:
-                    var lexerResult = Compiler.RunLexer(sourceFiles);
+                    var lexerResult = compiler.RunLexer(sourceFiles);
                     lexerResult.Match(
                         ok =>
                         {
-                            foreach (Token token in ok)
-                                Console.WriteLine(token.ToPrettyString());
+                            if (compiler.Settings.UseDebugging)
+                                return;
+
+                            foreach (Token t in ok)
+                                Console.WriteLine(t.ToString());
                         },
                         fail =>
                         {
-                            foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteError(compilerError.ToString());
+                            PrintErrors(fail);
                         });
                     break;
                 case CompilerMode.Parsing:
-                    var parserResult = Compiler.RunParser(sourceFiles);
+                    var parserResult = compiler.RunParser(sourceFiles);
                     parserResult.Match(
                         ok =>
                         {
+                            if (compiler.Settings.UseDebugging)
+                                return;
+
                             AstPrinter printer = new AstPrinter("   ");
                             printer.PrintAst(ok);
                         },
                         fail =>
                         {
-                            foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteError(compilerError.ToString());
+                            PrintErrors(fail);
                         });
                     break;
                 case CompilerMode.Validating:
-                    var validationResult = Compiler.RunValidator(sourceFiles);
+                    var validationResult = compiler.RunValidator(sourceFiles);
                     validationResult.Match(
                         ok =>
                         {
+                            if (compiler.Settings.UseDebugging)
+                                return;
+
                             AstPrinter printer = new AstPrinter("   ");
                             ConsoleHelper.WriteLine("Validated successfully!");
                         },
                         fail =>
                         {
-                            foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteError(compilerError.ToString());
+                            PrintErrors(fail);
                         });
                     break;
                 case CompilerMode.Transpiling:
-                    var transpilingResult = Compiler.RunTranspiler(sourceFiles);
+                    var transpilingResult = compiler.RunTranspiler(sourceFiles);
                     transpilingResult.Match(
                         ok =>
                         {
+                            if (compiler.Settings.UseDebugging)
+                                return;
+
                             ConsoleHelper.WriteLine("C Source:");
                             foreach (var file in ok)
                                 Console.WriteLine("Relative path: " + file.RelativePath);
                         },
                         fail => 
                         {
-                            foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteError(compilerError.ToString());
+                            PrintErrors(fail);
                         });
                     break;
                 case CompilerMode.Compiling:
-                    var result = Compiler.RunClangCompiler(sourceFiles);
+                    var result = compiler.RunClangCompiler(sourceFiles);
                     result.Match(
                         ok => { },
                         fail =>
                         {
-                            foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteError(compilerError.ToString());
+                            PrintErrors(fail);
                         });
                     break;
                 case CompilerMode.Running:
-                    var runningResult = Compiler.CompileAndRun(sourceFiles);
+                    var runningResult = compiler.CompileAndRun(sourceFiles);
                     runningResult.Match(
                         ok => 
                         {
@@ -231,10 +240,17 @@ namespace RippleCLI
                         },
                         fail =>
                         {
-                            foreach (CompilerError compilerError in fail)
-                                ConsoleHelper.WriteError(compilerError.ToString());
+                            PrintErrors(fail);
                         });
                     break;
+            }
+        }
+
+        private static void PrintErrors(IEnumerable<CompilerError> errors)
+        {
+            foreach(string error in CompilerErrorFormatter.Format(errors))
+            {
+                ConsoleHelper.WriteError(error);
             }
         }
 
@@ -243,6 +259,16 @@ namespace RippleCLI
             SourceData.FromPath(CurrentPath).Match(
                 ok => CompileSource(ok),
                 () => ConsoleHelper.WriteError("Invalid current path, please select a new path"));
+        }
+
+        private static Compiler GetCompiler()
+        {
+            CompilerSettings settings = new CompilerSettings();
+            settings.StagesFlags = DebugStagesFlags.All;
+            settings.UseDebugging = true;
+            settings.UseSameFile = true;
+
+            return new Compiler(settings);
         }
 
         private void Close()

@@ -52,7 +52,7 @@ namespace Ripple.Compiling
                 .Where(p => Path.GetExtension(p) == Core.FileExtensions.RippleFileExtension)
                 .Select(p => p.Remove(0, StartPath.Length + 1))
                 .ToList();
-            
+
             var subFiles = Directory.GetDirectories(path)
                 .Select(p => GetAllFiles(path))
                 .SelectMany(p => p);
