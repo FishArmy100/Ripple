@@ -10,12 +10,10 @@ namespace Ripple.AST
 {
 	public class BasicType : TypeName
 	{
-		public readonly Token? MutToken;
 		public readonly Token Identifier;
 
-		public BasicType(Token? mutToken, Token identifier)
+		public BasicType(Token identifier)
 		{
-			this.MutToken = mutToken;
 			this.Identifier = identifier;
 		}
 
@@ -43,7 +41,7 @@ namespace Ripple.AST
 		{
 			if(other is BasicType basicType)
 			{
-				return MutToken.Equals(basicType.MutToken) && Identifier.Equals(basicType.Identifier);
+				return Identifier.Equals(basicType.Identifier);
 			}
 			return false;
 		}
@@ -51,7 +49,6 @@ namespace Ripple.AST
 		public override int GetHashCode()
 		{
 			HashCode code = new HashCode();
-			code.Add(MutToken);
 			code.Add(Identifier);
 			return code.ToHashCode();
 		}

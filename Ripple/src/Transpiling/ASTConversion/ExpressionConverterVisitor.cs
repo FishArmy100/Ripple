@@ -44,7 +44,7 @@ namespace Ripple.Transpiling.ASTConversion
         public ExpressionConversionResult VisitTypedCall(TypedCall typedCall)
         {
             var callee = typedCall.Callee.Accept(this);
-            var args = typedCall.Arguments.Select(a => a.Accept(this));
+            var args = typedCall.Arguments.Select(a => a.Accept(this)).ToList(); // Need ToList
 
             List<CVarDecl> varDecls = callee.GeneratedVariables.ToList();
             varDecls.AddRange(args.Select(a => a.GeneratedVariables).SelectMany(v => v));

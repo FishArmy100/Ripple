@@ -21,22 +21,24 @@ namespace Ripple.Validation.Info
         public readonly TypeInfo Type;
         public readonly bool IsUnsafe;
         public readonly LifetimeInfo Lifetime;
+        public readonly bool IsMutable;
 
         public bool IsGlobal => Lifetime.Equals(LifetimeInfo.Static);
 
-        private VariableInfo(Token nameToken, TypeInfo type, bool isUnsafe, LifetimeInfo lifetime)
+        private VariableInfo(Token nameToken, TypeInfo type, bool isUnsafe, LifetimeInfo lifetime, bool isMutable)
         {
             NameToken = nameToken;
             Type = type;
             IsUnsafe = isUnsafe;
             Lifetime = lifetime;
+            IsMutable = isMutable;
         }
 
         public static Result<VariableInfo, List<ValidationError>> FromFunctionParameter(TypeName type, Token name, LifetimeInfo lifetime, IReadOnlyList<string> primaries, List<string> lifetimes, SafetyContext safetyContext)
         {
             return TypeInfoUtils.FromASTType(type, primaries, lifetimes, safetyContext, true).Match(ok =>
             {
-                VariableInfo info = new VariableInfo(name, ok, !safetyContext.IsSafe, lifetime);
+                VariableInfo info = new VariableInfo(name, ok, !safetyContext.IsSafe, lifetime, false);
                 return new Result<VariableInfo, List<ValidationError>>(info);
             },
             fail =>
@@ -58,7 +60,7 @@ namespace Ripple.Validation.Info
             return expressionResult.Match(ok =>
             {
                 TypeInfo type = ok.First.Type;
-                if (!type.SetFirstMutable(false).IsEquatableTo(result.Value.SetFirstMutable(false)))
+                if (!type.IsEquatableTo(result.Value))
                 {
                     string varTypeName = TypeNamePrinter.PrintType(varDecl.Type);
                     SourceLocation location = varDecl.Type.GetLocation() + varDecl.VarNames.Select(v => v.Location).Sum();
@@ -68,7 +70,7 @@ namespace Ripple.Validation.Info
 
                 List<VariableInfo> vars = varDecl.VarNames.ConvertAll(n =>
                 {
-                    return new VariableInfo(n, type, !safetyContext.IsSafe, lifetime);
+                    return new VariableInfo(n, type, !safetyContext.IsSafe, lifetime, varDecl.MutToken.HasValue);
                 });
 
                 var pair = new Pair<List<VariableInfo>, TypedExpression>(vars, ok.Second);
@@ -84,7 +86,8 @@ namespace Ripple.Validation.Info
         {
             try
             {
-                return expression.Accept(visitor, expected);
+                Option<ExpectedValue> expectedVal = expected.MatchOrConstruct(e => new Option<ExpectedValue>(new ExpectedValue(e, false)));
+                return expression.Accept(visitor, expectedVal);
             }
             catch (ExpressionCheckerException e)
             {

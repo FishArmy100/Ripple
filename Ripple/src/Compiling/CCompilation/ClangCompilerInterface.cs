@@ -12,7 +12,7 @@ namespace Ripple.Compiling.CCompilation
 {
     static class ClangCompilerInterface
     {
-        public static void CompileFiles(string workingDir, IEnumerable<string> files, string outputPath, string debugPath)
+        public static bool CompileFiles(string workingDir, IEnumerable<string> files, string outputPath, string debugPath)
         {
             Process process = new Process();
             ProcessStartInfo startInfo = new ProcessStartInfo();
@@ -24,6 +24,8 @@ namespace Ripple.Compiling.CCompilation
             process.StartInfo = startInfo;
             process.Start();
             process.WaitForExit();
+
+            return process.ExitCode == 0;
         }
 
         public static Option<string> GetC_AST(string dir)

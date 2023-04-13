@@ -21,18 +21,13 @@ namespace Ripple.AST.Utils
             public string VisitArrayType(ArrayType arrayType)
             {
                 string str = arrayType.BaseType.Accept(this);
-                if (arrayType.MutToken is Token t)
-                    str += " " + t.Text;
                 str += "[" + arrayType.Size.Text + "]";
                 return str;
             }
 
             public string VisitBasicType(BasicType basicType)
             {
-                string str = "";
-                if (basicType.MutToken is Token)
-                    str += "mut ";
-                return str += basicType.Identifier.Text;
+                return basicType.Identifier.Text;
             }
 
             public string VisitFuncPtr(FuncPtr funcPtr)

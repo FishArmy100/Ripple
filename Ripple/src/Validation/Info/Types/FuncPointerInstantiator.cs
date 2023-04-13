@@ -31,12 +31,12 @@ namespace Ripple.Validation.Info.Types
 
 			public TypeInfo VisitArrayInfo(ArrayInfo arrayInfo)
 			{
-				return new ArrayInfo(arrayInfo.IsMutable, arrayInfo.Contained.Accept(this), arrayInfo.Size);
+				return new ArrayInfo(arrayInfo.Contained.Accept(this), arrayInfo.Size);
 			}
 
 			public TypeInfo VisitBasicTypeInfo(BasicTypeInfo basicTypeInfo)
 			{
-				return new BasicTypeInfo(basicTypeInfo.IsMutable, basicTypeInfo.Name);
+				return new BasicTypeInfo(basicTypeInfo.Name);
 			}
 
 			public TypeInfo VisitFuncPtrInfo(FuncPtrInfo funcPtrInfo)
@@ -48,7 +48,7 @@ namespace Ripple.Validation.Info.Types
 						.ToList();
 
 					TypeInfo returned = funcPtrInfo.Returned.Accept(this);
-					return new FuncPtrInfo(funcPtrInfo.IsMutable, -1, -1, parameters, returned); // shhhhh 
+					return new FuncPtrInfo(-1, -1, parameters, returned); // shhhhh 
 				}
 				else
 				{
@@ -57,7 +57,7 @@ namespace Ripple.Validation.Info.Types
 						.ToList();
 
 					TypeInfo returned = funcPtrInfo.Returned.Accept(this);
-					return new FuncPtrInfo(funcPtrInfo.IsMutable, funcPtrInfo.FunctionIndex, funcPtrInfo.LifetimeCount, parameters, returned);
+					return new FuncPtrInfo(funcPtrInfo.FunctionIndex, funcPtrInfo.LifetimeCount, parameters, returned);
 				}
 			}
 

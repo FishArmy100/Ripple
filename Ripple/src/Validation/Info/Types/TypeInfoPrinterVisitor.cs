@@ -12,12 +12,12 @@ namespace Ripple.Validation.Info.Types
     {
         public string VisitArrayInfo(ArrayInfo arrayInfo)
         {
-            return arrayInfo.Contained.Accept(this) + AppendMutablePostfix(arrayInfo.IsMutable, "[" + arrayInfo.Size + "]");
+            return arrayInfo.Contained.Accept(this) + "[" + arrayInfo.Size + "]";
         }
 
         public string VisitBasicTypeInfo(BasicTypeInfo basicTypeInfo)
         {
-            return AppendMutablePrefix(basicTypeInfo.IsMutable, basicTypeInfo.Name);
+            return basicTypeInfo.Name;
         }
 
         public string VisitFuncPtrInfo(FuncPtrInfo funcPtrInfo)
@@ -28,7 +28,7 @@ namespace Ripple.Validation.Info.Types
                 ") -> " + 
                 funcPtrInfo.Returned.Accept(this);
 
-            return AppendMutablePrefix(funcPtrInfo.IsMutable, signature);
+            return signature;
         }
 
         public string VisitPointerInfo(PointerInfo pointerInfo)

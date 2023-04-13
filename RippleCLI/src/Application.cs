@@ -212,9 +212,18 @@ namespace RippleCLI
                             if (compiler.Settings.UseDebugging)
                                 return;
 
-                            ConsoleHelper.WriteLine("C Source:");
-                            foreach (var file in ok)
-                                Console.WriteLine("Relative path: " + file.RelativePath);
+                            StringMaker maker = new StringMaker();
+                            maker.AppendLine("Files:");
+                            maker.TabIn();
+                            foreach(var file in ok)
+                            {
+                                maker.AppendLine(file.RelativePath);
+                                maker.TabIn();
+                                maker.AppendLines(file.Source.Split('\n'));
+                                maker.TabOut();
+                            }
+                            maker.TabOut();
+                            ConsoleHelper.WriteLine(maker.ToString());
                         },
                         fail => 
                         {
@@ -263,10 +272,12 @@ namespace RippleCLI
 
         private static Compiler GetCompiler()
         {
-            CompilerSettings settings = new CompilerSettings();
-            settings.StagesFlags = DebugStagesFlags.All;
-            settings.UseDebugging = true;
-            settings.UseSameFile = true;
+            CompilerSettings settings = new CompilerSettings 
+            {
+                StagesFlags = DebugStagesFlags.All,
+                UseDebugging = false,
+                UseSameFile = true
+            };
 
             return new Compiler(settings);
         }

@@ -125,7 +125,7 @@ namespace Ripple.Parsing
             Token funcName = reader.Consume(TokenType.Identifier);
             Parameters parameters = ParseParameters(ref reader);
             Token arrow = reader.Consume(TokenType.RightThinArrow);
-            TypeName returnType = TypeNameHelper.ParseTypeName(ref reader);
+            TypeName returnType = TypeNameParser.ParseTypeName(ref reader);
             Token semiColon = reader.Consume(TokenType.SemiColon);
 
             externalFuncDecl = new ExternalFuncDecl(externToken, stringLit, funkToken, funcName, parameters, arrow, returnType, semiColon);
@@ -349,6 +349,7 @@ namespace Ripple.Parsing
 
             Token? unsafeToken = reader.TryMatch(TokenType.Unsafe);
             TypeName type = ParseTypeName(ref reader);
+            Token? mutToken = reader.TryMatch(TokenType.Mut);
             List<Token> varNames = new List<Token>();
             varNames.Add(reader.Advance());
 
@@ -362,7 +363,7 @@ namespace Ripple.Parsing
             Expression expr = ParseExpression(ref reader);
             Token semiColon = reader.Consume(TokenType.SemiColon);
 
-            statement = new VarDecl(unsafeToken, type, varNames, equel, expr, semiColon);
+            statement = new VarDecl(unsafeToken, type, mutToken, varNames, equel, expr, semiColon);
             return true;
         }
 
@@ -371,7 +372,7 @@ namespace Ripple.Parsing
             if(IsTypeName(ref reader, out int length, beginOffset))
             {
                 return reader.Peek(length + beginOffset) is Token t && 
-                       t.Type.IsIdentifier();
+                       (t.Type.IsType(TokenType.Identifier, TokenType.Mut));
             }
 
             return false;
@@ -439,7 +440,7 @@ namespace Ripple.Parsing
             while(reader.Match(TokenType.As))
             {
                 Token asToken = reader.Previous();
-                TypeName typeName = TypeNameHelper.ParseTypeName(ref reader);
+                TypeName typeName = TypeNameParser.ParseTypeName(ref reader);
                 expression = new Cast(expression, asToken, typeName);
             }
 
@@ -613,7 +614,7 @@ namespace Ripple.Parsing
             {
                 Token sizeOfToken = reader.Previous();
                 Token lessThan = reader.Consume(TokenType.LessThan);
-                TypeName typeName = TypeNameHelper.ParseTypeName(ref reader);
+                TypeName typeName = TypeNameParser.ParseTypeName(ref reader);
                 Token greaterThan = reader.Consume(TokenType.GreaterThan);
                 Token openParen = reader.Consume(TokenType.OpenParen);
                 Token closeParen = reader.Consume(TokenType.CloseParen);
@@ -664,12 +665,12 @@ namespace Ripple.Parsing
 
         private static TypeName ParseTypeName(ref TokenReader reader)
         {
-            return TypeNameHelper.ParseTypeName(ref reader);
+            return TypeNameParser.ParseTypeName(ref reader);
         }
 
         private static bool IsTypeName(ref TokenReader reader, out int length, int beginOffset = 0)
         {
-            return TypeNameHelper.IsTypeName(ref reader, out length, beginOffset);
+            return TypeNameParser.IsTypeName(ref reader, out length, beginOffset);
         }
     }
 }

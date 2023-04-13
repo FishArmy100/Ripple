@@ -13,13 +13,11 @@ namespace Ripple.Validation.Info.Types
 {
 	public class ArrayInfo : TypeInfo
 	{
-		public readonly bool IsMutable;
 		public readonly TypeInfo Contained;
 		public readonly int Size;
 
-		public ArrayInfo(bool isMutable, TypeInfo contained, int size)
+		public ArrayInfo(TypeInfo contained, int size)
 		{
-			this.IsMutable = isMutable;
 			this.Contained = contained;
 			this.Size = size;
 		}
@@ -48,7 +46,7 @@ namespace Ripple.Validation.Info.Types
 		{
 			if(other is ArrayInfo arrayInfo)
 			{
-				return IsMutable.Equals(arrayInfo.IsMutable) && Contained.Equals(arrayInfo.Contained) && Size.Equals(arrayInfo.Size);
+				return Contained.Equals(arrayInfo.Contained) && Size.Equals(arrayInfo.Size);
 			}
 			return false;
 		}
@@ -56,7 +54,6 @@ namespace Ripple.Validation.Info.Types
 		public override int GetHashCode()
 		{
 			HashCode code = new HashCode();
-			code.Add(IsMutable);
 			code.Add(Contained);
 			code.Add(Size);
 			return code.ToHashCode();
