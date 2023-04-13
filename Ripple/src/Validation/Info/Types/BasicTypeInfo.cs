@@ -13,12 +13,10 @@ namespace Ripple.Validation.Info.Types
 {
 	public class BasicTypeInfo : TypeInfo
 	{
-		public readonly bool IsMutable;
 		public readonly string Name;
 
-		public BasicTypeInfo(bool isMutable, string name)
+		public BasicTypeInfo(string name)
 		{
-			this.IsMutable = isMutable;
 			this.Name = name;
 		}
 
@@ -46,7 +44,7 @@ namespace Ripple.Validation.Info.Types
 		{
 			if(other is BasicTypeInfo basicTypeInfo)
 			{
-				return IsMutable.Equals(basicTypeInfo.IsMutable) && Name.Equals(basicTypeInfo.Name);
+				return Name.Equals(basicTypeInfo.Name);
 			}
 			return false;
 		}
@@ -54,7 +52,6 @@ namespace Ripple.Validation.Info.Types
 		public override int GetHashCode()
 		{
 			HashCode code = new HashCode();
-			code.Add(IsMutable);
 			code.Add(Name);
 			return code.ToHashCode();
 		}

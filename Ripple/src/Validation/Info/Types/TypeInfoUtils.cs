@@ -13,50 +13,19 @@ namespace Ripple.Validation.Info.Types
 {
     static class TypeInfoUtils
     {
-        public static TypeInfo SetFirstMutable(this TypeInfo typeInfo, bool isMutable)
-        {
-            return typeInfo switch
-            {
-                BasicTypeInfo   b => new BasicTypeInfo(isMutable, b.Name),
-                ReferenceInfo   r => new ReferenceInfo(isMutable, r.Contained, r.Lifetime),
-                PointerInfo     p => new PointerInfo(isMutable, p.Contained),
-                ArrayInfo       a => new ArrayInfo(isMutable, a.Contained, a.Size),
-                FuncPtrInfo     f => new FuncPtrInfo(isMutable, f.FunctionIndex, f.LifetimeCount, f.Parameters, f.Returned),
-                _ => throw new ArgumentException("No case for type: " + typeInfo.GetType())
-            };
-        }
-
         public static string ToPrettyString(this TypeInfo typeInfo)
 		{
             string str = typeInfo switch
             {
-                BasicTypeInfo b => $"{ReturnMutIfTrue(b.IsMutable)} {b.Name}",
-                ReferenceInfo r => WrapIfTrue(r.Contained is FuncPtrInfo, r.Contained.ToPrettyString()) + $"{ReturnMutIfTrue(r.IsMutable)}&{r.Lifetime.Match(ok => ok.ToString(), () => "")}",
-                PointerInfo p => WrapIfTrue(p.Contained is FuncPtrInfo, p.Contained.ToPrettyString()) + $"{ReturnMutIfTrue(p.IsMutable)}*",
-                ArrayInfo a => $"{a.Contained.ToPrettyString()} {ReturnMutIfTrue(a.IsMutable)}[{a.Size}]",
-                FuncPtrInfo f => $"{ReturnMutIfTrue(f.IsMutable)} func({f.Parameters.Select(p => p.ToPrettyString()).Concat(", ")})",
+                BasicTypeInfo b => b.Name,
+                ReferenceInfo r => WrapIfTrue(r.Contained is FuncPtrInfo, r.Contained.ToPrettyString()) + $" {ReturnMutIfTrue(r.IsMutable)}&{r.Lifetime.Match(ok => ok.ToString(), () => "")}",
+                PointerInfo p => WrapIfTrue(p.Contained is FuncPtrInfo, p.Contained.ToPrettyString()) + $" {ReturnMutIfTrue(p.IsMutable)}*",
+                ArrayInfo a => $"{a.Contained.ToPrettyString()}[{a.Size}]",
+                FuncPtrInfo f => $"func({f.Parameters.Select(p => p.ToPrettyString()).Concat(", ")})",
                 _ => throw new ArgumentException("No case for type: " + typeInfo.GetType())
             };
 
             return str;
-        }
-
-        public static bool IsMutable(this TypeInfo typeInfo)
-        {
-            return typeInfo switch
-            {
-                BasicTypeInfo b => b.IsMutable,
-                ReferenceInfo r => r.IsMutable,
-                PointerInfo p => p.IsMutable,
-                ArrayInfo a => a.IsMutable,
-                FuncPtrInfo f => f.IsMutable,
-                _ => throw new ArgumentException("No case for type: " + typeInfo.GetType())
-            };
-        }
-
-        public static bool EqualsWithoutFirstMutable(this TypeInfo self, TypeInfo other)
-        {
-            return self.SetFirstMutable(false).Equals(other.SetFirstMutable(false));
         }
 
         public static void Walk(this TypeInfo typeInfo, Action<TypeInfo> func)
@@ -111,10 +80,10 @@ namespace Ripple.Validation.Info.Types
         {
             return self switch
             {
-                BasicTypeInfo b1 => other is BasicTypeInfo b2 && b1.Name == b2.Name && b1.IsMutable == b2.IsMutable,
+                BasicTypeInfo b1 => other is BasicTypeInfo b2 && b1.Name == b2.Name,
                 PointerInfo p1 => other is PointerInfo p2 && p1.Contained.EqualsWithoutLifetimes(p2.Contained) && p1.IsMutable == p2.IsMutable,
                 ReferenceInfo r1 => other is ReferenceInfo r2 && r1.Contained.EqualsWithoutLifetimes(r2.Contained) && r1.IsMutable == r2.IsMutable,
-                ArrayInfo a1 => other is ArrayInfo a2 && a1.Size == a2.Size && a1.Contained.EqualsWithoutLifetimes(a2.Contained) && a1.IsMutable == a2.IsMutable,
+                ArrayInfo a1 => other is ArrayInfo a2 && a1.Size == a2.Size && a1.Contained.EqualsWithoutLifetimes(a2.Contained),
                 FuncPtrInfo fp1 => other is FuncPtrInfo fp2 && FunctionTypesEqualWithoutLifetimes(fp1, fp2),
                 _ => throw new ArgumentException()
             };
@@ -122,7 +91,7 @@ namespace Ripple.Validation.Info.Types
 
         private static bool FunctionTypesEqualWithoutLifetimes(FuncPtrInfo a, FuncPtrInfo b)
         {
-            if (!(a.IsMutable == b.IsMutable) || !(a.Parameters.Count == b.Parameters.Count))
+            if (a.Parameters.Count != b.Parameters.Count)
                 return false;
 
             for(int i = 0; i < a.Parameters.Count; i++)

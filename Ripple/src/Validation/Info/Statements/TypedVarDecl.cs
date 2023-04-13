@@ -15,13 +15,15 @@ namespace Ripple.Validation.Info.Statements
 	{
 		public readonly bool IsUnsafe;
 		public readonly TypeInfo Type;
+		public readonly bool IsMutable;
 		public readonly List<string> VariableNames;
 		public readonly TypedExpression Initalizer;
 
-		public TypedVarDecl(bool isUnsafe, TypeInfo type, List<string> variableNames, TypedExpression initalizer)
+		public TypedVarDecl(bool isUnsafe, TypeInfo type, bool isMutable, List<string> variableNames, TypedExpression initalizer)
 		{
 			this.IsUnsafe = isUnsafe;
 			this.Type = type;
+			this.IsMutable = isMutable;
 			this.VariableNames = variableNames;
 			this.Initalizer = initalizer;
 		}
@@ -50,7 +52,7 @@ namespace Ripple.Validation.Info.Statements
 		{
 			if(other is TypedVarDecl typedVarDecl)
 			{
-				return IsUnsafe.Equals(typedVarDecl.IsUnsafe) && Type.Equals(typedVarDecl.Type) && VariableNames.SequenceEqual(typedVarDecl.VariableNames) && Initalizer.Equals(typedVarDecl.Initalizer);
+				return IsUnsafe.Equals(typedVarDecl.IsUnsafe) && Type.Equals(typedVarDecl.Type) && IsMutable.Equals(typedVarDecl.IsMutable) && VariableNames.SequenceEqual(typedVarDecl.VariableNames) && Initalizer.Equals(typedVarDecl.Initalizer);
 			}
 			return false;
 		}
@@ -60,6 +62,7 @@ namespace Ripple.Validation.Info.Statements
 			HashCode code = new HashCode();
 			code.Add(IsUnsafe);
 			code.Add(Type);
+			code.Add(IsMutable);
 			code.Add(VariableNames);
 			code.Add(Initalizer);
 			return code.ToHashCode();

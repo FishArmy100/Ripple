@@ -12,8 +12,7 @@ namespace Ripple.Validation.Info.Types
         {
             if(arg is ArrayInfo a2)
             {
-                return arrayInfo.IsMutable == a2.IsMutable && 
-                       arrayInfo.Size == a2.Size && 
+                return arrayInfo.Size == a2.Size && 
                        arrayInfo.Contained.Accept(this, a2.Contained);
             }
 
@@ -24,7 +23,7 @@ namespace Ripple.Validation.Info.Types
         {
             if(arg is BasicTypeInfo b2)
             {
-                return basicTypeInfo.IsMutable == b2.IsMutable && basicTypeInfo.Name == b2.Name;
+                return basicTypeInfo.Name == b2.Name;
             }
 
             return false;
@@ -34,11 +33,14 @@ namespace Ripple.Validation.Info.Types
         {
             if(arg is FuncPtrInfo other)
             {
-                if (funcPtrInfo.LifetimeCount != other.LifetimeCount)
-                    return false;
+                if(funcPtrInfo.LifetimeCount != 0 && other.LifetimeCount != 0)
+                {
+                    if (funcPtrInfo.LifetimeCount != other.LifetimeCount)
+                        return false;
 
-                if (funcPtrInfo.Parameters.Count != other.Parameters.Count)
-                    return false;
+                    if (funcPtrInfo.Parameters.Count != other.Parameters.Count)
+                        return false;
+                }
 
                 for(int i = 0; i < other.Parameters.Count; i++)
                 {

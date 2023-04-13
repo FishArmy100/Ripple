@@ -100,7 +100,7 @@ namespace ASTGeneration
                 "IfStmt : Token IfTok; Token OpenParen; Expression Expr; Token CloseParen; Statement Body; Token? ElseToken; Option<Statement> ElseBody",
                 "ForStmt : Token ForTok; Token OpenParen; Option<Statement> Init; Option<Expression> Condition; Option<Expression> Iter; Token CloseParen; Statement Body",
                 "WhileStmt : Token WhileToken; Token OpenParen; Expression Condition; Token CloseParen; Statement Body",
-                "VarDecl : Token? UnsafeToken; TypeName Type; List<Token> VarNames; Token Equels; Expression Expr; Token SemiColin",
+                "VarDecl : Token? UnsafeToken; TypeName Type; Token? MutToken; List<Token> VarNames; Token Equels; Expression Expr; Token SemiColin",
                 "ReturnStmt : Token ReturnTok; Option<Expression> Expr; Token SemiColin",
 
                 "ContinueStmt : Token ContinueToken; Token SemiColon",
@@ -122,12 +122,12 @@ namespace ASTGeneration
             // Types:
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Types", "Ripple.AST", "TypeName", "", new List<string>
             {
-                "BasicType : Token? MutToken; Token Identifier",
+                "BasicType : Token Identifier",
                 "GroupedType : Token OpenParen; TypeName Type; Token CloseParen",
                 "PointerType : TypeName BaseType; Token? MutToken; Token Star",
                 "ReferenceType : TypeName BaseType; Token? MutToken; Token Ampersand; Token? Lifetime",
-                "ArrayType : TypeName BaseType; Token? MutToken; Token OpenBracket; Token Size; Token CloseBracket",
-                "FuncPtr : Token? MutToken; Token FuncToken; Option<List<Token>> Lifetimes; Token OpenParen; List<TypeName> Parameters; Token CloseParen; Token Arrow; TypeName ReturnType",
+                "ArrayType : TypeName BaseType; Token OpenBracket; Token Size; Token CloseBracket",
+                "FuncPtr : Token FuncToken; Option<List<Token>> Lifetimes; Token OpenParen; List<TypeName> Parameters; Token CloseParen; Token Arrow; TypeName ReturnType",
             }, additionalUsings);
         }
 
@@ -154,7 +154,7 @@ namespace ASTGeneration
                     "TypedIfStmt : TypedExpression Condition; TypedStatement Body; Option<TypedStatement> ElseBody",
                     "TypedForStmt : Option<TypedStatement> Initalizer; Option<TypedExpression> Condition; Option<TypedExpression> Iterator; TypedStatement Body",
                     "TypedWhileStmt : TypedExpression Condition; TypedStatement Body",
-                    "TypedVarDecl : bool IsUnsafe; TypeInfo Type; List<string> VariableNames; TypedExpression Initalizer",
+                    "TypedVarDecl : bool IsUnsafe; TypeInfo Type; bool IsMutable; List<string> VariableNames; TypedExpression Initalizer",
                     "TypedReturnStmt : Option<TypedExpression> Expression",
 
                     "TypedContinueStmt",
@@ -187,11 +187,11 @@ namespace ASTGeneration
             // TypeInfo:
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\Validation\\Info\\Types", "Ripple.Validation.Info.Types", "TypeInfo", "", new List<string>
             {
-                "BasicTypeInfo : bool IsMutable; string Name",
+                "BasicTypeInfo : string Name",
                 "PointerInfo : bool IsMutable; TypeInfo Contained",
                 "ReferenceInfo : bool IsMutable; TypeInfo Contained; Option<ReferenceLifetime> Lifetime",
-                "ArrayInfo : bool IsMutable; TypeInfo Contained; int Size",
-                "FuncPtrInfo : bool IsMutable; int FunctionIndex; int LifetimeCount; List<TypeInfo> Parameters; TypeInfo Returned"
+                "ArrayInfo : TypeInfo Contained; int Size",
+                "FuncPtrInfo : int FunctionIndex; int LifetimeCount; List<TypeInfo> Parameters; TypeInfo Returned"
             }, additionalUsings);
         }
     }

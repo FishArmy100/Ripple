@@ -28,7 +28,7 @@ namespace Ripple.AST.Utils
 
         private static BasicTypeInfo GenPrimative(string name)
         {
-            return new BasicTypeInfo(false, name);
+            return new BasicTypeInfo(name);
         }
     }
 }

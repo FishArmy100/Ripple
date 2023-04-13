@@ -26,7 +26,8 @@ namespace Ripple.Validation.Info
         {
             try
             {
-                return expression.Accept(visitor, expected);
+                Option<ExpectedValue> expectedVal = expected.MatchOrConstruct(e => new Option<ExpectedValue>(new ExpectedValue(e, false)));
+                return expression.Accept(visitor, expectedVal);
             }
             catch (ExpressionCheckerException e)
             {

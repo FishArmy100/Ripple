@@ -15,11 +15,13 @@ namespace Ripple.Validation.Info
     {
         public readonly TypeInfo Type;
         public readonly LifetimeInfo Lifetime;
+        public readonly bool IsMutable;
 
-        public ValueInfo(TypeInfo type, LifetimeInfo lifetime)
+        public ValueInfo(TypeInfo type, LifetimeInfo lifetime, bool isMutable)
         {
             Type = type;
             Lifetime = lifetime;
+            IsMutable = isMutable;
         }
 
         public override bool Equals(object obj)
@@ -36,7 +38,7 @@ namespace Ripple.Validation.Info
 
         public override string ToString()
         {
-            return Type.ToPrettyString() + ":(" + Lifetime.ToString() + ")";
+            return Type.ToPrettyString() + (IsMutable ? " mut" : "") + ":(" + Lifetime.ToString() + ")";
         }
     }
 }

@@ -40,7 +40,7 @@ namespace Ripple.Validation.Info.Types
                 () => new List<Token>());
 
 			List<TypeName> parameterTypes = funcDecl.Param.ParamList.Select(p => p.Item1).ToList();
-            FuncPtr funcPtr = new FuncPtr(null, new Token(), lifetimes, new Token(), parameterTypes, new Token(), new Token(), funcDecl.ReturnType);
+            FuncPtr funcPtr = new FuncPtr(new Token(), lifetimes, new Token(), parameterTypes, new Token(), new Token(), funcDecl.ReturnType);
             return funcPtr.Accept(visitor).Match(ok => new Result<FuncPtrInfo, List<ValidationError>>(ok as FuncPtrInfo), fail => new Result<FuncPtrInfo, List<ValidationError>>(fail));
 		}
 
@@ -50,7 +50,7 @@ namespace Ripple.Validation.Info.Types
             TypeInfoGeneratorVisitor visitor = new TypeInfoGeneratorVisitor(primaryTypes, new List<string>(), true, context);
 
             List<TypeName> parameterTypes = funcDecl.Parameters.ParamList.Select(p => p.Item1).ToList();
-            FuncPtr funcPtr = new FuncPtr(null, new Token(), new Option<List<Token>>(), new Token(), parameterTypes, new Token(), new Token(), funcDecl.ReturnType);
+            FuncPtr funcPtr = new FuncPtr(new Token(), new Option<List<Token>>(), new Token(), parameterTypes, new Token(), new Token(), funcDecl.ReturnType);
             return funcPtr.Accept(visitor).Match(ok => new Result<FuncPtrInfo, List<ValidationError>>(ok as FuncPtrInfo), fail => new Result<FuncPtrInfo, List<ValidationError>>(fail));
         }
 
@@ -58,12 +58,11 @@ namespace Ripple.Validation.Info.Types
         {
             return arrayType.BaseType.Accept(this).Match(ok =>
             {
-                bool isMutable = arrayType.MutToken.HasValue;
                 int size = int.Parse(arrayType.Size.Text);
                 if (ok is BasicTypeInfo b && b.Name == RipplePrimitives.VoidName)
                     return BadResult<TypeInfo>(new VoidPlacementError((arrayType.BaseType as BasicType).Identifier.Location));
                 else
-                    return GoodResult<TypeInfo>(new ArrayInfo(isMutable, ok, size));
+                    return GoodResult<TypeInfo>(new ArrayInfo(ok, size));
             },
             fail =>
             {
@@ -74,16 +73,14 @@ namespace Ripple.Validation.Info.Types
         public Result<TypeInfo, List<ValidationError>> VisitBasicType(BasicType basicType)
         {
             string typeName = basicType.Identifier.Text;
-            bool isMutable = basicType.MutToken.HasValue;
 
             if (m_PrimaryTypes.Contains(typeName))
-                return GoodResult<TypeInfo>(new BasicTypeInfo(isMutable, typeName));
+                return GoodResult<TypeInfo>(new BasicTypeInfo(typeName));
             return BadResult<TypeInfo>(new DefinitionError.Type(basicType.Identifier.Location, false, basicType));
         }
 
         public Result<TypeInfo, List<ValidationError>> VisitFuncPtr(FuncPtr funcPtr)
         {
-            bool isMutable = funcPtr.MutToken.HasValue;
             List<ValidationError> errors = new List<ValidationError>();
             List<TypeInfo> parameters = new List<TypeInfo>();
             List<string> lifetimes = new List<string>();
@@ -108,7 +105,7 @@ namespace Ripple.Validation.Info.Types
             if (errors.Count > 0)
                 return errors;
 
-            FuncPtrInfo info = new FuncPtrInfo(isMutable, m_FunctionPointerIndex, lifetimes.Count, parameters, returned.Value);
+            FuncPtrInfo info = new FuncPtrInfo(m_FunctionPointerIndex, lifetimes.Count, parameters, returned.Value);
             m_FunctionPointerIndex++;
             return info;
         }

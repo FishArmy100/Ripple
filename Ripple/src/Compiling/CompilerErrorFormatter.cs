@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Raucse.Extensions;
 using Ripple.Core;
+using System.IO;
 
 namespace Ripple.Compiling
 {
@@ -17,6 +18,14 @@ namespace Ripple.Compiling
                 .GroupBy(e => e.Location.File)
                 .Select(group =>
                 {
+                    if (!File.Exists(group.Key))
+                    {
+                        return group.Select(e =>
+                        {
+                            return $"[Unknown File]\nerror: {e.GetMessage()}";
+                        });
+                    }
+
                     string src = FileUtils.ReadFromFile(group.Key).Value;
                     return group.Select(e =>
                     {

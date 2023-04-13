@@ -1,6 +1,10 @@
 ﻿
-unsafe func main() -> int
+func Add<'a, 'b>(int&'a a, int&'b b) -> int { return *a + *b; }
+func Sub<'a>(int&'a a, int&'a b) -> int { return *a - *b; }
+
+func main() -> int
 {
-	printf(c"Hello World!");
-	return 0;
+	func(int&, int&)->int mut add = Add;
+	add = Sub;
+	return add(&1, &2);
 }
