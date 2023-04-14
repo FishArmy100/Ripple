@@ -127,25 +127,3 @@ grammer Ripple
 
 	main Program = File*;
 }
-
-grammer Test
-{
-	Lifetime = "'" IDENTIFIER
-	FPParam = Type "mut"?
-
-	Type = IDENTIFIER | Pointer | Reference | Array | FunctionPointer;
-	Pointer = Type "mut"? "*";
-	Reference = Type "mut"? "&" Lifetime;
-	Array = Type "[" INTAGER_LITERAL "]";
-	FunctionPointer = "func" "(" (FPParam ("," FPParam)*)? ")" "->" Type;
-
-	Variable = Type "mut"? IDENTIFIER "=" Expression;
-}
-
-Examples:
-- int mut i = 5;
-- T mut& mut value = &mut 6;
-
-Issue with old:
-- mut int i = 5;
-- mut int& i = &mut 6;
