@@ -27,26 +27,5 @@ namespace Ripple.Compiling.CCompilation
 
             return process.ExitCode == 0;
         }
-
-        public static Option<string> GetC_AST(string dir)
-        {
-            List<string> files = GetFiles(dir).Where(d => Path.GetExtension(d) == ".h").ToList();
-            if (files.Count == 0)
-                return new Option<string>(string.Empty);
-
-            return new Option<string>();
-        }
-
-        private static IEnumerable<string> GetFiles(string dir)
-        {
-            foreach (string path in Directory.GetFiles(dir))
-                yield return path;
-
-            foreach(string subdir in Directory.GetDirectories(dir))
-            {
-                foreach (string path in GetFiles(subdir))
-                    yield return path;
-            }
-        }
     }
 }
