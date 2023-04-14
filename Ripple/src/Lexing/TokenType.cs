@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace Ripple.Lexing
 {
-    enum TokenType
+    public enum TokenType
     {
         OpenParen, CloseParen, OpenBrace, CloseBrace,
+        OpenBracket, CloseBracket,
 
         // Arithmatic
         Plus, Minus, Slash, Star, Mod,
@@ -16,17 +17,23 @@ namespace Ripple.Lexing
         // Logical
         EqualEqual, Bang, BangEqual, GreaterThanEqual, 
         GreaterThan, LessThanEqual, LessThan, 
-        AmpersandAmpersand, PipePipe,
+        AmpersandAmpersand, PipePipe, Ampersand,
 
         // Misc
-        SemiColon, Equal, RightThinArrow, Identifier, Comma,
+        SemiColon, Equal, RightThinArrow, Identifier, Comma, Lifetime,
+        RefMut,
 
         // Literals
-        IntagerLiteral, FloatLiteral,
+        IntagerLiteral, FloatLiteral, CharactorLiteral, StringLiteral,
+        Nullptr, CStringLiteral,
 
         // Keywords
-        Func, For, If, True, False, Return,
+        Func, For, If, True, False, Return, 
+        Break, Continue, While, Else, As, 
+        Mut, Extern, 
+        
+        Where, Class, Public, Private, Unsafe, Sizeof,
 
-        Unknown, EOF,
+        EOF,
     }
 }

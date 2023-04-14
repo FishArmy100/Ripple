@@ -4,110 +4,52 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ripple.AST;
-using Ripple.Utils.Extensions;
 using Ripple.Lexing;
+using Ripple.Parsing;
+using Ripple.Utils;
+using Ripple.AST.Utils;
+using Ripple.Validation.Info;
+using Ripple.Validation.Info.Statements;
+using Raucse;
+using Ripple.Validation.Errors;
 
 namespace Ripple.Validation
 {
-    static class Validator
+    public static class Validator
     {
-        public static List<ValidationError> ValidateAst(FileStmt fileStmt)
+        public static Result<TypedProgramStmt, List<ValidationError>> ValidateAst(ProgramStmt programStmt)
         {
-            AstDeclarationData data = GetBuiltinDeclarations();
-            AstDeclarationFinder.AppendDeclarations(fileStmt, ref data);
+            var info = GenerateASTData(programStmt);
+            StatementChecker checker = new StatementChecker(info.First, RippleBuiltins.GetBuiltInLinker());
+            var result = programStmt.Accept(checker);
 
             List<ValidationError> errors = new List<ValidationError>();
-            TypeCheckerHelper helper = CreateHelper(data, ref errors);
-            TypeCheckerVisitor typeChecker = new TypeCheckerVisitor(helper);
-            errors.AddRange(typeChecker.TypeCheck(fileStmt));
+            errors.AddRange(info.Second);
+            result.Match(ok => { }, fail => errors.AddRange(fail));
+            if (errors.Any())
+                return errors;
 
-            return errors;
+            return (TypedProgramStmt)result.Value;
         }
 
-        private static TypeCheckerHelper CreateHelper(AstDeclarationData data, ref List<ValidationError> errors)
+        private static Pair<ASTData, List<ValidationError>> GenerateASTData(ProgramStmt programStmt)
         {
-            Dictionary<string, TypeData> types = data.Types.ToDictionary(t => t.Name);
-            FunctionList globalFunctions = GetFunctionList(data, ref errors, types);
-            Dictionary<string, VariableData> globalVariables = GetGlobalVariables(data, ref errors, types, globalFunctions);
-            OperatorList operators = GetOperators(data, ref errors);
+            List<string> primaries = RippleBuiltins.GetPrimitives();
+            FunctionList functions = RippleBuiltins.GetBuiltInFunctions();
+            OperatorEvaluatorLibrary library = RippleBuiltins.GetBuiltInOperators();
 
-            TypeCheckerHelper helper = new TypeCheckerHelper(globalVariables, operators, globalFunctions, types);
-            return helper;
-        }
+            FunctionFinderHelper functionFinder = new FunctionFinderHelper(programStmt, primaries, functions);
+            GlobalVariableFinderHelper globalVariableFinder = new GlobalVariableFinderHelper(programStmt, primaries, functions, library);
+            List<ValidationError> errors = new List<ValidationError>();
 
-        private static OperatorList GetOperators(AstDeclarationData data, ref List<ValidationError> errors)
-        {
-            OperatorList operators = new OperatorList();
-            foreach (OperatorData operatorData in data.Operators)
-            {
-                if (!operators.TryAddOperator(operatorData))
-                {
-                    string message = "Operator " + operatorData.OperatorType + " is already defined.";
-                    errors.Add(new ValidationError(message, new Token()));
-                }
-            }
+            functions = functionFinder.Functions;
+            errors.AddRange(functionFinder.Errors);
 
-            return operators;
-        }
+            Dictionary<string, VariableInfo> globalVariables = globalVariableFinder.GlobalVariables;
+            errors.AddRange(globalVariableFinder.Errors);
 
-        private static Dictionary<string, VariableData> GetGlobalVariables(AstDeclarationData data, ref List<ValidationError> errors, Dictionary<string, TypeData> types, FunctionList globalFunctions)
-        {
-            Dictionary<string, VariableData> globalVariables = new Dictionary<string, VariableData>();
-            foreach (var variable in data.GlobalVariables)
-            {
-                if (types.ContainsKey(variable.Name.Text))
-                {
-                    string message = "Cannot name global variable: " + variable.Name.Text + " the name of a type";
-                    errors.Add(new ValidationError(message, variable.Name));
-                    continue;
-                }
-
-                if (globalFunctions.ContainsFunctionWithName(variable.Name.Text))
-                {
-                    string message = "Cannot name global variable: " + variable.Name.Text + " the name of a function";
-                    errors.Add(new ValidationError(message, variable.Name));
-                    continue;
-                }
-
-                if (!globalVariables.TryAdd(variable.Name.Text, variable))
-                {
-                    string errorMessage = "Global variable: " + variable.Name.Text + " has already been defined";
-                    errors.Add(new ValidationError(errorMessage, variable.Name));
-                }
-            }
-
-            return globalVariables;
-        }
-
-        private static FunctionList GetFunctionList(AstDeclarationData data, ref List<ValidationError> errors, Dictionary<string, TypeData> types)
-        {
-            FunctionList globalFunctions = new FunctionList();
-            foreach (FunctionData function in data.GlobalFunctions)
-            {
-                if (types.ContainsKey(function.Name.Text))
-                {
-                    string message = "Cannot name global function: " + function.Name.Text + " the name of a type";
-                    errors.Add(new ValidationError(message, function.Name));
-                    continue;
-                }
-
-                if (!globalFunctions.TryAddFunction(function))
-                {
-                    string funcName = function.Name.Text;
-                    string message = "Global function: " + funcName + " is already defined.";
-                    errors.Add(new ValidationError(message, function.Name));
-                }
-            }
-
-            return globalFunctions;
-        }
-
-        private static AstDeclarationData GetBuiltinDeclarations()
-        {
-            List<TypeData> types = RippleBuiltins.GetPrimitives();
-            List<FunctionData> globalFunctions = RippleBuiltins.GetBuiltInFunctions();
-            List<OperatorData> operators = RippleBuiltins.GetPrimitiveOperators();
-            return new AstDeclarationData(types, globalFunctions, operators, new List<VariableData>());
+            ASTData data = new ASTData(primaries, functions, globalVariables, library);
+            return new Pair<ASTData, List<ValidationError>>(data, errors);
         }
     }
 }

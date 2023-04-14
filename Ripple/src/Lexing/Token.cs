@@ -3,23 +3,41 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Ripple.Utils.Extensions;
+using Raucse.Extensions;
+using Raucse;
+using Ripple.Core;
 
 namespace Ripple.Lexing
 {
-    struct Token
+    public struct Token
     {
-        public readonly string Text;
+        public readonly Option<object> Value;
+        public readonly SourceLocation Location;
         public readonly TokenType Type;
-        public readonly int Line;
-        public readonly int Column;
+        public readonly bool HasSpaceAfter;
 
-        public Token(string text, TokenType type, int line, int column)
+        public Token(Option<object> value, SourceLocation location, TokenType type, bool hasSpaceAfter)
         {
-            Text = text;
+            Value = value;
+            Location = location;
             Type = type;
-            Line = line;
-            Column = column;
+            HasSpaceAfter = hasSpaceAfter;
+        }
+
+        public string Text
+        {
+            get
+            {
+                if(Type.IsType(TokenType.Identifier, TokenType.Lifetime, 
+                               TokenType.IntagerLiteral, TokenType.FloatLiteral, 
+                               TokenType.CharactorLiteral, TokenType.CStringLiteral, 
+                               TokenType.EOF, TokenType.StringLiteral))
+                {
+                    return Value.Value.ToString();
+                }
+
+                return Type.ToPrettyString();
+            }
         }
 
         public bool IsType(params TokenType[] tokenTypes)
@@ -29,15 +47,44 @@ namespace Ripple.Lexing
 
         public override string ToString()
         {
-            return Text;
+            if (Type.IsType(TokenType.Identifier, TokenType.Lifetime,
+                            TokenType.IntagerLiteral, TokenType.FloatLiteral,
+                            TokenType.CharactorLiteral, TokenType.CStringLiteral,
+                            TokenType.EOF, TokenType.StringLiteral))
+            {
+                return $"[{Type}{Value.Match(ok => ": " + ok, () => "")}]";
+            }
+            else
+            {
+                return $"[{Type}]";
+            }
         }
 
-        public string ToPrettyString()
+        public bool StrictEquals(Token token)
         {
-            if(Type.IsIdentifier())
-                return "[" + Type.ToString() + ": " + Text + ": " + Line + ", " + Column + "]";
-            else
-                return "[" + Type.ToString() + ": " + Line + ", " + Column + "]";
+            return base.Equals(token);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Token token &&
+                   EqualityComparer<Option<object>>.Default.Equals(Value, token.Value) &&
+                   Type == token.Type;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Value, Type);
+        }
+
+        public static bool operator ==(Token left, Token right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Token left, Token right)
+        {
+            return !(left == right);
         }
     }
 }

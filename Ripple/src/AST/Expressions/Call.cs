@@ -1,22 +1,23 @@
-using System;
 using System.Collections.Generic;
 using Ripple.Lexing;
 using Ripple.Parsing;
+using Raucse;
+using System;
+using System.Linq;
 
 
 namespace Ripple.AST
 {
-	class Call : Expression
+	public class Call : Expression
 	{
-
-		public readonly Token Identifier;
+		public readonly Expression Callee;
 		public readonly Token OpenParen;
 		public readonly List<Expression> Args;
 		public readonly Token CloseParen;
 
-		public Call(Token identifier, Token openParen, List<Expression> args, Token closeParen)
+		public Call(Expression callee, Token openParen, List<Expression> args, Token closeParen)
 		{
-			this.Identifier = identifier;
+			this.Callee = callee;
 			this.OpenParen = openParen;
 			this.Args = args;
 			this.CloseParen = closeParen;
@@ -32,5 +33,33 @@ namespace Ripple.AST
 			return visitor.VisitCall(this);
 		}
 
+		public override TReturn Accept<TReturn, TArg>(IExpressionVisitor<TReturn, TArg> visitor, TArg arg)
+		{
+			return visitor.VisitCall(this, arg);
+		}
+
+		public override void Accept<TArg>(IExpressionVisitorWithArg<TArg> visitor, TArg arg)
+		{
+			visitor.VisitCall(this, arg);
+		}
+
+		public override bool Equals(object other)
+		{
+			if(other is Call call)
+			{
+				return Callee.Equals(call.Callee) && OpenParen.Equals(call.OpenParen) && Args.SequenceEqual(call.Args) && CloseParen.Equals(call.CloseParen);
+			}
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			HashCode code = new HashCode();
+			code.Add(Callee);
+			code.Add(OpenParen);
+			code.Add(Args);
+			code.Add(CloseParen);
+			return code.ToHashCode();
+		}
 	}
 }

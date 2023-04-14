@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.31911.196
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ripple", "Ripple\Ripple.csproj", "{C9EAEC8E-BECF-4C33-AB20-D5B187E7814D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASTGeneration", "ASTGeneration\ASTGeneration.csproj", "{AEE323F5-2035-4867-85A2-18CD04F7C6D3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ASTGeneration", "ASTGeneration\ASTGeneration.csproj", "{AEE323F5-2035-4867-85A2-18CD04F7C6D3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RippleCLI", "RippleCLI\RippleCLI.csproj", "{0F644FC3-A111-4E50-B604-51F881384EE5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{AEE323F5-2035-4867-85A2-18CD04F7C6D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AEE323F5-2035-4867-85A2-18CD04F7C6D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AEE323F5-2035-4867-85A2-18CD04F7C6D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F644FC3-A111-4E50-B604-51F881384EE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F644FC3-A111-4E50-B604-51F881384EE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F644FC3-A111-4E50-B604-51F881384EE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F644FC3-A111-4E50-B604-51F881384EE5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

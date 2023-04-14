@@ -4,41 +4,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
+using Ripple.Parsing;
+using Ripple.Validation;
+using Ripple.Core;
 
 namespace Ripple.Compiling
 {
-    struct CompilerError
+    public abstract class CompilerError
     {
-        public readonly string Message;
-        public readonly Token Token;
+        public readonly SourceLocation Location;
 
-        public CompilerError(string message, Token token)
+        protected CompilerError(SourceLocation location)
         {
-            Message = message;
-            Token = token;
+            Location = location;
         }
 
-        public CompilerError(LexerError error)
-        {
-            Message = error.Message;
-            Token = new Token("Unknown", TokenType.Unknown, error.Line, error.Column);
-        }
-
-        public CompilerError(Parsing.ParserError error)
-        {
-            Message = error.Message;
-            Token = error.Tok;
-        }
-
-        public CompilerError(Validation.ValidationError error)
-        {
-            Message = error.Message;
-            Token = error.ErrorToken;
-        }
-
-        public override string ToString()
-        {
-            return Message + ": [" + Token.Line + ", " + Token.Column + "]";
-        }
+        public abstract string GetMessage();
     }
 }

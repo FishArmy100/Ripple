@@ -3,23 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Ripple.Parsing.Errors;
 using Ripple.Lexing;
 
 namespace Ripple.Parsing
 {
     class ParserExeption : Exception
     {
-        public Token Tok;
+        public readonly ParserError Error;
 
-        public ParserExeption(Token tok, string message) : base(message)
+        public ParserExeption(ParserError error) : base(error.GetMessage())
         {
-            Tok = tok;
-        }
-
-        public ParserExeption(ParserError error) : base(error.Message)
-        {
-            Tok = error.Tok;
+            Error = error;
         }
     }
 }

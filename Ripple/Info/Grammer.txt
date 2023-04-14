@@ -1,23 +1,73 @@
-﻿Using the Maple Syntax
+﻿// Using the Maple Syntax
 
 
 grammer Ripple
 {
-	// Utilities
-	TypeName = IDENTIFIER;
-	Parameters = "(" (TypeName Identifier ("," TypeName Identifier))* ")"
-	Arguments = "(" (Expression ("," Expression))? ")"
+	// Utilites:
+	Parameters = "(" (TypeName Identifier ("," TypeName Identifier))* ")";
+	ExpressionList = Expression ("," Expression)*;
+	TypeList = TypeName ("," TypeName)*;
+
+	GenericParam = TypeName | IDENTIFIER | Lifetime
+	GenericParams = "<" GenericParam ("," GenericParam)* ">";
+	GenericArgs = "<" (TypeName | Expression | Lifetime)* ">";
 
 	IntLiteral = DIGIT+;
 	FloatLiteral = DIGIT+ "." DIGIT+;
+	CharLiteral = "\'" CHARACTOR "\'";
+	StringLiteral = C_STRING_LITERAL;
+
+	WhereClause = "where" Expression
+
+	// Types:
+	GroupedType = "(" TypeName ")";
+	PointerType = TypeName "mut"? "*";
+	ReferenceType = TypeName "mut"? "&" Lifetime?;
+	ArrayType = TypeName "mut"? "[" IntLiteral "]";
+	FuncPtr = "mut"? "(" TypeList ")" "->" TypeName;
+	GenericType = IDENTIFIER GenericArgs
+
+	TypeName = GroupedType			|
+			   PointerType			|
+			   ReferenceType		|
+			   FuncPtr				|
+			   GenericType			|
+			   ("mut"? IDENTIFIER);
+
+	Lifetime = "'" IDENTIFIER;
+
+	ClassVisibility = "public" | "private";
+
+	// Expressions:
+	InitalizerList = "{" ExpressionList "}";
 
 	Grouping = "(" Expression ")";
+	MemberSelection = Expression ("." IDENTIFIER)*;
+	Construction = TypeName "(" ExpressionList? ")";
 
-	Primary = IntLiteral | FloatLiteral | Grouping | "true" | "false" | IDENTIFIER
+	QualifiedIdentifier = IDENTIFIER GenericArgs? ("." IDENTIFIER GenericArgs?)*
 
-	Call = IDENTIFIER ("(" Expression* ")")?;
+	Sizeof = "sizeof" "<" TypeName ">" "(" ")";
 
-	Unary = ("!" | "-") Unary | Call;
+	Primary = IntLiteral			|
+			  "nullptr"				|
+			  Lifetime				|
+	          FloatLiteral			|
+			  Grouping				|
+			  "true"				|
+			  "false"				|
+			  StringLiteral			|
+			  CharLiteral			|
+			  QualifiedIdentifier	|
+			  InitalizerList		|
+			  MemberSelection		|
+			  Construction;
+			  
+
+	Call = Primary "(" ExpressionList? ")";
+	Index = Expression "[" Expression "]";
+
+	Unary = ("!" | "-" | "&" "mut"? | "*") Unary | (Call | Index);
 
 	Factor = Unary (("*" | "/" | "%") Unary)*
 	Term = Factor (("+" | "-") Factor)*
@@ -27,21 +77,75 @@ grammer Ripple
 	LogicalAnd = Equality ("&&" Equality)*;
 	LogicalOr = LogicalAnd ("||" LogicalOr)*;
 
-	Assignment = IDENTIFIER "=" Assignment | LogicalOr;
+	Casting = LogicalOr ("as" TypeName)*
+
+	Assignment = Casting "=" Assignment | Casting;
 
 	Expression = Assignment;
 
+	// Statements:
 	ExprStmt = Expression ";";
 	Block = "{" Statement* "}";
+	UnsafeBlock = "unsafe" "{" Statement* "}";
 	IfStmt = "if" "(" Expression ")" Statement;
 	ForStmt = "for" "(" VarDecl? ";" Expression? ";" Expression? ";" ")" Statement;
+	WhileStmt = "while" "(" Expression ")" Statement;
 	ReturnStmt = "return" Expression? ";";
+	BreakStmt = "break" ";";
+	ContinueStmt = "continue" ";";
 
-	VarDecl = TypeName IDENTIFIER ("," IDENTIFIER)* "=" Expression ";";
-	FuncDecl = "func" IDENTIFIER Parameters "->" TypeName Block;
+	// Declarations:
+	VarDecl = "unsafe"? TypeName IDENTIFIER ("," IDENTIFIER)* ("=" Expression)? ";";
+	FuncDecl = "unsafe"? "func" IDENTIFIER GenericParams? Parameters "->" TypeName WhereClause? Block;
+	ExternFuncDecl = "extern" StringLiteral "func" IDENTIFIER Parameters "->"  TypeName ";";
 
-	Statement = ExprStmt | Block | IfStmt | ForStmt | VarDecl | ReturnStmt;
-	Declaration = VarDecl | FuncDecl;
+	MemberDecl = ClassVisibility ("mut"? FuncDecl | VarDecl);
+	ClassDecl = "unsafe"? "class" IDENTIFIER GenericParams? WhereClause? "{" MemberDecl* "}"
 
-	main File = Declaration* EOF;
+	ExternMemberDecl = TypeName IDENTIFIER ("," IDENTIFIER)* | 
+					   "func" IDENTIFIER Parameters "->"  TypeName ";";
+
+	ExternClassDecl = "extern" StringLiteral "class" IDENTIFIER "{" "}";
+
+	Statement = ExprStmt		| 
+				Block			| 
+				IfStmt			| 
+				ForStmt			| 
+				WhileStmt		| 
+				VarDecl			| 
+				ReturnStmt		| 
+				ContinueStmt	| 
+				BreakStmt;
+	
+	Declaration = VarDecl			|
+				  FuncDecl			|
+				  ExternFuncDecl	|
+				  ClassDecl			|
+				  ExternClassDecl;
+
+	File = Declaration* EOF;
+
+	main Program = File*;
 }
+
+grammer Test
+{
+	Lifetime = "'" IDENTIFIER
+	FPParam = Type "mut"?
+
+	Type = IDENTIFIER | Pointer | Reference | Array | FunctionPointer;
+	Pointer = Type "mut"? "*";
+	Reference = Type "mut"? "&" Lifetime;
+	Array = Type "[" INTAGER_LITERAL "]";
+	FunctionPointer = "func" "(" (FPParam ("," FPParam)*)? ")" "->" Type;
+
+	Variable = Type "mut"? IDENTIFIER "=" Expression;
+}
+
+Examples:
+- int mut i = 5;
+- T mut& mut value = &mut 6;
+
+Issue with old:
+- mut int i = 5;
+- mut int& i = &mut 6;

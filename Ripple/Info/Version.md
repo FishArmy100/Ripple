@@ -18,20 +18,20 @@
 
 ### Version 0.2.0 Memory Update:
 - Pointers and References: 
-    - c# based references
-    - `ref` keyword
-- Branching Statements
+    - rust based references
+    - `&` to denote them
+- Branching Statements:
     - else
     - while
     - break
     - continue
+- Strings:
+    - `char` type
+    - c-string literals
+    - charactor literals
 - Casting:
     - float -> int
     - int -> float
-- External Code:
-    - Declared with by attributes
-    - malloc, free
-    - *printf?*
 - New Operators:
     - `[]`: indexing
     - `*`: dereference
@@ -41,7 +41,12 @@
     - Declarations
     - Calling
     - Assignment
+- External functions
+    - `extern` keyword
+    - External declarations
 - Immutable by default
     - `mut` keyword
+- Initalizer lists
+    - For arrays
 
 

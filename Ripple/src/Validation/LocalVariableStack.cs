@@ -1,34 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Ripple.Validation.Info;
+using Ripple.Lexing;
 
 namespace Ripple.Validation
 {
-    class LocalVariableStack
+    public class LocalVariableStack
     {
-        private readonly Stack<Dictionary<string, VariableData>> m_VariableStack = new Stack<Dictionary<string, VariableData>>();
-
-        public bool TryAddVariable(VariableData variableData)
-        {
-            if (!ContainsVariable(variableData.GetName()))
-            {
-                m_VariableStack.Peek().Add(variableData.GetName(), variableData);
-                return true;
-            }
-
-            return false;
-        }
-
-        public void Clear()
-        {
-            m_VariableStack.Clear();
-        }
+        private readonly Stack<Dictionary<string, VariableInfo>> m_VariableStack = new Stack<Dictionary<string, VariableInfo>>();
+        public LifetimeInfo CurrentLifetime => new LifetimeInfo(m_VariableStack.Count);
 
         public void PushScope()
         {
-            m_VariableStack.Push(new Dictionary<string, VariableData>());
+            m_VariableStack.Push(new Dictionary<string, VariableInfo>());
         }
 
         public void PopScope()
@@ -36,27 +20,22 @@ namespace Ripple.Validation
             m_VariableStack.Pop();
         }
 
-        public bool TryGetVariable(string name, out VariableData data)
+        public bool ContainsVariable(string name) => TryGetVariable(name, out _);
+
+        public bool TryAddVariable(VariableInfo info)
         {
-            data = null;
-
-            foreach(var frame in m_VariableStack)
-            {
-                if (frame.TryGetValue(name, out data))
-                    return true;
-            }
-
-            return false;
+            return m_VariableStack.Peek().TryAdd(info.Name, info);
         }
 
-        public bool ContainsVariable(string name)
+        public bool TryGetVariable(string name, out VariableInfo info)
         {
-            foreach(var frame in m_VariableStack)
+            foreach(var dict in m_VariableStack)
             {
-                if (frame.ContainsKey(name))
+                if (dict.TryGetValue(name, out info))
                     return true;
             }
 
+            info = null;
             return false;
         }
     }
