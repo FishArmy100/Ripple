@@ -1,5 +1,13 @@
 ﻿
-func test() -> void
+extern "C" func printf(char* fmt) -> void;
+
+class Test
 {
-	int mut& mut& r2 = &mut &mut 5;
+	public func Hello() -> void 
+	{
+		unsafe
+		{
+			
+		}
+	}
 }

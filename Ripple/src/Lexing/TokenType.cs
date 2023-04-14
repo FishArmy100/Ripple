@@ -21,7 +21,7 @@ namespace Ripple.Lexing
 
         // Misc
         SemiColon, Equal, RightThinArrow, Identifier, Comma, Lifetime,
-        RefMut,
+        RefMut, Tilda,
 
         // Literals
         IntagerLiteral, FloatLiteral, CharactorLiteral, StringLiteral,
