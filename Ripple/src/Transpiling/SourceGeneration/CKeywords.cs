@@ -32,7 +32,6 @@ namespace Ripple.Transpiling.SourceGeneration
 		public const string INLINE = "inline";
 		public const string INT = "int";
 		public const string LONG = "long";
-		public const string NULLPTR = "nullptr";
 		public const string REGISTER = "register";
 		public const string RESTRICT = "restrict";
 		public const string RETURN = "return";

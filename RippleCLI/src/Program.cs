@@ -1,6 +1,5 @@
 ﻿using System;
 
-
 namespace RippleCLI
 {
     class Program
@@ -8,7 +7,6 @@ namespace RippleCLI
         public static void Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-
             Application app = new Application();
             app.Run();
         }

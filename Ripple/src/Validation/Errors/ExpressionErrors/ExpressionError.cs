@@ -63,11 +63,11 @@ namespace Ripple.Validation.Errors.ExpressionErrors
                 case ExpressionType.Unary:
                     if(NoOperators)
                     {
-                        return $"No unary {OperatorType.Value.ToPrettyString()} operator for value {OperandObject}.";
+                        return $"No unary {OperatorType.Value.ToPrettyString()} operator for value {OperandObject.Value}.";
                     }
                     else
                     {
-                        return $"Too many unary {OperatorType.Value.ToPrettyString()} operators for value {OperandObject}.";
+                        return $"Too many unary {OperatorType.Value.ToPrettyString()} operators for value {OperandObject.Value}.";
                     }
                 case ExpressionType.Binary:
                     if(NoOperators)

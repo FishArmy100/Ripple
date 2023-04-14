@@ -1,6 +1,0 @@
-﻿
-unsafe func main() -> int
-{
-	printf(c"Hello World!");
-	return 0;
-}

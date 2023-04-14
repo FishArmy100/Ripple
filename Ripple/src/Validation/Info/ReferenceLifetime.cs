@@ -33,7 +33,7 @@ namespace Ripple.Validation.Info
 
 		public override string ToString()
 		{
-			return m_LifetimeInfo.Match(a => "", b => b.ToString());
+			return m_LifetimeInfo.Match(a => $"'({a.FunctionIndex}:{a.LifetimeIndex})", b => b.ToString());
 		}
 
 		public Option<GenericLifetime> GetGenericLifetime() => m_LifetimeInfo.IsOptionA ? new Option<GenericLifetime>(m_LifetimeInfo.AValue) : new Option<GenericLifetime>();

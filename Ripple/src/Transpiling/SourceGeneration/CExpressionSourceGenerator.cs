@@ -79,7 +79,7 @@ namespace Ripple.Transpiling.SourceGeneration
 					CLiteralType.Float => $"{(float)literal.Value}",
 					CLiteralType.True => CKeywords.TRUE,
 					CLiteralType.False => CKeywords.FALSE,
-					CLiteralType.Nullptr => CKeywords.NULLPTR,
+					CLiteralType.Nullptr => CKeywords.NULL_MACRO,
 					_ => throw new ArgumentException("Unknown literal type " + literal.Type),
 				};
 			}

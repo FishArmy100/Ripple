@@ -1,8 +1,0 @@
-﻿
-extern "C" func printf(char* fmt) -> void;
-
-unsafe func main() -> int
-{
-	printf(c"Hello World!");
-	return 0;
-}

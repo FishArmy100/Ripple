@@ -1,0 +1,8 @@
+BasicTests.c:55:9: warning: format string is not a string literal (potentially insecure) [-Wformat-security]
+        printf(string);
+               ^~~~~~
+BasicTests.c:55:9: note: treat the string as an argument to avoid this
+        printf(string);
+               ^
+               "%s", 
+1 warning generated.

@@ -11,7 +11,7 @@ using Ripple.Parsing.Errors;
 
 namespace Ripple.Parsing
 {
-    static class TypeNameHelper
+    static class TypeNameParser
     {
         public static bool IsTypeName(ref TokenReader reader, out int length, int beginOffset  = 0)
         {
@@ -37,14 +37,6 @@ namespace Ripple.Parsing
 
         public static TypeName ParseTypeName(ref TokenReader reader)
         {
-            if(reader.Current().Type == TokenType.Mut)
-            {
-                if (reader.Peek(1) is Token t && t.Type.IsIdentifier())
-                    return ParseSimpleTypeName(ref reader);
-                else
-                    return ParseComplexType(ref reader);
-            }
-
             if (reader.Current().Type.IsIdentifier())
                 return ParseSimpleTypeName(ref reader);
             else
@@ -53,20 +45,16 @@ namespace Ripple.Parsing
 
         private static TypeName ParseSimpleTypeName(ref TokenReader reader)
         {
-            Token? mut = null;
-            if (reader.Match(TokenType.Mut))
-                mut = reader.Previous();
-
             Token identifier = reader.Consume(TokenType.Identifier);
-            TypeName type = new BasicType(mut, identifier);
+            TypeName type = new BasicType(identifier);
             return ParseTypePrefixRecursive(ref reader, type);
         }
 
         private static TypeName ParseTypePrefixRecursive(ref TokenReader reader, TypeName previous)
         {
             Token? mut = null;
-            if (reader.Match(TokenType.Mut))
-                mut = reader.Previous();
+            if (reader.CheckSequence(TokenType.Mut, TokenType.Ampersand) || reader.CheckSequence(TokenType.Mut, TokenType.Star))
+                mut = reader.Advance();
 
             if(reader.Match(TokenType.Star))
             {
@@ -82,10 +70,13 @@ namespace Ripple.Parsing
             }
             else if(reader.Match(TokenType.OpenBracket))
             {
+                if (mut.HasValue)
+                    throw new ParserExeption(new ExpectedTokenError(reader.Previous().Location, TokenType.Ampersand, TokenType.Star));
+
                 Token openBracket = reader.Previous();
                 Token size = reader.Consume(TokenType.IntagerLiteral);
                 Token closeBracket = reader.Consume(TokenType.CloseBracket);
-                TypeName arrType = new ArrayType(previous, mut, openBracket, size, closeBracket);
+                TypeName arrType = new ArrayType(previous, openBracket, size, closeBracket);
                 return ParseTypePrefixRecursive(ref reader, arrType);
             }
             else
@@ -118,7 +109,6 @@ namespace Ripple.Parsing
 
         private static TypeName ParseFunctionPointerType(ref TokenReader reader)
         {
-            Token? mutToken = reader.Match(TokenType.Mut) ? reader.Previous() : null;
             Token funcToken = reader.Consume(TokenType.Func);
             Option<List<Token>> lifetimes = new Option<List<Token>>();
             if(reader.CurrentType == TokenType.LessThan)
@@ -151,7 +141,7 @@ namespace Ripple.Parsing
             Token arrow = reader.Consume(TokenType.RightThinArrow);
             TypeName returnType = ParseTypeName(ref reader);
 
-            return new FuncPtr(mutToken, funcToken, lifetimes, openParen, parameters, closeParen, arrow, returnType);
+            return new FuncPtr(funcToken, lifetimes, openParen, parameters, closeParen, arrow, returnType);
         }
 
         private static TypeName ParseGroupedType(ref TokenReader reader)

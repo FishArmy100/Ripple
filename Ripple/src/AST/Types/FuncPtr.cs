@@ -10,7 +10,6 @@ namespace Ripple.AST
 {
 	public class FuncPtr : TypeName
 	{
-		public readonly Token? MutToken;
 		public readonly Token FuncToken;
 		public readonly Option<List<Token>> Lifetimes;
 		public readonly Token OpenParen;
@@ -19,9 +18,8 @@ namespace Ripple.AST
 		public readonly Token Arrow;
 		public readonly TypeName ReturnType;
 
-		public FuncPtr(Token? mutToken, Token funcToken, Option<List<Token>> lifetimes, Token openParen, List<TypeName> parameters, Token closeParen, Token arrow, TypeName returnType)
+		public FuncPtr(Token funcToken, Option<List<Token>> lifetimes, Token openParen, List<TypeName> parameters, Token closeParen, Token arrow, TypeName returnType)
 		{
-			this.MutToken = mutToken;
 			this.FuncToken = funcToken;
 			this.Lifetimes = lifetimes;
 			this.OpenParen = openParen;
@@ -55,7 +53,7 @@ namespace Ripple.AST
 		{
 			if(other is FuncPtr funcPtr)
 			{
-				return MutToken.Equals(funcPtr.MutToken) && FuncToken.Equals(funcPtr.FuncToken) && Lifetimes.Equals(funcPtr.Lifetimes) && OpenParen.Equals(funcPtr.OpenParen) && Parameters.SequenceEqual(funcPtr.Parameters) && CloseParen.Equals(funcPtr.CloseParen) && Arrow.Equals(funcPtr.Arrow) && ReturnType.Equals(funcPtr.ReturnType);
+				return FuncToken.Equals(funcPtr.FuncToken) && Lifetimes.Equals(funcPtr.Lifetimes) && OpenParen.Equals(funcPtr.OpenParen) && Parameters.SequenceEqual(funcPtr.Parameters) && CloseParen.Equals(funcPtr.CloseParen) && Arrow.Equals(funcPtr.Arrow) && ReturnType.Equals(funcPtr.ReturnType);
 			}
 			return false;
 		}
@@ -63,7 +61,6 @@ namespace Ripple.AST
 		public override int GetHashCode()
 		{
 			HashCode code = new HashCode();
-			code.Add(MutToken);
 			code.Add(FuncToken);
 			code.Add(Lifetimes);
 			code.Add(OpenParen);

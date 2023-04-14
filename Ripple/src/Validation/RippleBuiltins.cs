@@ -101,7 +101,7 @@ namespace Ripple.Validation
                 (var left, var right) = args;
                 if(op == TokenType.Plus && left.Type is  PointerInfo p && right.Type.Equals(RipplePrimitives.Int32))
                 {
-                    ValueInfo info = new ValueInfo(p, lifetime);
+                    ValueInfo info = new ValueInfo(p, lifetime, false, ValueCatagory.RValue);
                     return new Option<ValueInfo>(info);
                 }
 
@@ -111,11 +111,11 @@ namespace Ripple.Validation
             library.Binaries.AddOperatorEvaluator((op, args, lifetime) => // assignment operators
             {
                 (var left, var right) = args;
-                if (op == TokenType.Equal && left.Type.IsMutable())
+                if (op == TokenType.Equal && left.IsMutable)
                 {
-                    if(left.Type.EqualsWithoutFirstMutable(right.Type))
+                    if(left.Type.Equals(right.Type))
                     {
-                        ValueInfo info = new ValueInfo(left.Type, lifetime);
+                        ValueInfo info = new ValueInfo(left.Type, lifetime, false, ValueCatagory.RValue);
                         return new Option<ValueInfo>(info);
                     }
                     else if(left.Type is ReferenceInfo rl && right.Type is ReferenceInfo rr)
@@ -126,7 +126,7 @@ namespace Ripple.Validation
                             if (!rr.Lifetime.Value.GetLifetimeInfo().Value.IsAssignableTo(rl.Lifetime.Value.GetLifetimeInfo().Value))
                                 return new Option<ValueInfo>();
                             
-                            ValueInfo info = new ValueInfo(left.Type, lifetime);
+                            ValueInfo info = new ValueInfo(left.Type, lifetime, false, ValueCatagory.RValue);
                             return new Option<ValueInfo>(info);
                         }
                     }
@@ -146,27 +146,27 @@ namespace Ripple.Validation
             {
                 if(op == TokenType.Star && operand.Type is PointerInfo p)
                 {
-                    ValueInfo info = new ValueInfo(p.Contained, operand.Lifetime);
+                    ValueInfo info = new ValueInfo(p.Contained, operand.Lifetime, p.IsMutable, ValueCatagory.LValue);
                     return new Option<ValueInfo>(info);
                 }
                 else if (op == TokenType.Star && operand.Type is ReferenceInfo r)
                 {
                     if(r.Lifetime.HasValue() && r.Lifetime.Value.IsLifetimeInfo)
 					{
-                        ValueInfo info = new ValueInfo(r.Contained, r.Lifetime.Value.GetLifetimeInfo().Value);
+                        ValueInfo info = new ValueInfo(r.Contained, r.Lifetime.Value.GetLifetimeInfo().Value, r.IsMutable, ValueCatagory.LValue);
                         return new Option<ValueInfo>(info);
                     }
                 }
                 else if(op == TokenType.Ampersand)
                 {
-                    TypeInfo type = new ReferenceInfo(false, operand.Type.SetFirstMutable(false), new ReferenceLifetime(operand.Lifetime));
-                    ValueInfo value = new ValueInfo(type, lifetime);
+                    TypeInfo type = new ReferenceInfo(false, operand.Type, new ReferenceLifetime(operand.Lifetime));
+                    ValueInfo value = new ValueInfo(type, lifetime, false, ValueCatagory.RValue);
                     return new Option<ValueInfo>(value);
                 }
-                else if(op == TokenType.RefMut && operand.Type.IsMutable())
+                else if(op == TokenType.RefMut && (operand.IsMutable || operand.Catagory == ValueCatagory.RValue))
                 {
-                    TypeInfo type = new ReferenceInfo(false, operand.Type, new ReferenceLifetime(operand.Lifetime));
-                    ValueInfo value = new ValueInfo(type, lifetime);
+                    TypeInfo type = new ReferenceInfo(true, operand.Type, new ReferenceLifetime(operand.Lifetime));
+                    ValueInfo value = new ValueInfo(type, lifetime, false, ValueCatagory.RValue);
                     return new Option<ValueInfo>(value);
                 }
 
@@ -178,9 +178,9 @@ namespace Ripple.Validation
         {
             library.Indexers.AddOperatorEvaluator((indexed, arg, lifetime) => // array indexing
             {
-                if(indexed.Type is ArrayInfo array && arg.Type.EqualsWithoutFirstMutable(RipplePrimitives.Int32))
+                if(indexed.Type is ArrayInfo array && arg.Type.Equals(RipplePrimitives.Int32))
                 {
-                    ValueInfo info = new ValueInfo(array.Contained, lifetime);
+                    ValueInfo info = new ValueInfo(array.Contained, lifetime, indexed.IsMutable, ValueCatagory.LValue);
                     return new Option<ValueInfo>(info);
                 }
 
@@ -191,7 +191,7 @@ namespace Ripple.Validation
             {
                 if (indexed.Type is PointerInfo pointer && arg.Type.Equals(RipplePrimitives.Int32))
                 {
-                    ValueInfo info = new ValueInfo(pointer.Contained, lifetime);
+                    ValueInfo info = new ValueInfo(pointer.Contained, lifetime, pointer.IsMutable, ValueCatagory.LValue);
                     return new Option<ValueInfo>(info);
                 }
 
@@ -206,9 +206,9 @@ namespace Ripple.Validation
 
             library.Casts.AddOperatorEvaluator((type, value, lifetime) => // identity casts: int -> int
             {
-                if(type.EqualsWithoutFirstMutable(value.Type))
+                if(type.Equals(value.Type))
                 {
-                    ValueInfo info = new ValueInfo(type, lifetime);
+                    ValueInfo info = new ValueInfo(type, lifetime, false, ValueCatagory.RValue);
                     return new Option<ValueInfo>(info);
                 }
 
@@ -217,9 +217,9 @@ namespace Ripple.Validation
 
             library.Casts.AddOperatorEvaluator((type, value, lifetime) => // pointer -> pointer casts
             {
-                if(type is PointerInfo ptype && value.Type is PointerInfo pvalue && !(ptype.Contained.IsMutable() && !pvalue.Contained.IsMutable()))
+                if(type is PointerInfo ptype && value.Type is PointerInfo pvalue && !(ptype.IsMutable && !pvalue.IsMutable))
                 {
-                    return new Option<ValueInfo>(new ValueInfo(type, lifetime));
+                    return new Option<ValueInfo>(new ValueInfo(type, lifetime, false, ValueCatagory.RValue));
                 }
 
                 return new Option<ValueInfo>();
@@ -227,10 +227,10 @@ namespace Ripple.Validation
 
             library.Casts.AddOperatorEvaluator((type, value, lifetime) => // reference -> pointer casts
             {
-                if (type is PointerInfo ptype && value.Type is ReferenceInfo rvalue && !(ptype.Contained.IsMutable() && !rvalue.Contained.IsMutable()))
+                if (type is PointerInfo ptype && value.Type is ReferenceInfo rvalue && !(ptype.IsMutable && !rvalue.IsMutable))
                 {
-                    if(ptype.Contained.EqualsWithoutFirstMutable(rvalue.Contained))
-                        return new Option<ValueInfo>(new ValueInfo(type, lifetime));
+                    if(ptype.Contained.Equals(rvalue.Contained))
+                        return new Option<ValueInfo>(new ValueInfo(type, lifetime, false, ValueCatagory.RValue));
                 }
 
                 return new Option<ValueInfo>();
@@ -238,10 +238,10 @@ namespace Ripple.Validation
 
             library.Casts.AddOperatorEvaluator((type, value, lifetime) => // pointer -> reference casts
             {
-                if (type is ReferenceInfo rtype && value.Type is PointerInfo pvalue && !(rtype.Contained.IsMutable() && !pvalue.Contained.IsMutable()))
+                if (type is ReferenceInfo rtype && value.Type is PointerInfo pvalue && !(rtype.IsMutable && !pvalue.IsMutable))
                 {
-                    if (rtype.Contained.EqualsWithoutFirstMutable(pvalue.Contained))
-                        return new Option<ValueInfo>(new ValueInfo(type, lifetime));
+                    if (rtype.Contained.Equals(pvalue.Contained))
+                        return new Option<ValueInfo>(new ValueInfo(type, lifetime, false, ValueCatagory.RValue));
                 }
 
                 return new Option<ValueInfo>();
@@ -253,16 +253,16 @@ namespace Ripple.Validation
             library.Binaries.AddOperatorEvaluator((op, args, lifetime) => 
             {
                 (var left, var right) = args;
-                if (operators.Contains(op) && left.Type.EqualsWithoutFirstMutable(type) && right.Type.EqualsWithoutFirstMutable(type))
+                if (operators.Contains(op) && left.Type.Equals(type) && right.Type.Equals(type))
                 {
                     if(op.IsType(TokenType.EqualEqual, TokenType.BangEqual, TokenType.GreaterThan, 
                                  TokenType.GreaterThanEqual, TokenType.LessThan, TokenType.LessThanEqual))
                     {
-                        return new Option<ValueInfo>(new ValueInfo(RipplePrimitives.Bool, lifetime));
+                        return new Option<ValueInfo>(new ValueInfo(RipplePrimitives.Bool, lifetime, false, ValueCatagory.RValue));
                     }
                     else
                     {
-                        return new Option<ValueInfo>(new ValueInfo(type, lifetime));
+                        return new Option<ValueInfo>(new ValueInfo(type, lifetime, false, ValueCatagory.RValue));
                     }
                 }
 
@@ -276,7 +276,7 @@ namespace Ripple.Validation
             {
                 if (operators.Contains(op) && arg.Equals(op))
                 {
-                    return new Option<ValueInfo>(new ValueInfo(type, lifetime));
+                    return new Option<ValueInfo>(new ValueInfo(type, lifetime, false, ValueCatagory.RValue));
                 }
 
                 return new Option<ValueInfo>();
@@ -287,9 +287,9 @@ namespace Ripple.Validation
         {
             library.Casts.AddOperatorEvaluator((type, value, lifetime) =>
             {
-                if(valueType.EqualsWithoutFirstMutable(value.Type) && castType.EqualsWithoutFirstMutable(type))
+                if(valueType.Equals(value.Type) && castType.Equals(type))
                 {
-                    ValueInfo info = new ValueInfo(castType, lifetime);
+                    ValueInfo info = new ValueInfo(castType, lifetime, false, ValueCatagory.RValue);
                     return new Option<ValueInfo>(info);
                 }
                 return new Option<ValueInfo>();
@@ -306,13 +306,13 @@ namespace Ripple.Validation
             {
                 (var param, var arg) = t;
 
-                return arg.Type.EqualsWithoutFirstMutable(param);
+                return arg.Type.Equals(param);
             });
 
             if (!callable)
                 return new Option<ValueInfo>();
 
-            return new Option<ValueInfo>(new ValueInfo(fp.Returned, lifetime));
+            return new Option<ValueInfo>(new ValueInfo(fp.Returned, lifetime, false, ValueCatagory.RValue));
         }
         
         private static Option<ValueInfo> EvaluateFuncPtrWithLifetimes(FuncPtrInfo fp, IEnumerable<ValueInfo> args, LifetimeInfo lifetime)
@@ -353,7 +353,7 @@ namespace Ripple.Validation
 
                     TypeInfo fpType = FuncPointerInstantiator.InstantiateFunctionPointer(lifetimes, fp);
                     TypeInfo returned = (fpType as FuncPtrInfo).Returned;
-                    return new Option<ValueInfo>(new ValueInfo(returned, lifetime));
+                    return new Option<ValueInfo>(new ValueInfo(returned, lifetime, false, ValueCatagory.RValue));
                 },
                 () => 
                 {
@@ -396,7 +396,7 @@ namespace Ripple.Validation
 
         private static TypeName GenBasicTypeName(string name)
         {
-            return new BasicType(null, GenIdTok(name));
+            return new BasicType(GenIdTok(name));
         }
 
         private static TypeName GenPointerType(string name)
@@ -413,7 +413,7 @@ namespace Ripple.Validation
 
         private static TypeInfo GenBasicType(string name)
         {
-            return new BasicTypeInfo(false, name);
+            return new BasicTypeInfo(name);
         }
     }
 }

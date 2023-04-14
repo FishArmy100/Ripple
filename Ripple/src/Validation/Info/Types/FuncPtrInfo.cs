@@ -13,15 +13,13 @@ namespace Ripple.Validation.Info.Types
 {
 	public class FuncPtrInfo : TypeInfo
 	{
-		public readonly bool IsMutable;
 		public readonly int FunctionIndex;
 		public readonly int LifetimeCount;
 		public readonly List<TypeInfo> Parameters;
 		public readonly TypeInfo Returned;
 
-		public FuncPtrInfo(bool isMutable, int functionIndex, int lifetimeCount, List<TypeInfo> parameters, TypeInfo returned)
+		public FuncPtrInfo(int functionIndex, int lifetimeCount, List<TypeInfo> parameters, TypeInfo returned)
 		{
-			this.IsMutable = isMutable;
 			this.FunctionIndex = functionIndex;
 			this.LifetimeCount = lifetimeCount;
 			this.Parameters = parameters;
@@ -52,7 +50,7 @@ namespace Ripple.Validation.Info.Types
 		{
 			if(other is FuncPtrInfo funcPtrInfo)
 			{
-				return IsMutable.Equals(funcPtrInfo.IsMutable) && FunctionIndex.Equals(funcPtrInfo.FunctionIndex) && LifetimeCount.Equals(funcPtrInfo.LifetimeCount) && Parameters.SequenceEqual(funcPtrInfo.Parameters) && Returned.Equals(funcPtrInfo.Returned);
+				return FunctionIndex.Equals(funcPtrInfo.FunctionIndex) && LifetimeCount.Equals(funcPtrInfo.LifetimeCount) && Parameters.SequenceEqual(funcPtrInfo.Parameters) && Returned.Equals(funcPtrInfo.Returned);
 			}
 			return false;
 		}
@@ -60,7 +58,6 @@ namespace Ripple.Validation.Info.Types
 		public override int GetHashCode()
 		{
 			HashCode code = new HashCode();
-			code.Add(IsMutable);
 			code.Add(FunctionIndex);
 			code.Add(LifetimeCount);
 			code.Add(Parameters);

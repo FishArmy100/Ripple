@@ -172,7 +172,6 @@ namespace Ripple.Validation.Info
             if (!m_IsGlobal)
             {
                 return FromVarDecl(result);
-
             }
             else
             {
@@ -191,7 +190,7 @@ namespace Ripple.Validation.Info
                 return ExpressionChecker.CheckExpression(ok, m_ASTData, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList()).Match(
                 ok =>
                 {
-                    if (!ok.First.Type.EqualsWithoutFirstMutable(m_CurrentReturnType))
+                    if (!ok.First.Type.Equals(m_CurrentReturnType))
                     {
                         SourceLocation location = returnStmt.ReturnTok.Location + returnStmt.Expr.Value.GetLocation() + returnStmt.SemiColin.Location;
                         return CreateError<TypedStatement>(new InvalidReturnTypeError(location, ok.First.Type, m_CurrentReturnType));
@@ -363,7 +362,7 @@ namespace Ripple.Validation.Info
                 else
                 {
                     TypeInfo type = ok.First[0].Type;
-                    TypedVarDecl typedVar = new TypedVarDecl(ok.First[0].IsUnsafe, type, ok.First.Select(v => v.Name).ToList(), ok.Second);
+                    TypedVarDecl typedVar = new TypedVarDecl(ok.First[0].IsUnsafe, type, ok.First[0].IsMutable, ok.First.Select(v => v.Name).ToList(), ok.Second);
                     return new Result<TypedStatement, List<ValidationError>>(typedVar);
                 }
             },
@@ -383,7 +382,7 @@ namespace Ripple.Validation.Info
             var result = ExpressionChecker.CheckExpression(condition, m_ASTData, m_VariableStack, GetSafetyContext(), GetActiveLifetimesList());
             return result.Match(ok =>
             {
-                if (ok.First.Type.EqualsWithoutFirstMutable(RipplePrimitives.Bool))
+                if (ok.First.Type.Equals(RipplePrimitives.Bool))
                     return new Result<TypedExpression, List<ValidationError>>(ok.Second);
                 return CreateError<TypedExpression>(new ConditionalValueError(errorToken.Location));
             },
@@ -424,7 +423,8 @@ namespace Ripple.Validation.Info
 
             if (!m_CurrentReturnType.Equals(RipplePrimitives.Void) && !m_BlocksReturn.Peek().Any(v => v))
             {
-                return CreateError<TypedBlockStmt>(new NotAllCodePathsReturnAValueError(decl.FuncTok.Location));
+                SourceLocation location = decl.FuncTok.Location + decl.ReturnType.GetLocation();
+                return CreateError<TypedBlockStmt>(new NotAllCodePathsReturnAValueError(location));
             }
             m_BlocksReturn.Pop();
 
