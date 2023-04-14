@@ -143,13 +143,13 @@ namespace Ripple.Compiling
                     FileUtils.WriteToFile(outputPath, string.Empty); // makes sure the file exists
                     string logPath = $"{intermediatesDirectory}\\{CLANG_LOG_FILE_NAME}";
 
-                    bool compiled = ClangCompilerInterface.CompileFiles(intermediatesDirectory, files, outputPath, logPath);
+                    var (compiled, text) = ClangCompilerInterface.CompileFiles(intermediatesDirectory, files, outputPath, logPath);
+
+                    if (Settings.UseDebugging && Settings.StagesFlags.Is(DebugStagesFlags.CCompilation))
+                        LogInfo(text, sourceFiles.StartPath, DebugPhase.CCompilation);
 
                     if (!compiled)
                         return new Result<string, List<CompilerError>>(new List<CompilerError> { new CCompilationError() });
-
-                    if (Settings.UseDebugging && Settings.StagesFlags.Is(DebugStagesFlags.CCompilation))
-                        LogInfo(FileUtils.ReadFromFile(logPath).Value, sourceFiles.StartPath, DebugPhase.CCompilation);
 
                     return outputPath;
                 },

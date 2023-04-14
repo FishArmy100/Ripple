@@ -1,0 +1,5 @@
+﻿
+func test() -> void
+{
+	int mut& mut& r2 = &mut &mut 5;
+}

@@ -30,6 +30,7 @@ namespace Ripple.Transpiling.ASTConversion
 
             CFileStmt predefs = program.Accept(new PreDeclarationGeneratorVisitor()).GeneratePredefFile(statementConverter, typeConverter, Transpiler.CORE_PREDEFS_FILE);
             CFileStmt typePredefs = GenTypePredefs(registry);
+            typePredefs.Includes.Add(new CIncludeStmt("stdbool.h"));
             predefs.Includes.Add(new CIncludeStmt(typePredefs.RelativePath));
 
             foreach (CFileStmt file in files)

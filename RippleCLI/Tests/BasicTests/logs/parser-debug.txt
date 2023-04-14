@@ -1,0 +1,303 @@
+Program:
+	File: BasicTests.ripl
+		Function Declaration:
+			Parameters: 
+			Return type: void
+			Block Statement:
+				Variable Declaration:
+					Type: int[10]
+					Var Names: [Identifier: array]
+					Initializer: 
+						Initializer List:
+							Literal: 5
+							Literal: 6
+							Literal: 7
+				Variable Declaration:
+					Type: int mut&
+					Var Names: [Identifier: ref]
+					Initializer: 
+						Unary: &mut
+							Index:
+								Indexed:
+									Identifier: array
+								Argument:
+									Literal: 0
+				Variable Declaration:
+					Type: int&[1]&
+					Var Names: [Identifier: ref2]
+					Initializer: 
+						Unary: &
+							Initializer List:
+								Unary: &
+									Literal: 5
+		Unsafe Function Declaration:
+			Parameters: 
+			Return type: void
+			Block Statement:
+				Variable Declaration:
+					Type: int*
+					Var Names: [Identifier: ptr1]
+					Initializer: 
+						Literal: nullptr
+				Variable Declaration:
+					Type: float*
+					Var Names: [Identifier: ptr2]
+					Initializer: 
+						Cast: float*
+							Identifier: ptr1
+				Variable Declaration:
+					Type: float&
+					Var Names: [Identifier: f1]
+					Initializer: 
+						Cast: float&
+							Identifier: ptr2
+				Variable Declaration:
+					Type: float*
+					Var Names: [Identifier: f2]
+					Initializer: 
+						Cast: float*
+							Identifier: f1
+				Variable Declaration:
+					Type: int[2]
+					Var Names: [Identifier: arr]
+					Initializer: 
+						Initializer List:
+							Literal: 1
+							Literal: 2
+				Variable Declaration:
+					Type: int*
+					Var Names: [Identifier: first]
+					Initializer: 
+						Cast: int*
+							Unary: &
+								Index:
+									Indexed:
+										Identifier: arr
+									Argument:
+										Literal: 0
+				Variable Declaration:
+					Type: int*
+					Var Names: [Identifier: second]
+					Initializer: 
+						Binary: +
+							Identifier: first
+							Literal: 1
+				Variable Declaration:
+					Type: int
+					Var Names: [Identifier: i]
+					Initializer: 
+						Index:
+							Indexed:
+								Identifier: arr
+							Argument:
+								Literal: 1
+				Variable Declaration:
+					Type: int*
+					Var Names: [Identifier: null]
+					Initializer: 
+						Literal: nullptr
+		Function Declaration:
+			Parameters: 
+			Return type: void
+			Block Statement:
+				Variable Declaration:
+					Type: int&&
+					Var Names: [Identifier: r1]
+					Initializer: 
+						Unary: &
+							Unary: &
+								Literal: 0
+				Variable Declaration:
+					Type: int mut& mut&
+					Var Names: [Identifier: r2]
+					Initializer: 
+						Unary: &mut
+							Unary: &mut
+								Literal: 5
+				Expression Statement: 
+					Binary: =
+						Unary: *
+							Unary: *
+								Identifier: r2
+						Literal: 4
+		Function Declaration:
+			Parameters: 
+			Return type: void
+			Block Statement:
+				Variable Declaration:
+					Type: int
+					Var Names: [Identifier: i1]
+					Initializer: 
+						Literal: 1
+				Variable Declaration:
+					Type: int
+					Var Names: [Identifier: i2]
+					Initializer: 
+						Literal: 2
+				Variable Declaration:
+					Type: float
+					Var Names: [Identifier: f1]
+					Initializer: 
+						Cast: float
+							Grouping
+								Binary: -
+									Binary: +
+										Identifier: i1
+										Identifier: i2
+									Binary: %
+										Binary: /
+											Binary: *
+												Identifier: i1
+												Identifier: i2
+											Identifier: i1
+										Identifier: i2
+				Variable Declaration:
+					Type: int
+					Var Names: [Identifier: i3]
+					Initializer: 
+						Cast: int
+							Identifier: f1
+				Variable Declaration:
+					Type: float
+					Var Names: [Identifier: f2]
+					Initializer: 
+						Literal: 5.0
+				Variable Declaration:
+					Type: float
+					Var Names: [Identifier: f3]
+					Initializer: 
+						Binary: -
+							Binary: +
+								Identifier: f2
+								Identifier: f1
+							Binary: *
+								Binary: /
+									Identifier: f1
+									Identifier: f2
+								Identifier: f2
+				Variable Declaration:
+					Type: char
+					Var Names: [Identifier: c1]
+					Initializer: 
+						Literal: 'c'
+				Variable Declaration:
+					Type: char
+					Var Names: [Identifier: c2]
+					Initializer: 
+						Literal: 'b'
+				Variable Declaration:
+					Type: bool
+					Var Names: [Identifier: b1]
+					Initializer: 
+						Binary: ||
+							Binary: ==
+								Identifier: c1
+								Identifier: c2
+							Binary: !=
+								Identifier: c1
+								Identifier: c2
+				Variable Declaration:
+					Type: bool
+					Var Names: [Identifier: b2]
+					Initializer: 
+						Binary: ||
+							Binary: ||
+								Binary: >
+									Identifier: f1
+									Identifier: f2
+								Binary: &&
+									Binary: <
+										Identifier: f2
+										Identifier: f1
+									Binary: ==
+										Identifier: f3
+										Identifier: f2
+							Binary: !=
+								Identifier: f1
+								Identifier: f2
+				Variable Declaration:
+					Type: bool
+					Var Names: [Identifier: b3]
+					Initializer: 
+						Binary: ||
+							Binary: ||
+								Binary: >
+									Identifier: i1
+									Identifier: i2
+								Binary: &&
+									Binary: <
+										Identifier: i2
+										Identifier: i1
+									Binary: ==
+										Identifier: i3
+										Identifier: i2
+							Binary: !=
+								Identifier: i1
+								Identifier: i2
+		Unsafe Function Declaration:
+			Parameters: 
+			Return type: void
+			Block Statement:
+				Variable Declaration:
+					Type: char*
+					Var Names: [Identifier: string]
+					Initializer: 
+						Literal: c"Hello World!"
+				Expression Statement: 
+					Call:
+						Callee:
+							Identifier: printf
+						Arguments:
+							Identifier: string
+		Function Declaration:
+			Parameters: 
+				int&'a a
+				int&'b b
+			Return type: int
+			Block Statement:
+				Return Statement:
+					Binary: +
+						Unary: *
+							Identifier: a
+						Unary: *
+							Identifier: b
+		Function Declaration:
+			Parameters: 
+				int&'a a
+				int&'b b
+			Return type: int
+			Block Statement:
+				Return Statement:
+					Binary: -
+						Unary: *
+							Identifier: a
+						Unary: *
+							Identifier: b
+	File: CLib.ripl
+		External Function Declaration:
+			Parameters: 
+				char* fmt
+			Return type: void
+	File: Main.ripl
+		Function Declaration:
+			Parameters: 
+			Return type: int
+			Block Statement:
+				Variable Declaration:
+					Type: func(int&, int&) -> int
+					Var Names: [Identifier: add]
+					Initializer: 
+						Identifier: Add
+				Expression Statement: 
+					Binary: =
+						Identifier: add
+						Identifier: Sub
+				Return Statement:
+					Call:
+						Callee:
+							Identifier: add
+						Arguments:
+							Unary: &
+								Literal: 1
+							Unary: &
+								Literal: 2

@@ -87,16 +87,7 @@ namespace Ripple.Validation.Info
             return m_OperatorLibrary.Unaries.Evaluate(operatorType, operand.First, m_VariableStack.CurrentLifetime, unary.GetLocation()).Match(
                 ok => 
                 {
-                    if(operatorType.IsType(TokenType.Ampersand, TokenType.RefMut))
-                    {
-                        ValueInfo expectedValue = new ValueInfo(ok.Type, ok.Lifetime, ok.IsMutable);
-                        TypedUnary expectedTypedUnary = new TypedUnary(operand.Second, operatorType, ok.Type);
-                        return new Pair<ValueInfo, TypedExpression>(expectedValue, expectedTypedUnary);
-                    }
-
-                    ValueInfo value = new ValueInfo(ok.Type, ok.Lifetime, ok.IsMutable);
-                    TypedUnary typedUnary = new TypedUnary(operand.Second, operatorType, ok.Type);
-                    return new Pair<ValueInfo, TypedExpression>(value, typedUnary);
+                    return new Pair<ValueInfo, TypedExpression>(ok, new TypedUnary(operand.Second, operatorType, ok.Type));
                 },
                 fail =>
                 {
@@ -189,7 +180,7 @@ namespace Ripple.Validation.Info
                 return expression.Accept(this, new ExpectedValue(expected, false)).Second;
             }).ToList();
 
-            return m_OperatorLibrary.Calls.Evaluate(new ValueInfo(funcInfo.FunctionType, LifetimeInfo.Static, false), args, m_VariableStack.CurrentLifetime, id.GetLocation())
+            return m_OperatorLibrary.Calls.Evaluate(new ValueInfo(funcInfo.FunctionType, LifetimeInfo.Static, false, ValueCatagory.LValue), args, m_VariableStack.CurrentLifetime, id.GetLocation())
                 .Match(
                 ok =>
                 {
@@ -219,7 +210,7 @@ namespace Ripple.Validation.Info
                         FuncPtrInfo type = overload.FunctionType;
                         if (type.IsEquatableTo(typeToCastTo))
 						{
-                            ValueInfo value = new ValueInfo(type, LifetimeInfo.Static, false);
+                            ValueInfo value = new ValueInfo(type, LifetimeInfo.Static, false, ValueCatagory.LValue);
                             TypedIdentifier functionId = new TypedIdentifier(name, overload, type);
                             return new Pair<ValueInfo, TypedExpression>(value, functionId);
                         }
@@ -326,7 +317,7 @@ namespace Ripple.Validation.Info
                 if (initializerList.Expressions.Count > array.Size)
                     throw new ExpressionCheckerException(new InitalizerListSizeError(initializerList.GetLocation()));
 
-                ValueInfo value = new ValueInfo(array, m_VariableStack.CurrentLifetime, false);
+                ValueInfo value = new ValueInfo(array, m_VariableStack.CurrentLifetime, false, ValueCatagory.RValue);
                 var typedExpressions = initializerList.Expressions
                     .Select(e => e.Accept(this, new ExpectedValue(array.Contained, false)))
                     .Select(e => e.Second)
@@ -395,7 +386,7 @@ namespace Ripple.Validation.Info
                 case TokenType.CStringLiteral:
                     {
                         TypeInfo type = new PointerInfo(false, RipplePrimitives.Char);
-                        ValueInfo value = new ValueInfo(type, LifetimeInfo.Static, false); // char* with a static lifetime
+                        ValueInfo value = new ValueInfo(type, LifetimeInfo.Static, false, ValueCatagory.RValue); // char* with a static lifetime
                         TypedLiteral typedLiteral = new TypedLiteral(literal.Val.Text, literal.Val.Type, type);
 
                         return new Pair<ValueInfo, TypedExpression>(value, typedLiteral);
@@ -424,28 +415,28 @@ namespace Ripple.Validation.Info
 
         private static Pair<ValueInfo, TypedExpression> GetVariablePair(VariableInfo variableInfo)
 		{
-            ValueInfo value = new ValueInfo(variableInfo.Type, variableInfo.Lifetime, variableInfo.IsMutable);
+            ValueInfo value = new ValueInfo(variableInfo.Type, variableInfo.Lifetime, variableInfo.IsMutable, ValueCatagory.LValue);
             TypedIdentifier identifier = new TypedIdentifier(variableInfo.Name, variableInfo, variableInfo.Type);
             return new Pair<ValueInfo, TypedExpression>(value, identifier);
 		}
 
         private static Pair<ValueInfo, TypedExpression> GetFunctionPair(FunctionInfo functionInfo)
 		{
-            ValueInfo value = new ValueInfo(functionInfo.FunctionType, LifetimeInfo.Static, false);
+            ValueInfo value = new ValueInfo(functionInfo.FunctionType, LifetimeInfo.Static, false, ValueCatagory.LValue);
             TypedIdentifier identifier = new TypedIdentifier(functionInfo.Name, functionInfo, functionInfo.ReturnType);
             return new Pair<ValueInfo, TypedExpression>(value, identifier);
 		}
 
         private Pair<ValueInfo, TypedExpression> GetSizeOfPair(TypeInfo sizeOfType)
         {
-            ValueInfo value = new ValueInfo(sizeOfType, m_VariableStack.CurrentLifetime, false);
+            ValueInfo value = new ValueInfo(sizeOfType, m_VariableStack.CurrentLifetime, false, ValueCatagory.RValue);
             TypedSizeOf typedSizeOf = new TypedSizeOf(sizeOfType, RipplePrimitives.Int32);
             return new Pair<ValueInfo, TypedExpression>(value, typedSizeOf);
         }
 
         private Pair<ValueInfo, TypedExpression> GetLiteralPair(TypeInfo typeInfo, TokenType literalType, string literalValue, bool isMutable)
 		{
-            ValueInfo value = new ValueInfo(typeInfo, m_VariableStack.CurrentLifetime, isMutable);
+            ValueInfo value = new ValueInfo(typeInfo, m_VariableStack.CurrentLifetime, isMutable, ValueCatagory.RValue);
             TypedLiteral literal = new TypedLiteral(literalValue, literalType, typeInfo);
             return new Pair<ValueInfo, TypedExpression>(value, literal);
 		}

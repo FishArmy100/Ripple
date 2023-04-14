@@ -23,8 +23,11 @@ namespace RippleCLI
         {
             get
             {
-                string text = FileUtils.ReadFromFile(ModeSavePath).Value;
-                if(Enum.TryParse(typeof(CompilerMode), text, out object mode))
+                var text = FileUtils.ReadFromFile(ModeSavePath);
+                if (!text.HasValue())
+                    return null;
+
+                if(Enum.TryParse(typeof(CompilerMode), text.Value, out object mode))
                 {
                     return (CompilerMode)mode;
                 }
@@ -41,9 +44,11 @@ namespace RippleCLI
         {
             get
             {
-                string text = FileUtils.ReadFromFile(PathSavePath).Value;
-                if (!text.IsNullOrEmpty())
-                    return text.RemoveWhitespace();
+                var text = FileUtils.ReadFromFile(PathSavePath);
+                if (!text.HasValue())
+                    return null;
+                if (!text.Value.IsNullOrEmpty())
+                    return text.Value.RemoveWhitespace();
 
                 return null;
             }
@@ -275,8 +280,8 @@ namespace RippleCLI
             CompilerSettings settings = new CompilerSettings 
             {
                 StagesFlags = DebugStagesFlags.All,
-                UseDebugging = false,
-                UseSameFile = true
+                UseDebugging = true,
+                UseSameFile = false
             };
 
             return new Compiler(settings);
