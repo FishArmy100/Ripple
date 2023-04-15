@@ -5,9 +5,21 @@ class Test
 {
 	public func Hello() -> void 
 	{
+		InternalHello();
+	}
+
+	private func InternalHello() -> void
+	{
 		unsafe
 		{
-			
+			printf(c"Hello World!");
 		}
 	}
+}
+
+func main() -> int
+{
+	Test t = Test();
+	t.Hello();
+	return 0;
 }

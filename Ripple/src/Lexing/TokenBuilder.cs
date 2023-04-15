@@ -236,6 +236,8 @@ namespace Ripple.Lexing
                     return GenToken(TokenType.CloseBracket, 1);
                 case '~':
                     return GenToken(TokenType.Tilda, 1);
+                case '.':
+                    return GenToken(TokenType.Dot, 1);
 
                 // multiple
                 case '=':

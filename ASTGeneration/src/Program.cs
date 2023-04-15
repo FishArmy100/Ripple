@@ -89,6 +89,7 @@ namespace ASTGeneration
                 "Identifier : Token Name",
                 "TypeExpression : Token Name; Token GreaterThan; List<Token> Lifetimes; Token LessThan",
                 "InitializerList : Token OpenBrace; List<Expression> Expressions; Token CloseBrace",
+                "MemberAccess : Expression Expression; Token Dot; Token Identifier",
                 "SizeOf : Token SizeofToken; Token LessThan; TypeName Type; Token GreaterThan; Token OpenParen; Token CloseParen",
             }, additionalUsings);
 
@@ -106,14 +107,18 @@ namespace ASTGeneration
                 "ContinueStmt : Token ContinueToken; Token SemiColon",
                 "BreakStmt : Token BreakToken; Token SemiColon",
 
-                "Parameters : Token OpenParen; List<(TypeName,Token)> ParamList; Token CloseParen",
+                "Parameters : Token OpenParen; List<Pair<TypeName,Token>> ParamList; Token CloseParen",
                 "GenericParameters : Token LessThan; List<Token> Lifetimes; Token GreaterThan",
 
                 "WhereClause : Token WhereToken; Expression Expression",
                 "UnsafeBlock : Token UnsafeToken; Token OpenBrace; List<Statement> Statements; Token CloseBrace",
 
-                "FuncDecl : Token? UnsafeToken; Token FuncTok; Token Name; Option<GenericParameters> GenericParams; Parameters Param; Token Arrow; TypeName ReturnType; Option<WhereClause> WhereClause; BlockStmt Body",
+                "FuncDecl : Token? UnsafeToken; Token? MutToken; Token FuncTok; Token Name; Option<GenericParameters> GenericParams; Parameters Param; Token Arrow; TypeName ReturnType; Option<WhereClause> WhereClause; BlockStmt Body",
                 "ExternalFuncDecl : Token ExternToken; Token Specifier; Token FuncToken; Token Name; Parameters Parameters; Token Arrow; TypeName ReturnType; Token SemiColon",
+
+                "ConstructorDecl : Token Identifier; Parameters Parameters; BlockStmt Body",
+
+                "ClassDecl : Token? UnsafeToken; Token ClassToken; Option<GenericParameters> GenericParameters; Token OpenBrace; List<Statement> Members; Token CloseBrace",
 
                 "FileStmt : List<Statement> Statements; string RelativePath; Token EOFTok",
                 "ProgramStmt : List<FileStmt> Files; string Path"
