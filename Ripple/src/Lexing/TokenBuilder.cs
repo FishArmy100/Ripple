@@ -283,6 +283,12 @@ namespace Ripple.Lexing
                         return GenToken(TokenType.PipePipe, 2);
                     }
                     break;
+                case ':':
+                    if (nc is char n && n == ':')
+                    {
+                        return GenToken(TokenType.ColonColon, 2);
+                    }
+                    return GenToken(TokenType.Colon, 1);
                 default:
                     break;
             }

@@ -87,9 +87,9 @@ namespace ASTGeneration
                 "Unary : Token Op; Expression Expr",
                 "Binary : Expression Left; Token Op; Expression Right",
                 "Identifier : Token Name",
-                "TypeExpression : Token Name; Token GreaterThan; List<Token> Lifetimes; Token LessThan",
                 "InitializerList : Token OpenBrace; List<Expression> Expressions; Token CloseBrace",
-                "MemberAccess : Expression Expression; Token Dot; Token Identifier",
+                "MemberAccess : Expression Expression; Token Dot; Token MemberName",
+                "StaticMemberAccess : TypeName Type; Token ColonColon; Token MemberName",
                 "SizeOf : Token SizeofToken; Token LessThan; TypeName Type; Token GreaterThan; Token OpenParen; Token CloseParen",
             }, additionalUsings);
 
@@ -101,7 +101,7 @@ namespace ASTGeneration
                 "IfStmt : Token IfTok; Token OpenParen; Expression Expr; Token CloseParen; Statement Body; Token? ElseToken; Option<Statement> ElseBody",
                 "ForStmt : Token ForTok; Token OpenParen; Option<Statement> Init; Option<Expression> Condition; Option<Expression> Iter; Token CloseParen; Statement Body",
                 "WhileStmt : Token WhileToken; Token OpenParen; Expression Condition; Token CloseParen; Statement Body",
-                "VarDecl : Token? UnsafeToken; TypeName Type; Token? MutToken; List<Token> VarNames; Token Equels; Expression Expr; Token SemiColin",
+                "VarDecl : Token? UnsafeToken; TypeName Type; Token? MutToken; List<Token> VarNames; Token? Equels; Option<Expression> Expr; Token SemiColin",
                 "ReturnStmt : Token ReturnTok; Option<Expression> Expr; Token SemiColin",
 
                 "ContinueStmt : Token ContinueToken; Token SemiColon",
@@ -114,11 +114,16 @@ namespace ASTGeneration
                 "UnsafeBlock : Token UnsafeToken; Token OpenBrace; List<Statement> Statements; Token CloseBrace",
 
                 "FuncDecl : Token? UnsafeToken; Token? MutToken; Token FuncTok; Token Name; Option<GenericParameters> GenericParams; Parameters Param; Token Arrow; TypeName ReturnType; Option<WhereClause> WhereClause; BlockStmt Body",
-                "ExternalFuncDecl : Token ExternToken; Token Specifier; Token FuncToken; Token Name; Parameters Parameters; Token Arrow; TypeName ReturnType; Token SemiColon",
+                "ExternalFuncDecl : Token? UnsafeToken; Token ExternToken; Token Specifier; Token FuncToken; Token Name; Parameters Parameters; Token Arrow; TypeName ReturnType; Token SemiColon",
 
                 "ConstructorDecl : Token Identifier; Parameters Parameters; BlockStmt Body",
 
-                "ClassDecl : Token? UnsafeToken; Token ClassToken; Option<GenericParameters> GenericParameters; Token OpenBrace; List<Statement> Members; Token CloseBrace",
+                "ThisFunctionParameter : Token ThisToken; Token? MutToken; Token? RefToken",
+                "MemberFunctionParameters : Token OpenParen; Option<ThisFunctionParameter> ThisParameter; List<Pair<TypeName,Token>> ParamList; Token CloseParen",
+                "MemberFunctionDecl : Token? UnsafeToken; Token FuncToken; Token NameToken; Option<GenericParameters> GenericParameters; ",
+
+                "MemberDecl : Token? VisibilityToken; Statement Declaration",
+                "ClassDecl : Token? UnsafeToken; Token ClassToken; Token Name; Option<GenericParameters> GenericParameters; Token OpenBrace; List<Statement> Members; Token CloseBrace",
 
                 "FileStmt : List<Statement> Statements; string RelativePath; Token EOFTok",
                 "ProgramStmt : List<FileStmt> Files; string Path"

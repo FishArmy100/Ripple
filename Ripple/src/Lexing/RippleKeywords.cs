@@ -30,6 +30,7 @@ namespace Ripple.Lexing
             { "unsafe",     TokenType.Unsafe    },
             { "nullptr",    TokenType.Nullptr   },
             { "sizeof",     TokenType.Sizeof    },
+            { "this",       TokenType.This      },
         };
     }
 }

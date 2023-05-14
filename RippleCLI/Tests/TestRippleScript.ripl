@@ -1,14 +1,3 @@
 ﻿
 
-extern "C" func printf(char* message) -> void;
-
-func Print(char* message) -> void
-{
-	printf(message);
-}
-
-func Main() -> int
-{
-	Print("Hello World!");
-	return 0;
-}
+: :: this
