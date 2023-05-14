@@ -280,7 +280,7 @@ namespace RippleCLI
             CompilerSettings settings = new CompilerSettings 
             {
                 StagesFlags = DebugStagesFlags.All,
-                UseDebugging = true,
+                UseDebugging = false,
                 UseSameFile = false
             };
 
