@@ -55,7 +55,7 @@ using module Core.Memory;
 
 module Core
 {
-  class Unique<T> : IInderectable
+  class Unique<T> : IDereferencable<T>
   {
     private unsafe T* ptr;
     public Unique<TArgs...>(TArgs args...) 
@@ -67,8 +67,7 @@ module Core
       }
     }
     
-    public func Indirect() -> T& { return ptr as T&; }
-    public mut func Indirect() -> mut T& { return ptr as mut T&; }
+    public func Indirect(this ?mut&) -> T& { return ptr as T ?mut&; }
 
     public ~Unique()
     {
@@ -81,7 +80,7 @@ module Core
   
   impl<T> ICloneable for Unique<T> where T is ICloneable
   {
-    public func Clone() -> Unique<T>
+    public func Clone(this&) -> Unique<T>
     {
       return Unique(ptr->Clone());
     }
