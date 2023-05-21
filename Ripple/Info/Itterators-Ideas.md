@@ -31,7 +31,7 @@ func fib_iter(usize count) -> impl IIterator<usize>
   i--;
   usize mut fib = 1;
   
-  for i in range(0...i)
+  for i in range(0, i)
   {
     fib += fib;
     yeild fib;
