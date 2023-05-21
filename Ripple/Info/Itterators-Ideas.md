@@ -22,13 +22,21 @@ func fib_iter(usize count) -> impl IIterator<usize>
 {
   usize mut i = count;
   if (i > 0)
-    yeild 0;
+    yeild 1;
+    
+  if (i == 0)
+    yeild None;
     
   i--;
+  
   if (i > 0)
-    yeild 0;
+    yeild 1;
+    
+  if (i == 0)
+    yeild None;
     
   i--;
+  
   usize mut fib = 1;
   
   for i in range(0, i)
