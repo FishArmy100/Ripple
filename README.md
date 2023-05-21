@@ -34,12 +34,12 @@ module Core.Memory
   unsafe func New<T, TArgs...>(TArgs args...) -> T*
     where T is IConstructable<TArgs...>
   { 
-    mut T* ptr = malloc(sizeof<T>()) as mut T*;
+    T mut* ptr = malloc(sizeof<T>()) as T mut*;
     ptr := T(args...);
     return ptr;
   }
 
-  unsafe func<T> Delete(T* ptr) -> void
+  unsafe func<T> Delete(T mut* ptr) -> void
   {
     comptime if(T is Destructible)
       ptr->~T();
