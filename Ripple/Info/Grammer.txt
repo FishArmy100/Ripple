@@ -99,13 +99,17 @@ grammer Ripple
 	FuncDecl = "unsafe"? "func" IDENTIFIER GenericParams? Parameters "->" TypeName WhereClause? Block;
 	ExternFuncDecl = "extern" StringLiteral "func" IDENTIFIER Parameters "->"  TypeName ";";
 
-	MemberDecl = ClassVisibility ("mut"? FuncDecl | VarDecl);
-	ClassDecl = "unsafe"? "class" IDENTIFIER GenericParams? WhereClause? "{" MemberDecl* "}"
 
-	ExternMemberDecl = TypeName IDENTIFIER ("," IDENTIFIER)* | 
-					   "func" IDENTIFIER Parameters "->"  TypeName ";";
+	ThisParameter = "this" "mut"? "&"?;
+	MemberFuncParams = "(" ThisParameter? ","? (TypeName IDENTIFIER ("," TypeName IDENTIFIER)*)? ")";
 
-	ExternClassDecl = "extern" StringLiteral "class" IDENTIFIER "{" "}";
+	MemberFuncDecl = "unsafe"? "func" IDENTIFIER GenericParams? MemberFuncParams "->" TypeName WhereClause? Block;
+
+	Constructor = "unsafe"? IDENTIFIER GenericParams? Parameters Block;
+	Destructor = "unsafe"? "~" IDENTIFIER "(" ")" Block;
+
+	MemberDecl = ClassVisibility (FuncDecl | MemberFuncDecl);
+	ClassDecl = "unsafe"? "class" IDENTIFIER GenericParams? WhereClause? "{" MemberDecl* "}";
 
 	Statement = ExprStmt		| 
 				Block			| 

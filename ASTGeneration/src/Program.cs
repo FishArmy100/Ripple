@@ -89,7 +89,6 @@ namespace ASTGeneration
                 "Identifier : Token Name",
                 "InitializerList : Token OpenBrace; List<Expression> Expressions; Token CloseBrace",
                 "MemberAccess : Expression Expression; Token Dot; Token MemberName",
-                "StaticMemberAccess : TypeName Type; Token ColonColon; Token MemberName",
                 "SizeOf : Token SizeofToken; Token LessThan; TypeName Type; Token GreaterThan; Token OpenParen; Token CloseParen",
             }, additionalUsings);
 

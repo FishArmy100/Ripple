@@ -196,8 +196,6 @@ namespace Ripple.Lexing
             Option<Result<Token, LexerError>> GenToken(TokenType type, int length)
             {
                 string src = "";
-                int line = m_Reader.Line;
-                int col = m_Reader.Column;
 
                 for (int i = 0; i < length; i++)
                     src += m_Reader.Advance();
@@ -283,12 +281,6 @@ namespace Ripple.Lexing
                         return GenToken(TokenType.PipePipe, 2);
                     }
                     break;
-                case ':':
-                    if (nc is char n && n == ':')
-                    {
-                        return GenToken(TokenType.ColonColon, 2);
-                    }
-                    return GenToken(TokenType.Colon, 1);
                 default:
                     break;
             }
