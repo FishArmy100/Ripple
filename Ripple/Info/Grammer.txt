@@ -45,8 +45,6 @@ grammer Ripple
 	MemberSelection = Expression ("." IDENTIFIER)*;
 	Construction = TypeName "(" ExpressionList? ")";
 
-	QualifiedIdentifier = IDENTIFIER GenericArgs? ("." IDENTIFIER GenericArgs?)*
-
 	Sizeof = "sizeof" "<" TypeName ">" "(" ")";
 
 	Primary = IntLiteral			|
@@ -100,15 +98,14 @@ grammer Ripple
 	ExternFuncDecl = "extern" StringLiteral "func" IDENTIFIER Parameters "->"  TypeName ";";
 
 
-	ThisParameter = "this" "mut"? "&"?;
+	ThisParameter = "this" "mut"? ("&" Lifetime)?;
 	MemberFuncParams = "(" ThisParameter? ","? (TypeName IDENTIFIER ("," TypeName IDENTIFIER)*)? ")";
-
 	MemberFuncDecl = "unsafe"? "func" IDENTIFIER GenericParams? MemberFuncParams "->" TypeName WhereClause? Block;
 
 	Constructor = "unsafe"? IDENTIFIER GenericParams? Parameters Block;
 	Destructor = "unsafe"? "~" IDENTIFIER "(" ")" Block;
 
-	MemberDecl = ClassVisibility (FuncDecl | MemberFuncDecl);
+	MemberDecl = ClassVisibility (FuncDecl | MemberFuncDecl | Constructor | Destructor);
 	ClassDecl = "unsafe"? "class" IDENTIFIER GenericParams? WhereClause? "{" MemberDecl* "}";
 
 	Statement = ExprStmt		| 

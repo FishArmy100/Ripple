@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
 using Raucse.Extensions;
+using Ripple.Utils.Extensions;
 
 namespace Ripple.AST.Utils
 {
@@ -17,7 +18,7 @@ namespace Ripple.AST.Utils
         public AstPrinter(string seperator)
         {
             m_Seperator = seperator;
-            PrinterFunc = text => Console.WriteLine(text);
+            PrinterFunc = text => Console.Write(text);
         }
 
         public AstPrinter(string seperator, Action<string> printerFunc) : this(seperator)
@@ -39,7 +40,7 @@ namespace Ripple.AST.Utils
 
         public void VisitExprStmt(ExprStmt exprStmt)
         {
-            Print("Expression Statement: ");
+            PrintLine("Expression Statement: ");
             TabRight();
             exprStmt.Expr.Accept(this);
             TabLeft();
@@ -47,7 +48,7 @@ namespace Ripple.AST.Utils
 
         public void VisitBlockStmt(BlockStmt blockStmt)
         {
-            Print("Block Statement:");
+            PrintLine("Block Statement:");
             TabRight();
             foreach (Statement statement in blockStmt.Statements)
                 statement.Accept(this);
@@ -56,22 +57,22 @@ namespace Ripple.AST.Utils
 
         public void VisitIfStmt(IfStmt ifStmt)
         {
-            Print("If Statement");
+            PrintLine("If Statement");
             TabRight();
 
-            Print("Condition:");
+            PrintLine("Condition:");
             TabRight();
             ifStmt.Expr.Accept(this);
             TabLeft();
 
-            Print("Main Branch:");
+            PrintLine("Main Branch:");
             TabRight();
             ifStmt.Body.Accept(this);
             TabLeft();
 
             if(ifStmt.ElseToken.HasValue)
             {
-                Print("Else Branch");
+                PrintLine("Else Branch");
                 TabRight();
                 ifStmt.ElseBody.Match(body => body.Accept(this));
                 TabLeft();
@@ -82,12 +83,12 @@ namespace Ripple.AST.Utils
 
         public void VisitForStmt(ForStmt forStmt)
         {
-            Print("For Statement");
+            PrintLine("For Statement");
             TabRight();
 
             if(forStmt.Init.HasValue())
             {
-                Print("Initalization:");
+                PrintLine("Initalization:");
                 TabRight();
                 forStmt.Init.Value.Accept(this);
                 TabLeft();
@@ -95,7 +96,7 @@ namespace Ripple.AST.Utils
 
             if(forStmt.Condition.HasValue())
             {
-                Print("Condition:");
+                PrintLine("Condition:");
                 TabRight();
                 forStmt.Condition.Value.Accept(this);
                 TabLeft();
@@ -103,13 +104,13 @@ namespace Ripple.AST.Utils
 
             if(forStmt.Iter.HasValue())
             {
-                Print("Iterator:");
+                PrintLine("Iterator:");
                 TabRight();
                 forStmt.Iter.Value.Accept(this);
                 TabLeft();
             }
 
-            Print("Body:");
+            PrintLine("Body:");
             TabRight();
             forStmt.Body.Accept(this);
             TabLeft();
@@ -120,12 +121,12 @@ namespace Ripple.AST.Utils
         public void VisitVarDecl(VarDecl varDecl)
         {
             if (varDecl.UnsafeToken.HasValue)
-                Print("Unsafe Variable Declaration:");
+                PrintLine("Unsafe Variable Declaration:");
             else
-                Print("Variable Declaration:");
+                PrintLine("Variable Declaration:");
 
             TabRight();
-            Print("Type: " + TypeNamePrinter.PrintType(varDecl.Type));
+            PrintLine("Type: " + TypeNamePrinter.PrintType(varDecl.Type));
 
             string names = "";
             for(int i = 0; i < varDecl.VarNames.Count; i++)
@@ -135,19 +136,22 @@ namespace Ripple.AST.Utils
                 names += varDecl.VarNames[i];
             }
 
-            Print("Var Names: " + names);
+            PrintLine("Var Names: " + names);
 
-            Print("Initializer: ");
-            TabRight();
-            varDecl.Expr.Accept(this);
-            TabLeft();
+            varDecl.Expr.Match(ok =>
+            {
+                PrintLine("Initializer: ");
+                TabRight();
+                ok.Accept(this);
+                TabLeft();
+            });
 
             TabLeft();
         }
 
         public void VisitReturnStmt(ReturnStmt returnStmt)
         {
-            Print("Return Statement:");
+            PrintLine("Return Statement:");
             if(returnStmt.Expr.HasValue())
             {
                 TabRight();
@@ -158,23 +162,23 @@ namespace Ripple.AST.Utils
 
         public void VisitParameters(Parameters parameters)
         {
-            Print("Parameters: ");
+            PrintLine("Parameters: ");
             TabRight();
             foreach (var pair in parameters.ParamList)
-                Print(TypeNamePrinter.PrintType(pair.Item1) + " " + pair.Item2.Text);
+                PrintLine(TypeNamePrinter.PrintType(pair.First) + " " + pair.Second.Text);
             TabLeft();
         }
 
         public void VisitFuncDecl(FuncDecl funcDecl)
         {
             if (funcDecl.UnsafeToken.HasValue)
-                Print("Unsafe Function Declaration:");
+                PrintLine("Unsafe Function Declaration:");
             else
-                Print("Function Declaration:");
+                PrintLine("Function Declaration:");
 
             TabRight();
             funcDecl.Param.Accept(this);
-            Print("Return type: " + TypeNamePrinter.PrintType(funcDecl.ReturnType));
+            PrintLine("Return type: " + TypeNamePrinter.PrintType(funcDecl.ReturnType));
             funcDecl.WhereClause.Match(w => w.Accept(this));
             funcDecl.Body.Accept(this);
             TabLeft();
@@ -182,7 +186,7 @@ namespace Ripple.AST.Utils
 
         public void VisitFileStmt(FileStmt fileStmt)
         {
-            Print("File: " + System.IO.Path.GetFileName(fileStmt.RelativePath));
+            PrintLine("File: " + System.IO.Path.GetFileName(fileStmt.RelativePath));
             TabRight();
             foreach (Statement statement in fileStmt.Statements)
                 statement.Accept(this);
@@ -191,15 +195,15 @@ namespace Ripple.AST.Utils
 
         public void VisitWhileStmt(WhileStmt whileStmt)
         {
-            Print("While Loop:");
+            PrintLine("While Loop:");
             TabRight();
 
-            Print("Condition:");
+            PrintLine("Condition:");
             TabRight();
             whileStmt.Condition.Accept(this);
             TabLeft();
 
-            Print("Body:");
+            PrintLine("Body:");
             TabRight();
             whileStmt.Body.Accept(this);
             TabLeft();
@@ -209,35 +213,35 @@ namespace Ripple.AST.Utils
 
         public void VisitContinueStmt(ContinueStmt continueStmt)
         {
-            Print("Continue Statement");
+            PrintLine("Continue Statement");
         }
 
         public void VisitBreakStmt(BreakStmt breakStmt)
         {
-            Print("Break Statement");
+            PrintLine("Break Statement");
         }
 
         public void VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl)
         {
-            Print("External Function Declaration:");
+            PrintLine("External Function Declaration:");
             TabRight();
             externalFuncDecl.Parameters.Accept(this);
-            Print("Return type: " + TypeNamePrinter.PrintType(externalFuncDecl.ReturnType));
+            PrintLine("Return type: " + TypeNamePrinter.PrintType(externalFuncDecl.ReturnType));
             TabLeft();
         }
 
         public void VisitGenericParameters(GenericParameters genericParameters)
         {
-            Print("Generic Parameters:");
+            PrintLine("Generic Parameters:");
             TabRight();
             foreach (Token t in genericParameters.Lifetimes)
-                Print(t.Text);
+                PrintLine(t.Text);
             TabLeft();
         }
 
         public void VisitWhereClause(WhereClause whereClause)
         {
-            Print("Where: ");
+            PrintLine("Where: ");
             TabRight();
             whereClause.Expression.Accept(this);
             TabLeft();
@@ -245,16 +249,96 @@ namespace Ripple.AST.Utils
 
         public void VisitUnsafeBlock(UnsafeBlock unsafeBlock)
         {
-            Print("Unsafe Block:");
+            PrintLine("Unsafe Block:");
             TabRight();
             foreach (Statement statement in unsafeBlock.Statements)
                 statement.Accept(this);
             TabLeft();
         }
 
+        public void VisitConstructorDecl(ConstructorDecl constructorDecl)
+        {
+            if(constructorDecl.UnsafeToken is Token)
+            {
+                PrintLine("Unsafe Constructor Declaration:");
+            }
+            else
+            {
+                PrintLine("Constructor Declaration:");
+            }
+            TabRight();
+            constructorDecl.Parameters.Accept(this);
+            constructorDecl.Body.Accept(this);
+            TabLeft();
+        }
+
+        public void VisitDestructorDecl(DestructorDecl destructorDecl)
+        {
+            if (destructorDecl.UnsafeToken is Token)
+            {
+                PrintLine("Unsafe Destructor Declaration:");
+            }
+            else
+            {
+                PrintLine("Destructor Declaration:");
+            }
+
+            destructorDecl.Body.Accept(this);
+        }
+
+        public void VisitThisFunctionParameter(ThisFunctionParameter thisFunctionParameter)
+        {
+            string str = "this";
+            str += thisFunctionParameter.MutToken.Match(ok => " " + ok.Text, () => "");
+            str += thisFunctionParameter.RefToken.Match(ok => ok.Text, () => "");
+            str += thisFunctionParameter.LifetimeToken.Match(ok => ok.Text, () => "");
+            PrintLine(str);
+        }
+
+        public void VisitMemberFunctionParameters(MemberFunctionParameters memberFunctionParameters)
+        {
+            PrintLine("Member Function Parameters:");
+            TabRight();
+            memberFunctionParameters.ThisParameter.Match(ok => ok.Accept(this));
+            foreach(var (type, name) in memberFunctionParameters.ParamList)
+            {
+                 PrintLine(TypeNamePrinter.PrintType(type) + " " + name.Text);
+            }
+            TabLeft();
+        }
+
+        public void VisitMemberFunctionDecl(MemberFunctionDecl memberFunctionDecl)
+        {
+            PrintLine("Member Function Declaration:");
+            TabRight();
+            memberFunctionDecl.Parameters.Accept(this);
+            memberFunctionDecl.Body.Accept(this);
+            TabLeft();
+        }
+
+        public void VisitMemberDecl(MemberDecl memberDecl)
+        {
+            PrintLine("Member Decl:");
+            TabRight();
+            if(memberDecl.VisibilityToken is Token visibility)
+                PrintLine($"Visibility: {visibility}");
+
+            memberDecl.Declaration.Accept(this);
+            TabLeft();
+        }
+
+        public void VisitClassDecl(ClassDecl classDecl)
+        {
+            PrintLine("Class Declaration:");
+            TabRight();
+            foreach (var member in classDecl.Members)
+                member.Accept(this);
+            TabLeft();
+        }
+
         public void VisitProgramStmt(ProgramStmt program)
         {
-            Print("Program:");
+            PrintLine("Program:");
             TabRight();
             foreach (FileStmt file in program.Files)
                 file.Accept(this);
@@ -263,7 +347,7 @@ namespace Ripple.AST.Utils
 
         public void VisitBinary(Binary binary)
         {
-            Print("Binary: " + binary.Op.Text);
+            PrintLine("Binary: " + binary.Op.Text);
             TabRight();
             binary.Left.Accept(this);
             binary.Right.Accept(this);
@@ -272,15 +356,15 @@ namespace Ripple.AST.Utils
 
         public void VisitCall(Call call)
         {
-            Print("Call:");
+            PrintLine("Call:");
             TabRight();
-            Print("Callee:");
+            PrintLine("Callee:");
 
             TabRight();
             call.Callee.Accept(this);
             TabLeft();
 
-            Print("Arguments:");
+            PrintLine("Arguments:");
             TabRight();
             foreach (Expression expr in call.Args)
                 expr.Accept(this);
@@ -290,12 +374,12 @@ namespace Ripple.AST.Utils
 
         public void VisitSizeOf(SizeOf sizeOf)
         {
-            Print("SizeOf: " + TypeNamePrinter.PrintType(sizeOf.Type));
+            PrintLine("SizeOf: " + TypeNamePrinter.PrintType(sizeOf.Type));
         }
 
         public void VisitGrouping(Grouping grouping)
         {
-            Print("Grouping");
+            PrintLine("Grouping");
             TabRight();
             grouping.Expr.Accept(this);
             TabLeft();
@@ -303,12 +387,12 @@ namespace Ripple.AST.Utils
 
         public void VisitLiteral(Literal literal)
         {
-            Print("Literal: " + literal.Val.Text);
+            PrintLine("Literal: " + literal.Val.Text);
         }
 
         public void VisitUnary(Unary unary)
         {
-            Print("Unary: " + unary.Op.Text);
+            PrintLine("Unary: " + unary.Op.Text);
             TabRight();
             unary.Expr.Accept(this);
             TabLeft();
@@ -316,20 +400,20 @@ namespace Ripple.AST.Utils
 
         public void VisitIdentifier(Identifier variable)
         {
-            Print("Identifier: " + variable.Name.Text);
+            PrintLine("Identifier: " + variable.Name.Text);
         }
 
         public void VisitIndex(Index index)
         {
-            Print("Index:");
+            PrintLine("Index:");
             TabRight();
-            Print("Indexed:");
+            PrintLine("Indexed:");
 
             TabRight();
             index.Indexed.Accept(this);
             TabLeft();
 
-            Print("Argument:");
+            PrintLine("Argument:");
             TabRight();
             index.Argument.Accept(this);
             TabLeft();
@@ -338,7 +422,7 @@ namespace Ripple.AST.Utils
 
         public void VisitCast(Cast cast)
         {
-            Print("Cast: " + TypeNamePrinter.PrintType(cast.TypeToCastTo));
+            PrintLine("Cast: " + TypeNamePrinter.PrintType(cast.TypeToCastTo));
             TabRight();
             cast.Castee.Accept(this);
             TabLeft();
@@ -346,26 +430,31 @@ namespace Ripple.AST.Utils
 
         public void VisitInitializerList(InitializerList initializerList)
         {
-            Print("Initializer List:");
+            PrintLine("Initializer List:");
             TabRight();
             foreach (Expression expression in initializerList.Expressions)
                 expression.Accept(this);
             TabLeft();
         }
 
-        public void VisitTypeExpression(TypeExpression typeExpression)
+        public void VisitTypeExpr(TypeExpr typeExpr)
         {
-            Print("Type Expression: " + typeExpression.Name);
+            PrintLine(TypeNamePrinter.PrintType(typeExpr.Type));
+        }
+
+        public void VisitMemberAccess(MemberAccess memberAccess)
+        {
+            PrintLine("Member Access:");
             TabRight();
-            foreach (Token lifetime in typeExpression.Lifetimes)
-                Print(lifetime.Text);
+            memberAccess.Expression.Accept(this);
+            PrintLine($"Member: {memberAccess.MemberName.Text}");
             TabLeft();
         }
 
         private void TabRight() { m_Index++; }
         private void TabLeft() { m_Index--; }
 
-        private void Print(string text) { PrinterFunc(GetOffset() + text); }
+        private void PrintLine(string text) { PrinterFunc(GetOffset() + text + "\n"); }
 
         private string GetOffset()
         {

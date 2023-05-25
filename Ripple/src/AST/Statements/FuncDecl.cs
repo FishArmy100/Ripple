@@ -11,6 +11,7 @@ namespace Ripple.AST
 	public class FuncDecl : Statement
 	{
 		public readonly Token? UnsafeToken;
+		public readonly Token? MutToken;
 		public readonly Token FuncTok;
 		public readonly Token Name;
 		public readonly Option<GenericParameters> GenericParams;
@@ -20,9 +21,10 @@ namespace Ripple.AST
 		public readonly Option<WhereClause> WhereClause;
 		public readonly BlockStmt Body;
 
-		public FuncDecl(Token? unsafeToken, Token funcTok, Token name, Option<GenericParameters> genericParams, Parameters param, Token arrow, TypeName returnType, Option<WhereClause> whereClause, BlockStmt body)
+		public FuncDecl(Token? unsafeToken, Token? mutToken, Token funcTok, Token name, Option<GenericParameters> genericParams, Parameters param, Token arrow, TypeName returnType, Option<WhereClause> whereClause, BlockStmt body)
 		{
 			this.UnsafeToken = unsafeToken;
+			this.MutToken = mutToken;
 			this.FuncTok = funcTok;
 			this.Name = name;
 			this.GenericParams = genericParams;
@@ -57,7 +59,7 @@ namespace Ripple.AST
 		{
 			if(other is FuncDecl funcDecl)
 			{
-				return UnsafeToken.Equals(funcDecl.UnsafeToken) && FuncTok.Equals(funcDecl.FuncTok) && Name.Equals(funcDecl.Name) && GenericParams.Equals(funcDecl.GenericParams) && Param.Equals(funcDecl.Param) && Arrow.Equals(funcDecl.Arrow) && ReturnType.Equals(funcDecl.ReturnType) && WhereClause.Equals(funcDecl.WhereClause) && Body.Equals(funcDecl.Body);
+				return UnsafeToken.Equals(funcDecl.UnsafeToken) && MutToken.Equals(funcDecl.MutToken) && FuncTok.Equals(funcDecl.FuncTok) && Name.Equals(funcDecl.Name) && GenericParams.Equals(funcDecl.GenericParams) && Param.Equals(funcDecl.Param) && Arrow.Equals(funcDecl.Arrow) && ReturnType.Equals(funcDecl.ReturnType) && WhereClause.Equals(funcDecl.WhereClause) && Body.Equals(funcDecl.Body);
 			}
 			return false;
 		}
@@ -66,6 +68,7 @@ namespace Ripple.AST
 		{
 			HashCode code = new HashCode();
 			code.Add(UnsafeToken);
+			code.Add(MutToken);
 			code.Add(FuncTok);
 			code.Add(Name);
 			code.Add(GenericParams);

@@ -33,7 +33,24 @@ namespace Ripple.AST.Utils
             cast.Castee.Accept(this);
         }
 
+        public virtual void VisitClassDecl(ClassDecl classDecl)
+        {
+            foreach (var member in classDecl.Members)
+                member.Accept(this);
+        }
+
+        public virtual void VisitConstructorDecl(ConstructorDecl constructorDecl)
+        {
+            constructorDecl.Parameters.Accept(this);
+            constructorDecl.Body.Accept(this);
+        }
+
         public virtual void VisitContinueStmt(ContinueStmt continueStmt) { }
+
+        public virtual void VisitDestructorDecl(DestructorDecl destructorDecl)
+        {
+            destructorDecl.Body.Accept(this);
+        }
 
         public virtual void VisitExprStmt(ExprStmt exprStmt)
         {
@@ -91,6 +108,27 @@ namespace Ripple.AST.Utils
 
         public virtual void VisitLiteral(Literal literal) { }
 
+        public virtual void VisitMemberAccess(MemberAccess memberAccess)
+        {
+            memberAccess.Expression.Accept(this);
+        }
+
+        public virtual void VisitMemberDecl(MemberDecl memberDecl)
+        {
+            memberDecl.Declaration.Accept(this);
+        }
+
+        public virtual void VisitMemberFunctionDecl(MemberFunctionDecl memberFunctionDecl)
+        {
+            memberFunctionDecl.Parameters.Accept(this);
+            memberFunctionDecl.Body.Accept(this);
+        }
+
+        public virtual void VisitMemberFunctionParameters(MemberFunctionParameters memberFunctionParameters)
+        {
+            memberFunctionParameters.ThisParameter.Match(ok => ok.Accept(this));
+        }
+
         public virtual void VisitParameters(Parameters parameters) { }
 
         public virtual void VisitProgramStmt(ProgramStmt program)
@@ -105,9 +143,11 @@ namespace Ripple.AST.Utils
                 returnStmt.Expr.Value.Accept(this);
         }
 
-        public void VisitSizeOf(SizeOf sizeOf) { }
+        public virtual void VisitSizeOf(SizeOf sizeOf) { }
 
-        public virtual void VisitTypeExpression(TypeExpression typeExpression) { }
+        public virtual void VisitThisFunctionParameter(ThisFunctionParameter thisFunctionParameter) { }
+
+        public virtual void VisitTypeExpr(TypeExpr typeExpr) { }
 
         public virtual void VisitUnary(Unary unary)
         {
@@ -122,7 +162,7 @@ namespace Ripple.AST.Utils
 
         public virtual void VisitVarDecl(VarDecl varDecl)
         {
-            varDecl.Expr.Accept(this);
+            varDecl.Expr.Match(ok => ok.Accept(this));
         }
 
         public virtual void VisitWhereClause(WhereClause whereClause)

@@ -15,6 +15,11 @@ class String
         strcpy(data, m_data);
     }
 
+    public unsafe ~String()
+    {
+        free(m_data);
+    }
+
     public func length(this&) -> usize { return m_length }
     public unsafe func data<'t>(this&'t) -> char* { return m_data; }
 
@@ -60,14 +65,15 @@ class String
 
 class StringSlice<'a>
 {
-    private String&'a m_string
+    private String&'a m_string;
     private usize m_start;
-    private usize m_end;
+    private usize m_length;
 
-    public StringSlice(String&'a string, usize start, usize end)
+    public StringSlice(String&'a string, usize start, usize length)
     {
-        assert(end < string.length());
-        assert(start <= end);
+        assert(start < string.length());
+        assert(start + length - 1 < m_string.length());
+        assert(length != 0);
 
         m_string = string;
         m_start = start;
@@ -76,8 +82,12 @@ class StringSlice<'a>
 
     public char at(this&, usize index)
     {
-        assert(index + start <= end);
-        return string.at(index + start);
+        assert(index < m_length);
+        return m_string.at(index + m_start);
     }
+
+    public func start(this&) -> usize { return m_start; }
+    public func length(this&) -> usize { return m_length; }
 }
 ```
+

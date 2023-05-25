@@ -10,6 +10,7 @@ namespace Ripple.AST
 {
 	public class ExternalFuncDecl : Statement
 	{
+		public readonly Token? UnsafeToken;
 		public readonly Token ExternToken;
 		public readonly Token Specifier;
 		public readonly Token FuncToken;
@@ -19,8 +20,9 @@ namespace Ripple.AST
 		public readonly TypeName ReturnType;
 		public readonly Token SemiColon;
 
-		public ExternalFuncDecl(Token externToken, Token specifier, Token funcToken, Token name, Parameters parameters, Token arrow, TypeName returnType, Token semiColon)
+		public ExternalFuncDecl(Token? unsafeToken, Token externToken, Token specifier, Token funcToken, Token name, Parameters parameters, Token arrow, TypeName returnType, Token semiColon)
 		{
+			this.UnsafeToken = unsafeToken;
 			this.ExternToken = externToken;
 			this.Specifier = specifier;
 			this.FuncToken = funcToken;
@@ -55,7 +57,7 @@ namespace Ripple.AST
 		{
 			if(other is ExternalFuncDecl externalFuncDecl)
 			{
-				return ExternToken.Equals(externalFuncDecl.ExternToken) && Specifier.Equals(externalFuncDecl.Specifier) && FuncToken.Equals(externalFuncDecl.FuncToken) && Name.Equals(externalFuncDecl.Name) && Parameters.Equals(externalFuncDecl.Parameters) && Arrow.Equals(externalFuncDecl.Arrow) && ReturnType.Equals(externalFuncDecl.ReturnType) && SemiColon.Equals(externalFuncDecl.SemiColon);
+				return UnsafeToken.Equals(externalFuncDecl.UnsafeToken) && ExternToken.Equals(externalFuncDecl.ExternToken) && Specifier.Equals(externalFuncDecl.Specifier) && FuncToken.Equals(externalFuncDecl.FuncToken) && Name.Equals(externalFuncDecl.Name) && Parameters.Equals(externalFuncDecl.Parameters) && Arrow.Equals(externalFuncDecl.Arrow) && ReturnType.Equals(externalFuncDecl.ReturnType) && SemiColon.Equals(externalFuncDecl.SemiColon);
 			}
 			return false;
 		}
@@ -63,6 +65,7 @@ namespace Ripple.AST
 		public override int GetHashCode()
 		{
 			HashCode code = new HashCode();
+			code.Add(UnsafeToken);
 			code.Add(ExternToken);
 			code.Add(Specifier);
 			code.Add(FuncToken);

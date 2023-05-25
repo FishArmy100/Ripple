@@ -14,11 +14,11 @@ namespace Ripple.AST
 		public readonly TypeName Type;
 		public readonly Token? MutToken;
 		public readonly List<Token> VarNames;
-		public readonly Token Equels;
-		public readonly Expression Expr;
+		public readonly Token? Equels;
+		public readonly Option<Expression> Expr;
 		public readonly Token SemiColin;
 
-		public VarDecl(Token? unsafeToken, TypeName type, Token? mutToken, List<Token> varNames, Token equels, Expression expr, Token semiColin)
+		public VarDecl(Token? unsafeToken, TypeName type, Token? mutToken, List<Token> varNames, Token? equels, Option<Expression> expr, Token semiColin)
 		{
 			this.UnsafeToken = unsafeToken;
 			this.Type = type;
