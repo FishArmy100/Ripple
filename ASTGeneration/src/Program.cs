@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Raucse;
 
 namespace ASTGeneration
 {
@@ -80,7 +81,6 @@ namespace ASTGeneration
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Expressions", "Ripple.AST", "Expression", "", new List<string>()
             {
                 "Literal : Token Val",
-                "TypeExpr : TypeName Type",
                 "Grouping : Token LeftParen; Expression Expr; Token RightParen",
                 "Call : Expression Callee; Token OpenParen; List<Expression> Args; Token CloseParen",
                 "Index : Expression Indexed; Token OpenBracket; Expression Argument; Token CloseBracket",
@@ -113,18 +113,18 @@ namespace ASTGeneration
                 "WhereClause : Token WhereToken; Expression Expression",
                 "UnsafeBlock : Token UnsafeToken; Token OpenBrace; List<Statement> Statements; Token CloseBrace",
 
-                "FuncDecl : Token? UnsafeToken; Token? MutToken; Token FuncTok; Token Name; Option<GenericParameters> GenericParams; Parameters Param; Token Arrow; TypeName ReturnType; Option<WhereClause> WhereClause; BlockStmt Body",
+                "FuncDecl : Token? UnsafeToken; Token FuncTok; Token Name; Option<GenericParameters> GenericParams; Parameters Param; Token Arrow; TypeName ReturnType; Option<WhereClause> WhereClause; BlockStmt Body",
                 "ExternalFuncDecl : Token? UnsafeToken; Token ExternToken; Token Specifier; Token FuncToken; Token Name; Parameters Parameters; Token Arrow; TypeName ReturnType; Token SemiColon",
 
-                "ConstructorDecl : Token? UnsafeToken; Token Identifier; Parameters Parameters; BlockStmt Body",
-                "DestructorDecl : Token? UnsafeToken; Token Identifier; Token OpenParen; Token CloseParen; BlockStmt Body",
+                "ConstructorDecl : Token? UnsafeToken; Token Identifier; Option<GenericParameters> GenericParameters; Parameters Parameters; BlockStmt Body",
+                "DestructorDecl : Token? UnsafeToken; Token TildaToken; Token Identifier; Token OpenParen; Token CloseParen; BlockStmt Body",
 
                 "ThisFunctionParameter : Token ThisToken; Token? MutToken; Token? RefToken; Token? LifetimeToken",
                 "MemberFunctionParameters : Token OpenParen; Option<ThisFunctionParameter> ThisParameter; List<Pair<TypeName,Token>> ParamList; Token CloseParen",
                 "MemberFunctionDecl : Token? UnsafeToken; Token FuncToken; Token NameToken; Option<GenericParameters> GenericParameters; MemberFunctionParameters Parameters; Token Arrow; TypeName ReturnType; BlockStmt Body",
 
                 "MemberDecl : Token? VisibilityToken; Statement Declaration",
-                "ClassDecl : Token? UnsafeToken; Token ClassToken; Token Name; Option<GenericParameters> GenericParameters; Token OpenBrace; List<Statement> Members; Token CloseBrace",
+                "ClassDecl : Token? UnsafeToken; Token ClassToken; Token Name; Option<GenericParameters> GenericParameters; Token OpenBrace; List<MemberDecl> Members; Token CloseBrace",
 
                 "FileStmt : List<Statement> Statements; string RelativePath; Token EOFTok",
                 "ProgramStmt : List<FileStmt> Files; string Path"

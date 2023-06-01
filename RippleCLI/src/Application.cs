@@ -262,6 +262,7 @@ namespace RippleCLI
 
         private static void PrintErrors(IEnumerable<CompilerError> errors)
         {
+            ConsoleHelper.WriteError($"Compiled with {errors.Count()} errors:");
             foreach(string error in CompilerErrorFormatter.Format(errors))
             {
                 ConsoleHelper.WriteError(error);

@@ -437,11 +437,6 @@ namespace Ripple.AST.Utils
             TabLeft();
         }
 
-        public void VisitTypeExpr(TypeExpr typeExpr)
-        {
-            PrintLine(TypeNamePrinter.PrintType(typeExpr.Type));
-        }
-
         public void VisitMemberAccess(MemberAccess memberAccess)
         {
             PrintLine("Member Access:");

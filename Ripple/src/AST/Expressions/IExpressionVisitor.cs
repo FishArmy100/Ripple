@@ -5,7 +5,6 @@ namespace Ripple.AST
 	public interface IExpressionVisitor
 	{
 		public abstract void VisitLiteral(Literal literal);
-		public abstract void VisitTypeExpr(TypeExpr typeExpr);
 		public abstract void VisitGrouping(Grouping grouping);
 		public abstract void VisitCall(Call call);
 		public abstract void VisitIndex(Index index);
@@ -21,7 +20,6 @@ namespace Ripple.AST
 	public interface IExpressionVisitor<T>
 	{
 		public abstract T VisitLiteral(Literal literal);
-		public abstract T VisitTypeExpr(TypeExpr typeExpr);
 		public abstract T VisitGrouping(Grouping grouping);
 		public abstract T VisitCall(Call call);
 		public abstract T VisitIndex(Index index);
@@ -37,7 +35,6 @@ namespace Ripple.AST
 	public interface IExpressionVisitor<TReturn, TArg>
 	{
 		public abstract TReturn VisitLiteral(Literal literal, TArg arg);
-		public abstract TReturn VisitTypeExpr(TypeExpr typeExpr, TArg arg);
 		public abstract TReturn VisitGrouping(Grouping grouping, TArg arg);
 		public abstract TReturn VisitCall(Call call, TArg arg);
 		public abstract TReturn VisitIndex(Index index, TArg arg);
@@ -52,7 +49,6 @@ namespace Ripple.AST
 	public interface IExpressionVisitorWithArg<TArg>
 	{
 		public abstract void VisitLiteral(Literal literal, TArg arg);
-		public abstract void VisitTypeExpr(TypeExpr typeExpr, TArg arg);
 		public abstract void VisitGrouping(Grouping grouping, TArg arg);
 		public abstract void VisitCall(Call call, TArg arg);
 		public abstract void VisitIndex(Index index, TArg arg);

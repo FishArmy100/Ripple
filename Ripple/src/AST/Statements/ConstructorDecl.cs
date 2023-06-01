@@ -12,13 +12,15 @@ namespace Ripple.AST
 	{
 		public readonly Token? UnsafeToken;
 		public readonly Token Identifier;
+		public readonly Option<GenericParameters> GenericParameters;
 		public readonly Parameters Parameters;
 		public readonly BlockStmt Body;
 
-		public ConstructorDecl(Token? unsafeToken, Token identifier, Parameters parameters, BlockStmt body)
+		public ConstructorDecl(Token? unsafeToken, Token identifier, Option<GenericParameters> genericParameters, Parameters parameters, BlockStmt body)
 		{
 			this.UnsafeToken = unsafeToken;
 			this.Identifier = identifier;
+			this.GenericParameters = genericParameters;
 			this.Parameters = parameters;
 			this.Body = body;
 		}
@@ -47,7 +49,7 @@ namespace Ripple.AST
 		{
 			if(other is ConstructorDecl constructorDecl)
 			{
-				return UnsafeToken.Equals(constructorDecl.UnsafeToken) && Identifier.Equals(constructorDecl.Identifier) && Parameters.Equals(constructorDecl.Parameters) && Body.Equals(constructorDecl.Body);
+				return UnsafeToken.Equals(constructorDecl.UnsafeToken) && Identifier.Equals(constructorDecl.Identifier) && GenericParameters.Equals(constructorDecl.GenericParameters) && Parameters.Equals(constructorDecl.Parameters) && Body.Equals(constructorDecl.Body);
 			}
 			return false;
 		}
@@ -57,6 +59,7 @@ namespace Ripple.AST
 			HashCode code = new HashCode();
 			code.Add(UnsafeToken);
 			code.Add(Identifier);
+			code.Add(GenericParameters);
 			code.Add(Parameters);
 			code.Add(Body);
 			return code.ToHashCode();

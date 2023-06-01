@@ -11,14 +11,16 @@ namespace Ripple.AST
 	public class DestructorDecl : Statement
 	{
 		public readonly Token? UnsafeToken;
+		public readonly Token TildaToken;
 		public readonly Token Identifier;
 		public readonly Token OpenParen;
 		public readonly Token CloseParen;
 		public readonly BlockStmt Body;
 
-		public DestructorDecl(Token? unsafeToken, Token identifier, Token openParen, Token closeParen, BlockStmt body)
+		public DestructorDecl(Token? unsafeToken, Token tildaToken, Token identifier, Token openParen, Token closeParen, BlockStmt body)
 		{
 			this.UnsafeToken = unsafeToken;
+			this.TildaToken = tildaToken;
 			this.Identifier = identifier;
 			this.OpenParen = openParen;
 			this.CloseParen = closeParen;
@@ -49,7 +51,7 @@ namespace Ripple.AST
 		{
 			if(other is DestructorDecl destructorDecl)
 			{
-				return UnsafeToken.Equals(destructorDecl.UnsafeToken) && Identifier.Equals(destructorDecl.Identifier) && OpenParen.Equals(destructorDecl.OpenParen) && CloseParen.Equals(destructorDecl.CloseParen) && Body.Equals(destructorDecl.Body);
+				return UnsafeToken.Equals(destructorDecl.UnsafeToken) && TildaToken.Equals(destructorDecl.TildaToken) && Identifier.Equals(destructorDecl.Identifier) && OpenParen.Equals(destructorDecl.OpenParen) && CloseParen.Equals(destructorDecl.CloseParen) && Body.Equals(destructorDecl.Body);
 			}
 			return false;
 		}
@@ -58,6 +60,7 @@ namespace Ripple.AST
 		{
 			HashCode code = new HashCode();
 			code.Add(UnsafeToken);
+			code.Add(TildaToken);
 			code.Add(Identifier);
 			code.Add(OpenParen);
 			code.Add(CloseParen);

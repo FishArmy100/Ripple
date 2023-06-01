@@ -147,8 +147,6 @@ namespace Ripple.AST.Utils
 
         public virtual void VisitThisFunctionParameter(ThisFunctionParameter thisFunctionParameter) { }
 
-        public virtual void VisitTypeExpr(TypeExpr typeExpr) { }
-
         public virtual void VisitUnary(Unary unary)
         {
             unary.Expr.Accept(this);

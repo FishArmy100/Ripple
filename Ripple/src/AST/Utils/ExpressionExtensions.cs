@@ -66,11 +66,6 @@ namespace Ripple.AST.Utils
                 return sizeOf.SizeofToken.Location + sizeOf.CloseParen.Location;
             }
 
-            public SourceLocation VisitTypeExpr(TypeExpr typeExpr)
-            {
-                return typeExpr.Type.GetLocation();
-            }
-
             public SourceLocation VisitUnary(Unary unary)
             {
                 return unary.Op.Location + unary.Expr.GetLocation();

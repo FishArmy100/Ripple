@@ -39,7 +39,7 @@ namespace Ripple.Validation.Info.Types
                 ok => ok.Lifetimes.Select(l => l).ToList(), 
                 () => new List<Token>());
 
-			List<TypeName> parameterTypes = funcDecl.Param.ParamList.Select(p => p.Item1).ToList();
+			List<TypeName> parameterTypes = funcDecl.Param.ParamList.Select(p => p.First).ToList();
             FuncPtr funcPtr = new FuncPtr(new Token(), lifetimes, new Token(), parameterTypes, new Token(), new Token(), funcDecl.ReturnType);
             return funcPtr.Accept(visitor).Match(ok => new Result<FuncPtrInfo, List<ValidationError>>(ok as FuncPtrInfo), fail => new Result<FuncPtrInfo, List<ValidationError>>(fail));
 		}
@@ -49,7 +49,7 @@ namespace Ripple.Validation.Info.Types
             SafetyContext context = new SafetyContext(false);
             TypeInfoGeneratorVisitor visitor = new TypeInfoGeneratorVisitor(primaryTypes, new List<string>(), true, context);
 
-            List<TypeName> parameterTypes = funcDecl.Parameters.ParamList.Select(p => p.Item1).ToList();
+            List<TypeName> parameterTypes = funcDecl.Parameters.ParamList.Select(p => p.First).ToList();
             FuncPtr funcPtr = new FuncPtr(new Token(), new Option<List<Token>>(), new Token(), parameterTypes, new Token(), new Token(), funcDecl.ReturnType);
             return funcPtr.Accept(visitor).Match(ok => new Result<FuncPtrInfo, List<ValidationError>>(ok as FuncPtrInfo), fail => new Result<FuncPtrInfo, List<ValidationError>>(fail));
         }

@@ -406,8 +406,8 @@ namespace Ripple.Validation
 
         private static FunctionInfo GenLinkingFunction(string name, List<(TypeName, string)> paramaters, string returnTypeName, bool isUnsafe)
         {
-            Parameters parameters = new Parameters(new Token(), paramaters.Select(p => (p.Item1, GenIdTok(p.Item2))).ToList(), new Token());
-            var result = FunctionInfo.FromASTExternalFunction(new ExternalFuncDecl(new Token(), new Token(), new Token(), GenIdTok(name), parameters, new Token(), GenBasicTypeName(returnTypeName), new Token()), GetPrimitives());
+            Parameters parameters = new Parameters(new Token(), paramaters.Select(p => new Pair<TypeName, Token>(p.Item1, GenIdTok(p.Item2))).ToList(), new Token());
+            var result = FunctionInfo.FromASTExternalFunction(new ExternalFuncDecl(new Token(), new Token(), new Token(), new Token(), GenIdTok(name), parameters, new Token(), GenBasicTypeName(returnTypeName), new Token()), GetPrimitives());
             return result.Value;
         }
 

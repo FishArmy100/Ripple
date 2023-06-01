@@ -80,9 +80,187 @@ namespace Ripple.Parsing
                 return statement;
             else if (TryParseExernalFunctionDecl(ref reader, out ExternalFuncDecl funcDecl))
                 return funcDecl;
+            else if (TryParseClassDecl(ref reader, ref errors, out ClassDecl classDecl))
+                return classDecl;
 
             ParserError error = new ExpectedDeclarationError(reader.CurrentLocation());
             throw new ParserExeption(error);
+        }
+
+        private static bool TryParseClassDecl(ref TokenReader reader, ref List<ParserError> errors, out ClassDecl classDecl)
+        {
+            classDecl = null;
+            Token? unsafeToken = null;
+            Token classToken;
+
+            if (reader.Match(TokenType.Class))
+            {
+                classToken = reader.Previous();
+            }
+            else if (reader.CheckSequence(TokenType.Unsafe, TokenType.Class))
+            {
+                unsafeToken = reader.Advance();
+                classToken = reader.Advance();
+            }
+            else
+            {
+                return false;
+            }
+
+            Token className = reader.Consume(TokenType.Identifier);
+            Option<GenericParameters> genericParameters = ParseGenericParameters(ref reader);
+            Token openBrace = reader.Consume(TokenType.OpenBrace);
+
+            List<MemberDecl> members = new List<MemberDecl>();
+            while(true)
+            {
+                var member = ParseMemberDecl(ref reader, ref errors);
+                if (!member.HasValue())
+                    break;
+                members.Add(member.Value);
+            }
+
+            Token closeBrace = reader.Consume(TokenType.CloseBrace);
+
+            classDecl = new ClassDecl(unsafeToken, classToken, className, genericParameters, openBrace, members, closeBrace);
+            return true;
+        }
+
+        private static Option<MemberDecl> ParseMemberDecl(ref TokenReader reader, ref List<ParserError> errors)
+        {
+            Token? accessLevel = reader.TryMatch(TokenType.Public, TokenType.Private);
+            if (TryParseVarDecl(ref reader, out Statement varDecl))
+                return new MemberDecl(accessLevel, varDecl);
+
+            var constructor = ParseConstructorDecl(ref reader, ref errors);
+            if (constructor.HasValue())
+                return new MemberDecl(accessLevel, constructor.Value);
+
+            var destructor = ParseDestructorDecl(ref reader, ref errors);
+            if (destructor.HasValue())
+                return new MemberDecl(accessLevel, destructor.Value);
+
+            var memberFunction = ParseMemberFunction(ref reader, ref errors);
+            if (memberFunction.HasValue())
+                return new MemberDecl(accessLevel, memberFunction.Value);
+
+            return new Option<MemberDecl>();
+        }
+
+        private static Option<ConstructorDecl> ParseConstructorDecl(ref TokenReader reader, ref List<ParserError> errors)
+        {
+            if (!reader.CheckSequence(TokenType.Identifier) && !reader.CheckSequence(TokenType.Unsafe, TokenType.Identifier))
+                return new Option<ConstructorDecl>();
+
+            Token? unsafeToken = reader.TryMatch(TokenType.Unsafe);
+            Token identifier = reader.Consume(TokenType.Identifier);
+            Option<GenericParameters> genericParameters = ParseGenericParameters(ref reader);
+            Parameters parameters = ParseParameters(ref reader);
+            BlockStmt body = ParseFunctionBody(ref reader, ref errors);
+
+            return new ConstructorDecl(unsafeToken, identifier, genericParameters, parameters, body);
+        }
+
+        private static Option<DestructorDecl> ParseDestructorDecl(ref TokenReader reader, ref List<ParserError> errors)
+        {
+            if (!reader.CheckSequence(TokenType.Tilda) && !reader.CheckSequence(TokenType.Unsafe, TokenType.Tilda))
+                return new Option<DestructorDecl>();
+
+            Token? unsafeToken = reader.TryMatch(TokenType.Unsafe);
+            Token tilda = reader.Consume(TokenType.Tilda);
+            Token identifier = reader.Consume(TokenType.Identifier);
+            Token openParen = reader.Consume(TokenType.OpenParen);
+            Token closeParen = reader.Consume(TokenType.CloseParen);
+            BlockStmt body = ParseFunctionBody(ref reader, ref errors);
+
+            return new DestructorDecl(unsafeToken, tilda, identifier, openParen, closeParen, body);
+        }
+
+        private static Option<MemberFunctionDecl> ParseMemberFunction(ref TokenReader reader, ref List<ParserError> errors)
+        {
+            Token funcToken;
+            Token? unsafeToken = null;
+            if (reader.Match(TokenType.Func))
+            {
+                funcToken = reader.Previous();
+            }
+            else if (reader.CheckSequence(TokenType.Unsafe, TokenType.Func))
+            {
+                unsafeToken = reader.Advance();
+                funcToken = reader.Advance();
+            }
+            else
+            {
+                return new Option<MemberFunctionDecl>();
+            }
+
+            Token nameToken = reader.Consume(TokenType.Identifier);
+            Option<GenericParameters> genericParams = ParseGenericParameters(ref reader);
+            MemberFunctionParameters parameters = ParseMemberFunctionParameters(ref reader);
+            Token arrow = reader.Consume(TokenType.RightThinArrow);
+            TypeName returned = TypeNameParser.ParseTypeName(ref reader);
+
+            BlockStmt body = ParseFunctionBody(ref reader, ref errors);
+
+            return new MemberFunctionDecl(unsafeToken, funcToken, nameToken, genericParams, parameters, arrow, returned, body);
+        }
+
+        private static MemberFunctionParameters ParseMemberFunctionParameters(ref TokenReader reader)
+        {
+            Token openParen = reader.Consume(TokenType.OpenParen);
+            Option<ThisFunctionParameter> thisParam = ParseThisFunctionParameter(ref reader);
+            List<Pair<TypeName, Token>> parameters = new List<Pair<TypeName, Token>>();
+
+            if(thisParam.HasValue())
+            {
+                while(!reader.IsAtEnd() && reader.Match(TokenType.Comma)) // need a comma to start
+                {
+                    TypeName type = TypeNameParser.ParseTypeName(ref reader);
+                    Token identifier = reader.Consume(TokenType.Identifier);
+                    parameters.Add(new Pair<TypeName, Token>(type, identifier));
+                }
+            }
+            else
+            {
+                while (!reader.IsAtEnd() && !reader.Current().IsType(TokenType.CloseParen)) // does not need a comma to start
+                {
+                    reader.Match(TokenType.Comma);
+                    TypeName typeName = TypeNameParser.ParseTypeName(ref reader);
+                    Token paramName = reader.Consume(TokenType.Identifier);
+                    parameters.Add((typeName, paramName));
+                }
+            }
+
+            Token closeParen = reader.Consume(TokenType.CloseParen);
+            return new MemberFunctionParameters(openParen, thisParam, parameters, closeParen);
+        }
+
+        private static Option<ThisFunctionParameter> ParseThisFunctionParameter(ref TokenReader reader)
+        {
+            if(reader.Match(TokenType.This))
+            {
+                Token thisToken = reader.Previous();
+
+                if(reader.Match(TokenType.Mut))
+                {
+                    Token mutToken = reader.Previous();
+                    Token refToken = reader.Consume(TokenType.Ampersand);
+                    Token? lifetimeToken = reader.TryMatch(TokenType.Lifetime);
+
+                    return new ThisFunctionParameter(thisToken, mutToken, refToken, lifetimeToken);
+                }
+
+                if(reader.Match(TokenType.Ampersand))
+                {
+                    Token refToken = reader.Previous();
+                    Token? lifetimeToken = reader.TryMatch(TokenType.Lifetime);
+                    return new ThisFunctionParameter(thisToken, null, refToken, lifetimeToken);
+                }
+
+                return new ThisFunctionParameter(thisToken, null, null, null);
+            }
+
+            return new Option<ThisFunctionParameter>();
         }
 
         private static bool TryParseFunctionDecl(ref TokenReader reader, ref List<ParserError> errors, out FuncDecl funcDecl)
@@ -100,26 +278,46 @@ namespace Ripple.Parsing
             Option<GenericParameters> genericParameters = ParseGenericParameters(ref reader);
             Parameters parameters = ParseParameters(ref reader);
             Token arrow = reader.Consume(TokenType.RightThinArrow);
-            TypeName returnType = ParseTypeName(ref reader);
+            TypeName returnType = TypeNameParser.ParseTypeName(ref reader);
             Option<WhereClause> whereClause = ParseWhereClause(ref reader);
 
+            BlockStmt body = ParseFunctionBody(ref reader, ref errors);
+
+            funcDecl = new FuncDecl(unsafeToken, func, name, genericParameters, parameters, arrow, returnType, whereClause, body);
+            return true;
+        }
+
+        private static BlockStmt ParseFunctionBody(ref TokenReader reader, ref List<ParserError> errors)
+        {
             if (!TryParseBlock(ref reader, ref errors, out BlockStmt body))
             {
                 ParserError error = new ExpectedFunctionBodyError(reader.CurrentLocation());
                 throw new ParserExeption(error);
             }
 
-            funcDecl = new FuncDecl(unsafeToken, func, name, genericParameters, parameters, arrow, returnType, whereClause, body);
-            return true;
+            return body;
         }
 
         private static bool TryParseExernalFunctionDecl(ref TokenReader reader, out ExternalFuncDecl externalFuncDecl)
         {
             externalFuncDecl = null;
-            if (!reader.Match(TokenType.Extern))
-                return false;
+            Token? unsafeToken = null;
 
-            Token externToken = reader.Previous();
+            Token? externToken;
+            if (reader.Match(TokenType.Extern))
+            {
+                externToken = reader.Previous();
+            }
+            else if (reader.CheckSequence(TokenType.Unsafe, TokenType.Extern))
+            {
+                unsafeToken = reader.Advance();
+                externToken = reader.Advance();
+            }
+            else
+            {
+                return false;
+            }
+
             Token stringLit = reader.Consume(TokenType.StringLiteral);
             Token funkToken = reader.Consume(TokenType.Func);
             Token funcName = reader.Consume(TokenType.Identifier);
@@ -128,7 +326,7 @@ namespace Ripple.Parsing
             TypeName returnType = TypeNameParser.ParseTypeName(ref reader);
             Token semiColon = reader.Consume(TokenType.SemiColon);
 
-            externalFuncDecl = new ExternalFuncDecl(externToken, stringLit, funkToken, funcName, parameters, arrow, returnType, semiColon);
+            externalFuncDecl = new ExternalFuncDecl(unsafeToken, externToken.Value, stringLit, funkToken, funcName, parameters, arrow, returnType, semiColon);
             return true;
         }
 
@@ -160,7 +358,7 @@ namespace Ripple.Parsing
             if(reader.Match(TokenType.Where))
             {
                 Token whereToken = reader.Previous();
-                Expression expr = ParseExpression(ref reader);
+                Expression expr = ExpressionParser.ParseExpressionOrThrow(ref reader);
 
                 return new WhereClause(whereToken, expr);
             }
@@ -171,11 +369,11 @@ namespace Ripple.Parsing
         private static Parameters ParseParameters(ref TokenReader reader)
         {
             Token openParen = reader.Consume(TokenType.OpenParen);
-            List<(TypeName, Token)> parameters = new List<(TypeName, Token)>();
+            List<Pair<TypeName, Token>> parameters = new List<Pair<TypeName, Token>>();
             while(!reader.IsAtEnd() && !reader.Current().IsType(TokenType.CloseParen))
             {
                 reader.Match(TokenType.Comma);
-                TypeName typeName = ParseTypeName(ref reader);
+                TypeName typeName = TypeNameParser.ParseTypeName(ref reader);
                 Token paramName = reader.Consume(TokenType.Identifier);
                 parameters.Add((typeName, paramName));
             }
@@ -227,7 +425,7 @@ namespace Ripple.Parsing
 
             Token ifToken = reader.Previous();
             Token openParen = reader.Consume(TokenType.OpenParen);
-            Expression expr = ParseExpression(ref reader);
+            Expression expr = ExpressionParser.ParseExpressionOrThrow(ref reader);
             Token closeParen = reader.Consume(TokenType.CloseParen);
             Statement body = ParseStatement(ref reader, ref errors);
 
@@ -258,12 +456,12 @@ namespace Ripple.Parsing
 
             Expression condition = null;
             if (reader.Current().Type != TokenType.SemiColon)
-                condition = ParseExpression(ref reader);
+                condition = ExpressionParser.ParseExpressionOrThrow(ref reader);
             reader.Consume(TokenType.SemiColon);
 
             Expression itr = null;
             if (reader.Current().Type != TokenType.CloseParen)
-                itr = ParseExpression(ref reader);
+                itr = ExpressionParser.ParseExpressionOrThrow(ref reader);
             Token closeParen = reader.Consume(TokenType.CloseParen);
 
             Statement body = ParseStatement(ref reader, ref errors);
@@ -280,7 +478,7 @@ namespace Ripple.Parsing
 
             Token whileToken = reader.Previous();
             Token openParen = reader.Consume(TokenType.OpenParen);
-            Expression condition = ParseExpression(ref reader);
+            Expression condition = ExpressionParser.ParseExpressionOrThrow(ref reader);
             Token closeParen = reader.Consume(TokenType.CloseParen);
 
             Statement body = ParseStatement(ref reader, ref parserErrors);
@@ -324,7 +522,7 @@ namespace Ripple.Parsing
                 return true;
             }
 
-            Expression expr = ParseExpression(ref reader);
+            Expression expr = ExpressionParser.ParseExpressionOrThrow(ref reader);
 
             Token semiColon = reader.Consume(TokenType.SemiColon);
 
@@ -348,7 +546,7 @@ namespace Ripple.Parsing
             }
 
             Token? unsafeToken = reader.TryMatch(TokenType.Unsafe);
-            TypeName type = ParseTypeName(ref reader);
+            TypeName type = TypeNameParser.ParseTypeName(ref reader);
             Token? mutToken = reader.TryMatch(TokenType.Mut);
             List<Token> varNames = new List<Token>();
             varNames.Add(reader.Advance());
@@ -358,18 +556,26 @@ namespace Ripple.Parsing
                 varNames.Add(reader.Consume(TokenType.Identifier));
             }
 
-            Token equel = reader.Consume(TokenType.Equal);
+            if(reader.Match(TokenType.SemiColon))
+            {
+                statement = new VarDecl(unsafeToken, type, mutToken, varNames, null, null, reader.Previous());
+                return true;
+            }
+            else
+            {
+                Token equel = reader.Consume(TokenType.Equal);
 
-            Expression expr = ParseExpression(ref reader);
-            Token semiColon = reader.Consume(TokenType.SemiColon);
+                Expression expr = ExpressionParser.ParseExpressionOrThrow(ref reader);
+                Token semiColon = reader.Consume(TokenType.SemiColon);
 
-            statement = new VarDecl(unsafeToken, type, mutToken, varNames, equel, expr, semiColon);
-            return true;
+                statement = new VarDecl(unsafeToken, type, mutToken, varNames, equel, expr, semiColon);
+                return true;
+            }
         }
 
         private static bool IsVarDecl(TokenReader reader, int beginOffset = 0)
         {
-            if(IsTypeName(ref reader, out int length, beginOffset))
+            if(TypeNameParser.IsTypeName(ref reader, out int length, beginOffset))
             {
                 return reader.Peek(length + beginOffset) is Token t && 
                        (t.Type.IsType(TokenType.Identifier, TokenType.Mut));
@@ -408,269 +614,9 @@ namespace Ripple.Parsing
 
         private static Statement ParseExpressionStatement(ref TokenReader reader)
         {
-            Expression expr = ParseExpression(ref reader);
+            Expression expr = ExpressionParser.ParseExpressionOrThrow(ref reader);
             Token semiColon = reader.Consume(TokenType.SemiColon);
             return new ExprStmt(expr, semiColon);
-        }
-
-        private static Expression ParseExpression(ref TokenReader reader)
-        {
-            return ParseAssignment(ref reader);
-        }
-
-        private static Expression ParseAssignment(ref TokenReader reader)
-        {
-            Expression obj = ParseCasting(ref reader);
-            if(obj is AST.Index || obj is Identifier || obj is Unary u && u.Op.Type == TokenType.Star) // is an index, identifier, or dereference
-            {
-                if(reader.Match(TokenType.Equal))
-                {
-                    Token equles = reader.Previous();
-                    Expression value = ParseAssignment(ref reader);
-                    return new Binary(obj, equles, value);
-                }
-            }
-
-            return obj;
-        }
-
-        private static Expression ParseCasting(ref TokenReader reader)
-        {
-            Expression expression = ParseLogicalOr(reader);
-            while(reader.Match(TokenType.As))
-            {
-                Token asToken = reader.Previous();
-                TypeName typeName = TypeNameParser.ParseTypeName(ref reader);
-                expression = new Cast(expression, asToken, typeName);
-            }
-
-            return expression;
-        }
-
-        private static Expression ParseLogicalOr(TokenReader reader) => GetBinaryExpression(reader, ParseLogicalAnd, TokenType.PipePipe);
-        private static Expression ParseLogicalAnd(TokenReader reader)
-        {
-            Expression expr = ParseEquality(reader);
-            while (reader.CheckSequence(TokenType.Ampersand, TokenType.Ampersand))
-            {
-                Token anpersand1 = reader.Advance();
-                Token anpersand2 = reader.Advance();
-
-                if (anpersand1.HasSpaceAfter)
-                {
-                    ParserError error = new CannotHaveSpaceError(reader.CurrentLocation(), anpersand1.Type);
-                    throw new ParserExeption(error);
-                }
-
-                SourceLocation location = anpersand1.Location + anpersand2.Location;
-
-                Token op = new Token(new Option<object>(), location, TokenType.AmpersandAmpersand, anpersand2.HasSpaceAfter);
-                Expression right = ParseEquality(reader);
-                expr = new Binary(expr, op, right);
-            }
-
-            return expr;
-        }
-
-        private static Expression ParseEquality(TokenReader reader) => GetBinaryExpression(reader, ParseComparison, TokenType.EqualEqual, TokenType.BangEqual);
-        private static Expression ParseComparison(TokenReader reader) => GetBinaryExpression(reader, ParseTerm, TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan, TokenType.LessThanEqual);
-        private static Expression ParseTerm(TokenReader reader) => GetBinaryExpression(reader, ParseFactor, TokenType.Plus, TokenType.Minus);
-        private static Expression ParseFactor(TokenReader reader) => GetBinaryExpression(reader, ParseUnaryExpr, TokenType.Star, TokenType.Slash, TokenType.Mod);
-
-        private static Expression GetBinaryExpression(TokenReader reader, Func<TokenReader, Expression> previouseExpr, params TokenType[] operatorTypes)
-        {
-            Expression expr = previouseExpr(reader);
-            while (reader.Match(operatorTypes))
-            {
-                Token op = reader.Peek(-1).Value;
-                Expression right = previouseExpr(reader);
-                expr = new Binary(expr, op, right);
-            }
-
-            return expr;
-        }
-
-        private static Expression ParseUnaryExpr(TokenReader reader)
-        {
-            if(reader.CheckSequence(TokenType.Ampersand, TokenType.Mut))
-            {
-                Token anpersand = reader.Advance();
-                Token mut = reader.Advance();
-
-                if (anpersand.HasSpaceAfter)
-                {
-                    ParserError error = new CannotHaveSpaceError(reader.CurrentLocation(), anpersand.Type);
-                    throw new ParserExeption(error);
-                }
-
-                Expression expr = ParseUnaryExpr(reader);
-
-                SourceLocation location = anpersand.Location + mut.Location;
-
-                Token refMut = new Token(new Option<object>(), location, TokenType.RefMut, mut.HasSpaceAfter);
-                return new Unary(refMut, expr);
-            }
-
-            if(reader.Match(TokenType.Minus, TokenType.Bang, TokenType.Star, TokenType.Ampersand))
-            {
-                Token tok = reader.Previous();
-                Expression expr = ParseUnaryExpr(reader);
-                return new Unary(tok, expr);
-            }
-
-            return ParseCallOrIndex(reader);
-        }
-
-        private static Expression ParseCallOrIndex(TokenReader reader)
-        {
-            Expression expr = ParsePrimary(reader);
-            expr = ParseCallOrIndexArgs(reader, expr);
-
-            return expr;
-        }
-
-        private static Expression ParseCallOrIndexArgs(TokenReader reader, Expression callee)
-        {
-            if(reader.Match(TokenType.OpenParen)) // call
-            {
-                Token openParen = reader.Previous();
-                List<Expression> arguments = new List<Expression>();
-                while(reader.Current().Type != TokenType.CloseParen)
-                {
-                    arguments.Add(ParseExpression(ref reader));
-
-                    if (reader.Current().Type != TokenType.CloseParen)
-                        reader.Consume(TokenType.Comma);
-                }
-                Token closeParen = reader.Consume(TokenType.CloseParen);
-                Expression call = new Call(callee, openParen, arguments, closeParen);
-                return ParseCallOrIndexArgs(reader, call);
-            }
-            else if(reader.Match(TokenType.OpenBracket))
-            {
-                Token openBracket = reader.Previous();
-                Expression expression = ParseExpression(ref reader);
-                Token closeBracket = reader.Consume(TokenType.CloseBracket);
-                Expression index = new AST.Index(callee, openBracket, expression, closeBracket);
-                return ParseCallOrIndexArgs(reader, index);
-            }
-            else
-            {
-                return callee;
-            }
-        }
-
-        private static Expression ParsePrimary(TokenReader reader)
-        {
-            if (reader.Match(TokenType.IntagerLiteral, TokenType.FloatLiteral, TokenType.True, TokenType.False, TokenType.StringLiteral, TokenType.CStringLiteral, TokenType.CharactorLiteral, TokenType.Nullptr))
-                return new Literal(reader.Previous());
-            if (TryParseTypeExpression(ref reader, out TypeExpression typeExpression))
-                return typeExpression;
-            else if (reader.Match(TokenType.Identifier))
-                return new Identifier(reader.Previous());
-            else if (ParseGrouping(reader, out Expression expr))
-                return expr;
-            else if (ParseInitializerList(reader, out expr))
-                return expr;
-            else if (TryParseSizeof(ref reader, out expr))
-                return expr;
-            else
-            {
-                ParserError error = new ExpectedExpressionError(reader.CurrentLocation());
-                throw new ParserExeption(error);
-            }
-        }
-
-        private static bool TryParseTypeExpression(ref TokenReader reader, out TypeExpression typeExpression)
-        {
-            typeExpression = null;
-            if(reader.CheckSequence(TokenType.Identifier, TokenType.LessThan, TokenType.Lifetime))
-            {
-                Token typeName = reader.Advance();
-                Token lessThan = reader.Advance();
-                List<Token> lifetimes = new List<Token>();
-                lifetimes.Add(reader.Advance());
-
-                while(!reader.Match(TokenType.GreaterThan))
-                {
-                    reader.Consume(TokenType.Comma);
-                    Token lifetime = reader.Consume(TokenType.Lifetime);
-                    lifetimes.Add(lifetime);
-                }
-
-                Token greaterThan = reader.Previous();
-
-                typeExpression = new TypeExpression(typeName, greaterThan, lifetimes, lessThan);
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool TryParseSizeof(ref TokenReader reader, out Expression sizeOf)
-        {
-            sizeOf = null;
-            if(reader.Match(TokenType.Sizeof))
-            {
-                Token sizeOfToken = reader.Previous();
-                Token lessThan = reader.Consume(TokenType.LessThan);
-                TypeName typeName = TypeNameParser.ParseTypeName(ref reader);
-                Token greaterThan = reader.Consume(TokenType.GreaterThan);
-                Token openParen = reader.Consume(TokenType.OpenParen);
-                Token closeParen = reader.Consume(TokenType.CloseParen);
-
-                sizeOf = new SizeOf(sizeOfToken, lessThan, typeName, greaterThan, openParen, closeParen);
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool ParseInitializerList(TokenReader reader, out Expression initalizerList)
-        {
-            initalizerList = null;
-            if (!reader.Match(TokenType.OpenBrace))
-                return false;
-
-            Token openBrace = reader.Previous();
-            List<Expression> expressions = new List<Expression>();
-            while(reader.Current().Type != TokenType.CloseBrace)
-            {
-                expressions.Add(ParseExpression(ref reader));
-
-                if (reader.Current().Type != TokenType.CloseBrace)
-                    reader.Consume(TokenType.Comma);
-            }
-            Token closeBrace = reader.Consume(TokenType.CloseBrace);
-
-            initalizerList =  new InitializerList(openBrace, expressions, closeBrace);
-            return true;
-        }
-
-        private static bool ParseGrouping(TokenReader reader, out Expression expr)
-        {
-            if(reader.Match(TokenType.OpenParen))
-            {
-                Token openParen = reader.Previous();
-                Expression groupedExpr = ParseExpression(ref reader);
-
-                Token closeParen = reader.Consume(TokenType.CloseParen);
-                expr = new Grouping(openParen, groupedExpr, closeParen);
-                return true;
-            }
-
-            expr = null;
-            return false;
-        }
-
-        private static TypeName ParseTypeName(ref TokenReader reader)
-        {
-            return TypeNameParser.ParseTypeName(ref reader);
-        }
-
-        private static bool IsTypeName(ref TokenReader reader, out int length, int beginOffset = 0)
-        {
-            return TypeNameParser.IsTypeName(ref reader, out length, beginOffset);
         }
     }
 }

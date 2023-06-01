@@ -15,10 +15,10 @@ namespace Ripple.AST
 		public readonly Token Name;
 		public readonly Option<GenericParameters> GenericParameters;
 		public readonly Token OpenBrace;
-		public readonly List<Statement> Members;
+		public readonly List<MemberDecl> Members;
 		public readonly Token CloseBrace;
 
-		public ClassDecl(Token? unsafeToken, Token classToken, Token name, Option<GenericParameters> genericParameters, Token openBrace, List<Statement> members, Token closeBrace)
+		public ClassDecl(Token? unsafeToken, Token classToken, Token name, Option<GenericParameters> genericParameters, Token openBrace, List<MemberDecl> members, Token closeBrace)
 		{
 			this.UnsafeToken = unsafeToken;
 			this.ClassToken = classToken;
