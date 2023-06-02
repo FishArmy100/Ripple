@@ -509,67 +509,82 @@ namespace Ripple.Parsing
             return false;
         }
 
-        private static bool TryParseReturn(ref TokenReader reader, out Statement statement)
+        private static Option<Result<ReturnStmt, ParserError>> TryParseReturn(ref TokenReader reader)
         {
-            statement = null;
             if (!reader.Match(TokenType.Return))
-                return false;
+                return new Option<Result<ReturnStmt, ParserError>>();
 
             Token returnToken = reader.Previous();
             if(reader.Match(TokenType.SemiColon))
             {
-                statement = new ReturnStmt(returnToken, null, reader.Previous());
-                return true;
+                ReturnStmt returnStmt = new ReturnStmt(returnToken, null, reader.Previous());
+                return new Option<Result<ReturnStmt, ParserError>>(returnStmt);
             }
 
-            Expression expr = ExpressionParser.ParseExpressionOrThrow(ref reader);
+            var expr = ExpressionParser.ParseExpression(ref reader);
+            if (expr.IsError())
+                return new Option<Result<ReturnStmt, ParserError>>(expr.Error);
 
-            Token semiColon = reader.Consume(TokenType.SemiColon);
+            var semiColon = reader.Consume(TokenType.SemiColon);
+            if (semiColon.IsError())
+                return new Option<Result<ReturnStmt, ParserError>>(semiColon.Error);
 
-            statement = new ReturnStmt(returnToken, expr, semiColon);
-            return true;
+            ReturnStmt statment = new ReturnStmt(returnToken, expr.Value, semiColon.Value);
+            return new Option<Result<ReturnStmt, ParserError>>(statment);
         }
 
-        private static bool TryParseVarDecl(ref TokenReader reader, out Statement statement)
+        private static Option<Result<VarDecl, ParserError>> TryParseVarDecl(ref TokenReader reader)
         {
-            statement = null;
-
             if (reader.Current().IsType(TokenType.Unsafe))
             {
                 if (!IsVarDecl(reader, 1)) // offset by one
-                    return false;
+                    return new Option<Result<VarDecl, ParserError>>();
             }
             else
             {
                 if (!IsVarDecl(reader))
-                    return false;
+                    return new Option<Result<VarDecl, ParserError>>();
             }
 
             Token? unsafeToken = reader.TryMatch(TokenType.Unsafe);
-            TypeName type = TypeNameParser.ParseTypeName(ref reader);
+            var type = TypeNameParser.ParseTypeName(ref reader);
+            if (type.IsError())
+                return new Option<Result<VarDecl, ParserError>>(type.Error);
+
             Token? mutToken = reader.TryMatch(TokenType.Mut);
             List<Token> varNames = new List<Token>();
             varNames.Add(reader.Advance());
 
             while(reader.Match(TokenType.Comma))
             {
-                varNames.Add(reader.Consume(TokenType.Identifier));
+                var id = reader.Consume(TokenType.Identifier);
+                if (id.IsError())
+                    return new Option<Result<VarDecl, ParserError>>(id.Error);
+
+                varNames.Add(id.Value);
             }
 
             if(reader.Match(TokenType.SemiColon))
             {
-                statement = new VarDecl(unsafeToken, type, mutToken, varNames, null, null, reader.Previous());
-                return true;
+                VarDecl varDecl = new VarDecl(unsafeToken, type.Value, mutToken, varNames, null, null, reader.Previous());
+                return new Option<Result<VarDecl, ParserError>>(varDecl);
             }
             else
             {
-                Token equel = reader.Consume(TokenType.Equal);
+                var equel = reader.Consume(TokenType.Equal);
+                if (equel.IsError())
+                    return new Option<Result<VarDecl, ParserError>>(equel.Error);
 
-                Expression expr = ExpressionParser.ParseExpressionOrThrow(ref reader);
-                Token semiColon = reader.Consume(TokenType.SemiColon);
+                var expr = ExpressionParser.ParseExpression(ref reader);
+                if (expr.IsError())
+                    return new Option<Result<VarDecl, ParserError>>(expr.Error);
 
-                statement = new VarDecl(unsafeToken, type, mutToken, varNames, equel, expr, semiColon);
-                return true;
+                var semiColon = reader.Consume(TokenType.SemiColon);
+                if (semiColon.IsError())
+                    return new Option<Result<VarDecl, ParserError>>(semiColon.Error);
+
+                VarDecl varDecl = new VarDecl(unsafeToken, type.Value, mutToken, varNames, equel.Value, expr.Value, semiColon.Value);
+                return new Option<Result<VarDecl, ParserError>>(varDecl);
             }
         }
 
@@ -584,7 +599,7 @@ namespace Ripple.Parsing
             return false;
         }
 
-        private static bool TryParseBlock(ref TokenReader reader, ref List<ParserError> errors, out BlockStmt statement)
+        private static Option<Result<BlockStmt, ParserError>> ParseBlock(ref TokenReader reader, ref List<ParserError> errors)
         {
             if(reader.Match(TokenType.OpenBrace))
             {
@@ -604,19 +619,24 @@ namespace Ripple.Parsing
 
                 Token closeBrace = reader.Previous();
 
-                statement = new BlockStmt(openBrace, statements, closeBrace);
-                return true;
+                BlockStmt block = new BlockStmt(openBrace, statements, closeBrace);
+                return new Option<Result<BlockStmt, ParserError>>(block);
             }
 
-            statement = null;
-            return false;
+            return new Option<Result<BlockStmt, ParserError>>();
         }
 
-        private static Statement ParseExpressionStatement(ref TokenReader reader)
+        private static Result<Statement, ParserError> ParseExpressionStatement(ref TokenReader reader)
         {
-            Expression expr = ExpressionParser.ParseExpressionOrThrow(ref reader);
-            Token semiColon = reader.Consume(TokenType.SemiColon);
-            return new ExprStmt(expr, semiColon);
+            var expr = ExpressionParser.ParseExpression(ref reader);
+            if (expr.IsError())
+                return expr.Error;
+
+            var semiColon = reader.Consume(TokenType.SemiColon);
+            if (semiColon.IsError())
+                return semiColon.Error;
+
+            return new ExprStmt(expr.Value, semiColon.Value);
         }
     }
 }

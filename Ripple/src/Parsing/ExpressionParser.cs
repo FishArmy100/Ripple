@@ -17,7 +17,7 @@ namespace Ripple.Parsing
         {
             try
             {
-                return ParseAssignment(ref reader);
+                return ParseAssignment(reader);
             }
             catch(ParserExeption e)
             {
@@ -25,86 +25,117 @@ namespace Ripple.Parsing
             }
         }
 
-        public static Expression ParseExpressionOrThrow(ref TokenReader reader)
+        private static Result<Expression, ParserError> ParseAssignment(TokenReader reader)
         {
-            return ParseExpression(ref reader).Match(
-                ok => ok,
-                fail => throw new ParserExeption(fail));
-        }
-
-        private static Expression ParseAssignment(ref TokenReader reader)
-        {
-            Expression obj = ParseCasting(ref reader);
-            if (obj is AST.Index || obj is Identifier || obj is Unary u && u.Op.Type == TokenType.Star) // is an index, identifier, or dereference
+            return ParseCasting(reader).Match(ok =>
             {
-                if (reader.Match(TokenType.Equal))
+                if (ok is AST.Index || ok is Identifier || ok is Unary u && u.Op.Type == TokenType.Star) // is an index, identifier, or dereference
                 {
-                    Token equles = reader.Previous();
-                    Expression value = ParseAssignment(ref reader);
-                    return new Binary(obj, equles, value);
-                }
-            }
+                    if (reader.Match(TokenType.Equal))
+                    {
+                        Token equles = reader.Previous();
+                        var value = ParseAssignment(reader);
+                        if (value.IsError())
+                            return value.Error;
 
-            return obj;
-        }
-
-        private static Expression ParseCasting(ref TokenReader reader)
-        {
-            Expression expression = ParseLogicalOr(reader);
-            while (reader.Match(TokenType.As))
-            {
-                Token asToken = reader.Previous();
-                TypeName typeName = TypeNameParser.ParseTypeName(ref reader);
-                expression = new Cast(expression, asToken, typeName);
-            }
-
-            return expression;
-        }
-
-        private static Expression ParseLogicalOr(TokenReader reader) => GetBinaryExpression(reader, ParseLogicalAnd, TokenType.PipePipe);
-        private static Expression ParseLogicalAnd(TokenReader reader)
-        {
-            Expression expr = ParseEquality(reader);
-            while (reader.CheckSequence(TokenType.Ampersand, TokenType.Ampersand))
-            {
-                Token anpersand1 = reader.Advance();
-                Token anpersand2 = reader.Advance();
-
-                if (anpersand1.HasSpaceAfter)
-                {
-                    ParserError error = new CannotHaveSpaceError(reader.CurrentLocation(), anpersand1.Type);
-                    throw new ParserExeption(error);
+                        return new Binary(ok, equles, value.Value);
+                    }
                 }
 
-                SourceLocation location = anpersand1.Location + anpersand2.Location;
-
-                Token op = new Token(new Option<object>(), location, TokenType.AmpersandAmpersand, anpersand2.HasSpaceAfter);
-                Expression right = ParseEquality(reader);
-                expr = new Binary(expr, op, right);
-            }
-
-            return expr;
+                return ok;
+            },
+            error => new Result<Expression, ParserError>(error));
         }
 
-        private static Expression ParseEquality(TokenReader reader) => GetBinaryExpression(reader, ParseComparison, TokenType.EqualEqual, TokenType.BangEqual);
-        private static Expression ParseComparison(TokenReader reader) => GetBinaryExpression(reader, ParseTerm, TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan, TokenType.LessThanEqual);
-        private static Expression ParseTerm(TokenReader reader) => GetBinaryExpression(reader, ParseFactor, TokenType.Plus, TokenType.Minus);
-        private static Expression ParseFactor(TokenReader reader) => GetBinaryExpression(reader, ParseUnaryExpr, TokenType.Star, TokenType.Slash, TokenType.Mod);
-
-        private static Expression GetBinaryExpression(TokenReader reader, Func<TokenReader, Expression> previouseExpr, params TokenType[] operatorTypes)
+        private static Result<Expression, ParserError> ParseCasting(TokenReader reader)
         {
-            Expression expr = previouseExpr(reader);
-            while (reader.Match(operatorTypes))
-            {
-                Token op = reader.Peek(-1).Value;
-                Expression right = previouseExpr(reader);
-                expr = new Binary(expr, op, right);
-            }
+            return ParseLogicalOr(reader).Match(
+                expression =>
+                {
+                    while (reader.Match(TokenType.As))
+                    {
+                        Token asToken = reader.Previous();
+                        var typeName = TypeNameParser.ParseTypeName(ref reader);
+                        if (typeName.IsError())
+                            return typeName.Error;
 
-            return expr;
+                        expression = new Cast(expression, asToken, typeName.Value);
+                    }
+
+                    return expression;
+                },
+                error =>
+                {
+                    return new Result<Expression, ParserError>(error);
+                });
         }
 
-        private static Expression ParseUnaryExpr(TokenReader reader)
+        private static Result<Expression, ParserError> ParseLogicalOr(TokenReader reader) => GetBinaryExpression(reader, ParseLogicalAnd, TokenType.PipePipe);
+        private static Result<Expression, ParserError> ParseLogicalAnd(TokenReader reader)
+        {
+            return ParseEquality(reader).Match(
+                expression =>
+                {
+                    while (reader.CheckSequence(TokenType.Ampersand, TokenType.Ampersand))
+                    {
+                        Token anpersand1 = reader.Advance();
+                        Token anpersand2 = reader.Advance();
+
+                        if (anpersand1.HasSpaceAfter)
+                        {
+                            ParserError error = new CannotHaveSpaceError(reader.CurrentLocation(), anpersand1.Type);
+                            throw new ParserExeption(error);
+                        }
+
+                        SourceLocation location = anpersand1.Location + anpersand2.Location;
+
+                        Token op = new Token(new Option<object>(), location, TokenType.AmpersandAmpersand, anpersand2.HasSpaceAfter);
+                        var right = ParseEquality(reader);
+
+                        if (right.IsError())
+                            return right.Error;
+
+                        expression = new Binary(expression, op, right.Value);
+                    }
+
+                    return expression;
+                },
+                error =>
+                {
+                    return new Result<Expression, ParserError>(error);
+                });
+            
+        }
+
+        private static Result<Expression, ParserError> ParseEquality(TokenReader reader) => GetBinaryExpression(reader, ParseComparison, TokenType.EqualEqual, TokenType.BangEqual);
+        private static Result<Expression, ParserError> ParseComparison(TokenReader reader) => GetBinaryExpression(reader, ParseTerm, TokenType.GreaterThan, TokenType.GreaterThanEqual, TokenType.LessThan, TokenType.LessThanEqual);
+        private static Result<Expression, ParserError> ParseTerm(TokenReader reader) => GetBinaryExpression(reader, ParseFactor, TokenType.Plus, TokenType.Minus);
+        private static Result<Expression, ParserError> ParseFactor(TokenReader reader) => GetBinaryExpression(reader, ParseUnaryExpr, TokenType.Star, TokenType.Slash, TokenType.Mod);
+
+        private static Result<Expression, ParserError> GetBinaryExpression(TokenReader reader, Func<TokenReader, Result<Expression, ParserError>> previouseExpr, params TokenType[] operatorTypes)
+        {
+            return previouseExpr(reader).Match(expression =>
+            {
+                while (reader.Match(operatorTypes))
+                {
+                    Token op = reader.Peek(-1).Value;
+                    var right = previouseExpr(reader);
+                    if (right.IsError())
+                        return right.Error;
+
+                    expression = new Binary(expression, op, right.Value);
+                }
+
+                return expression;
+            },
+            error =>
+            {
+                return new Result<Expression, ParserError>(error);
+            });
+            
+        }
+
+        private static Result<Expression, ParserError> ParseUnaryExpr(TokenReader reader)
         {
             if (reader.CheckSequence(TokenType.Ampersand, TokenType.Mut))
             {
@@ -112,36 +143,42 @@ namespace Ripple.Parsing
                 Token mut = reader.Advance();
 
                 if (anpersand.HasSpaceAfter)
-                {
-                    ParserError error = new CannotHaveSpaceError(reader.CurrentLocation(), anpersand.Type);
-                    throw new ParserExeption(error);
-                }
+                    return new CannotHaveSpaceError(reader.CurrentLocation(), anpersand.Type);
 
-                Expression expr = ParseUnaryExpr(reader);
-
-                SourceLocation location = anpersand.Location + mut.Location;
-
-                Token refMut = new Token(new Option<object>(), location, TokenType.RefMut, mut.HasSpaceAfter);
-                return new Unary(refMut, expr);
+                ParseUnaryExpr(reader).Match(
+                    expression => 
+                    {
+                        SourceLocation location = anpersand.Location + mut.Location;
+                        Token refMut = new Token(new Option<object>(), location, TokenType.RefMut, mut.HasSpaceAfter);
+                        return new Unary(refMut, expression);
+                    }, 
+                    error =>
+                    {
+                        return new Result<Expression, ParserError>(error);
+                    });
             }
 
             if (reader.Match(TokenType.Minus, TokenType.Bang, TokenType.Star, TokenType.Ampersand))
             {
                 Token tok = reader.Previous();
-                Expression expr = ParseUnaryExpr(reader);
-                return new Unary(tok, expr);
+                return ParseUnaryExpr(reader).Match(
+                    expression => new Unary(tok, expression), 
+                    error => new Result<Expression, ParserError>(error));
             }
 
             return ParseSecondary(ref reader);
         }
 
-        private static Expression ParseSecondary(ref TokenReader reader)
+        private static Result<Expression, ParserError> ParseSecondary(ref TokenReader reader)
         {
-            Expression expression = ParsePrimary(reader);
-            return ParseSecondary(ref reader, expression);
+            var expression = ParsePrimary(reader);
+            if (expression.IsError())
+                return expression.Error;
+
+            return ParseSecondary(ref reader, expression.Value);
         }
 
-        private static Expression ParseSecondary(ref TokenReader reader, Expression previous)
+        private static Result<Expression, ParserError> ParseSecondary(ref TokenReader reader, Expression previous)
         {
             if(reader.Match(TokenType.OpenParen))
             {
@@ -159,114 +196,171 @@ namespace Ripple.Parsing
             return previous;
         }
 
-        private static Expression ParseCall(ref TokenReader reader, Expression callee)
+        private static Result<Expression, ParserError> ParseCall(ref TokenReader reader, Expression callee)
         {
             Token openParen = reader.Previous();
             List<Expression> arguments = new List<Expression>();
             while (reader.Current().Type != TokenType.CloseParen)
             {
-                arguments.Add(ParseExpressionOrThrow(ref reader));
+                var argument = ParseExpression(ref reader);
+                if (argument.IsError())
+                    return argument.Error;
+
+                arguments.Add(argument.Value);
 
                 if (reader.Current().Type != TokenType.CloseParen)
                     reader.Consume(TokenType.Comma);
             }
-            Token closeParen = reader.Consume(TokenType.CloseParen);
-            Expression call = new Call(callee, openParen, arguments, closeParen);
+            var closeParen = reader.Consume(TokenType.CloseParen);
+            if (closeParen.IsError())
+                return closeParen.Error;
+
+            Expression call = new Call(callee, openParen, arguments, closeParen.Value);
             return ParseSecondary(ref reader, call);
         }
 
-        private static Expression ParseIndex(ref TokenReader reader, Expression indexee)
+        private static Result<Expression, ParserError> ParseIndex(ref TokenReader reader, Expression indexee)
         {
             Token openBracket = reader.Previous();
-            Expression expression = ParseExpressionOrThrow(ref reader);
-            Token closeBracket = reader.Consume(TokenType.CloseBracket);
-            Expression index = new AST.Index(indexee, openBracket, expression, closeBracket);
+            var expression = ParseExpression(ref reader);
+            if (expression.IsError())
+                return expression.Error;
+
+            var closeBracket = reader.Consume(TokenType.CloseBracket);
+
+            if (closeBracket.IsError())
+                return closeBracket.Error;
+
+            Expression index = new AST.Index(indexee, openBracket, expression.Value, closeBracket.Value);
             return ParseSecondary(ref reader, index);
         }
 
-        private static Expression ParseMemberAccess(ref TokenReader reader, Expression accessed)
+        private static Result<Expression, ParserError> ParseMemberAccess(ref TokenReader reader, Expression accessed)
         {
             Token dot = reader.Previous();
-            Token memberName = reader.Consume(TokenType.Identifier);
-            Expression expression = new MemberAccess(accessed, dot, memberName);
+            var memberName = reader.Consume(TokenType.Identifier);
+            if (memberName.IsError())
+                return memberName.Error;
+
+            Expression expression = new MemberAccess(accessed, dot, memberName.Value);
 
             return ParseSecondary(ref reader, expression);
         }
 
 
-        private static Expression ParsePrimary(TokenReader reader)
+        private static Result<Expression, ParserError> ParsePrimary(TokenReader reader)
         {
             if (reader.Match(TokenType.IntagerLiteral, TokenType.FloatLiteral, TokenType.True, TokenType.False, TokenType.StringLiteral, TokenType.CStringLiteral, TokenType.CharactorLiteral, TokenType.Nullptr))
                 return new Literal(reader.Previous());
-            else if (reader.Match(TokenType.Identifier))
+
+            if (reader.Match(TokenType.Identifier))
                 return new Identifier(reader.Previous());
-            else if (ParseGrouping(reader, out Expression expr))
-                return expr;
-            else if (ParseInitializerList(reader, out expr))
-                return expr;
-            else if (TryParseSizeof(ref reader, out expr))
-                return expr;
-            else
+
+            var grouping = ParseGrouping(reader);
+            if(grouping.HasValue())
             {
-                ParserError error = new ExpectedExpressionError(reader.CurrentLocation());
-                throw new ParserExeption(error);
+                return grouping.Value.Match(
+                    ok => ok, 
+                    error => new Result<Expression, ParserError>(error));
             }
+
+            var initalizerList = ParseInitializerList(reader);
+            if(initalizerList.HasValue())
+            {
+                return initalizerList.Value.Match(
+                    ok => ok, 
+                    error => new Result<Expression, ParserError>(error));
+            }
+
+
+            var sizeOf = TryParseSizeof(ref reader);
+            if(sizeOf.HasValue())
+            {
+                return sizeOf.Value.Match(
+                    ok => ok, 
+                    error => new Result<Expression, ParserError>(error));
+            }
+
+            return new ExpectedExpressionError(reader.CurrentLocation());
         }
 
-        private static bool TryParseSizeof(ref TokenReader reader, out Expression sizeOf)
+        private static Option<Result<Expression, ParserError>> TryParseSizeof(ref TokenReader reader)
         {
-            sizeOf = null;
             if (reader.Match(TokenType.Sizeof))
             {
                 Token sizeOfToken = reader.Previous();
-                Token lessThan = reader.Consume(TokenType.LessThan);
-                TypeName typeName = TypeNameParser.ParseTypeName(ref reader);
-                Token greaterThan = reader.Consume(TokenType.GreaterThan);
-                Token openParen = reader.Consume(TokenType.OpenParen);
-                Token closeParen = reader.Consume(TokenType.CloseParen);
+                var lessThan = reader.Consume(TokenType.LessThan);
 
-                sizeOf = new SizeOf(sizeOfToken, lessThan, typeName, greaterThan, openParen, closeParen);
-                return true;
+                if (lessThan.IsError())
+                    return new Result<Expression, ParserError>(lessThan.Error);
+
+                var typeName = TypeNameParser.ParseTypeName(ref reader);
+                if (typeName.IsError())
+                    return new Result<Expression, ParserError>(typeName.Error);
+
+                var greaterThan = reader.Consume(TokenType.GreaterThan);
+                if (greaterThan.IsError())
+                    return new Result<Expression, ParserError>(greaterThan.Error);
+
+                var openParen = reader.Consume(TokenType.OpenParen);
+                if (openParen.IsError())
+                    return new Result<Expression, ParserError>(openParen.Error);
+
+                var closeParen = reader.Consume(TokenType.CloseParen);
+                if (closeParen.IsError())
+                    return new Result<Expression, ParserError>(closeParen.Error);
+
+                SizeOf sizeOf = new SizeOf(sizeOfToken, lessThan.Value, typeName.Value, greaterThan.Value, openParen.Value, closeParen.Value);
+                return new Result<Expression, ParserError>(sizeOf);
             }
 
-            return false;
+            return new Option<Result<Expression, ParserError>>();
         }
 
-        private static bool ParseInitializerList(TokenReader reader, out Expression initalizerList)
+        private static Option<Result<Expression, ParserError>> ParseInitializerList(TokenReader reader)
         {
-            initalizerList = null;
             if (!reader.Match(TokenType.OpenBrace))
-                return false;
+                return new Option<Result<Expression, ParserError>>();
 
             Token openBrace = reader.Previous();
             List<Expression> expressions = new List<Expression>();
             while (reader.Current().Type != TokenType.CloseBrace)
             {
-                expressions.Add(ParseExpressionOrThrow(ref reader));
+                var expression = ParseExpression(ref reader);
+                if (expression.IsError())
+                    return new Option<Result<Expression, ParserError>>(expression.Error);
+
+                expressions.Add(expression.Value);
 
                 if (reader.Current().Type != TokenType.CloseBrace)
                     reader.Consume(TokenType.Comma);
             }
-            Token closeBrace = reader.Consume(TokenType.CloseBrace);
 
-            initalizerList = new InitializerList(openBrace, expressions, closeBrace);
-            return true;
+            var closeBrace = reader.Consume(TokenType.CloseBrace);
+            if (closeBrace.IsError())
+                return new Option<Result<Expression, ParserError>>(closeBrace.Error);
+
+            InitializerList initializerList = new InitializerList(openBrace, expressions, closeBrace.Value);
+            return new Option<Result<Expression, ParserError>>(initializerList);
         }
 
-        private static bool ParseGrouping(TokenReader reader, out Expression expr)
+        private static Option<Result<Expression, ParserError>> ParseGrouping(TokenReader reader)
         {
             if (reader.Match(TokenType.OpenParen))
             {
                 Token openParen = reader.Previous();
-                Expression groupedExpr = ParseExpressionOrThrow(ref reader);
+                var groupedExpr = ParseExpression(ref reader);
+                if (groupedExpr.IsError())
+                    return new Option<Result<Expression, ParserError>>(groupedExpr.Error);
 
-                Token closeParen = reader.Consume(TokenType.CloseParen);
-                expr = new Grouping(openParen, groupedExpr, closeParen);
-                return true;
+                var closeParen = reader.Consume(TokenType.CloseParen);
+                if (closeParen.IsError())
+                    return new Option<Result<Expression, ParserError>>(closeParen.Error);
+
+                Grouping group = new Grouping(openParen, groupedExpr.Value, closeParen.Value);
             }
 
-            expr = null;
-            return false;
+            return new Option<Result<Expression, ParserError>>();
         }
     }
 }

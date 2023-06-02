@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.Parsing.Errors;
 using Ripple.Core;
+using Raucse;
 
 namespace Ripple.Parsing
 {
@@ -80,23 +81,23 @@ namespace Ripple.Parsing
 
         public bool IsAtEnd() => Index >= m_Tokens.Count;
 
-        public Token Consume<TError>(TokenType tokenType, TError error) where TError : ParserError
+        public Result<Token, ParserError> Consume<TError>(TokenType tokenType, Func<TokenType, TError> errorFunc) where TError : ParserError
         {
             if (IsAtEnd())
-                throw new ParserExeption(error);
+                return errorFunc(tokenType);
 
             if (Match(tokenType))
                 return Previous();
 
-            throw new ParserExeption(error);
+            return errorFunc(tokenType);
         }
 
         public SourceLocation CurrentLocation() => IsAtEnd() ? Previous().Location : Current().Location;
 
-        public Token Consume(TokenType tokenType)
+        public Result<Token, ParserError> Consume(TokenType tokenType)
         {
             SourceLocation location = CurrentLocation();
-            return Consume(tokenType, new ExpectedTokenError(location, tokenType));
+            return Consume(tokenType, (type) => new ExpectedTokenError(location, type));
         }
 
         public void SyncronizeTo(Func<TokenReader, bool> predicate)
