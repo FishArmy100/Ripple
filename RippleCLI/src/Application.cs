@@ -10,6 +10,7 @@ using Ripple.AST.Utils;
 using Raucse;
 using Ripple.Core;
 using System.Linq;
+using Raucse.Strings;
 
 namespace RippleCLI
 {

@@ -1,7 +1,0 @@
-﻿
-func main() -> int
-{
-	func(int&, int&)->int mut add = Add;
-	add = Sub;
-	return add(&1, &2);
-}

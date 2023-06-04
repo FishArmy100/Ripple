@@ -17,25 +17,18 @@ namespace Ripple.Parsing
         {
             length = 0;
             TokenReader typeReader = new TokenReader(reader.GetTokens(), reader.Index + beginOffset);
-            try
-            {
-                int initialIndex = typeReader.Index;
-                _ = ParseTypeName(ref typeReader);
-                int newIndex = typeReader.Index;
-                length = newIndex - initialIndex;
-                return true;
-            }
-            catch(ReaderAtEndExeption)
-            {
+            int initialIndex = typeReader.Index;
+
+            var result = ParseTypeName(ref typeReader);
+            if (result.IsError())
                 return false;
-            }
-            catch(ParserExeption)
-            {
-                return false;
-            }
+
+            int newIndex = typeReader.Index;
+            length = newIndex - initialIndex;
+            return true;
         }
 
-        public static TypeName ParseTypeName(ref TokenReader reader)
+        public static Result<TypeName, ParserError> ParseTypeName(ref TokenReader reader)
         {
             if (reader.Current().Type.IsIdentifier())
                 return ParseSimpleTypeName(ref reader);
@@ -43,14 +36,17 @@ namespace Ripple.Parsing
                 return ParseComplexType(ref reader);
         }
 
-        private static TypeName ParseSimpleTypeName(ref TokenReader reader)
+        private static Result<TypeName, ParserError> ParseSimpleTypeName(ref TokenReader reader)
         {
-            Token identifier = reader.Consume(TokenType.Identifier);
-            TypeName type = new BasicType(identifier);
+            var identifier = reader.Consume(TokenType.Identifier);
+            if (identifier.IsError())
+                return identifier.Error;
+
+            TypeName type = new BasicType(identifier.Value);
             return ParseTypePrefixRecursive(ref reader, type);
         }
 
-        private static TypeName ParseTypePrefixRecursive(ref TokenReader reader, TypeName previous)
+        private static Result<TypeName, ParserError> ParseTypePrefixRecursive(ref TokenReader reader, TypeName previous)
         {
             Token? mut = null;
             if (reader.CheckSequence(TokenType.Mut, TokenType.Ampersand) || reader.CheckSequence(TokenType.Mut, TokenType.Star))
@@ -71,12 +67,18 @@ namespace Ripple.Parsing
             else if(reader.Match(TokenType.OpenBracket))
             {
                 if (mut.HasValue)
-                    throw new ParserExeption(new ExpectedTokenError(reader.Previous().Location, TokenType.Ampersand, TokenType.Star));
+                    return new ExpectedTokenError(reader.Previous().Location, TokenType.Ampersand, TokenType.Star);
 
                 Token openBracket = reader.Previous();
-                Token size = reader.Consume(TokenType.IntagerLiteral);
-                Token closeBracket = reader.Consume(TokenType.CloseBracket);
-                TypeName arrType = new ArrayType(previous, openBracket, size, closeBracket);
+                var sizeToken = reader.Consume(TokenType.IntagerLiteral);
+                if (sizeToken.IsError())
+                    return sizeToken.Error;
+
+                var closeBracket = reader.Consume(TokenType.CloseBracket);
+                if (closeBracket.IsError())
+                    return closeBracket.Error;
+
+                TypeName arrType = new ArrayType(previous, openBracket, sizeToken.Value, closeBracket.Value);
                 return ParseTypePrefixRecursive(ref reader, arrType);
             }
             else
@@ -85,12 +87,15 @@ namespace Ripple.Parsing
             }
         }
 
-        private static TypeName ParseComplexType(ref TokenReader reader)
+        private static Result<TypeName, ParserError> ParseComplexType(ref TokenReader reader)
         {
             if(reader.Current().Type == TokenType.OpenParen)
             {
-                TypeName grouped = ParseGroupedType(ref reader);
-                return ParseTypePrefixRecursive(ref reader, grouped);
+                var grouped = ParseGroupedType(ref reader);
+                if (grouped.IsError())
+                    return grouped.Error;
+
+                return ParseTypePrefixRecursive(ref reader, grouped.Value);
             }
             else if(reader.CurrentType == TokenType.Func)
             {
@@ -102,54 +107,79 @@ namespace Ripple.Parsing
             }
             else
             {
-                ParserError error = new ExpectedTypeNameError(reader.CurrentLocation());
-                throw new ParserExeption(error);
+                return new ExpectedTypeNameError(reader.CurrentLocation());
             }
         }
 
-        private static TypeName ParseFunctionPointerType(ref TokenReader reader)
+        private static Result<TypeName, ParserError> ParseFunctionPointerType(ref TokenReader reader)
         {
-            Token funcToken = reader.Consume(TokenType.Func);
+            var funcToken = reader.Consume(TokenType.Func);
+            if (funcToken.IsError())
+                return funcToken.Error;
+
             Option<List<Token>> lifetimes = new Option<List<Token>>();
             if(reader.CurrentType == TokenType.LessThan)
             {
                 reader.Consume(TokenType.LessThan);
-                List<Token> ls = new List<Token>();
+                lifetimes = new List<Token>();
                 while(true)
                 {
-                    ls.Add(reader.Consume(TokenType.Lifetime));
+                    var lifetime = reader.Consume(TokenType.Lifetime);
+                    if (lifetime.IsError())
+                        return lifetime.Error;
+
+                    lifetimes.Value.Add(lifetime.Value);
 
                     if (reader.Match(TokenType.GreaterThan))
                         break;
 
                     reader.Consume(TokenType.Comma);
                 }
-
-                lifetimes = ls;
             }
 
-            Token openParen = reader.Consume(TokenType.OpenParen);
+            var openParen = reader.Consume(TokenType.OpenParen);
+            if (openParen.IsError())
+                return openParen.Error;
+
             List<TypeName> parameters = new List<TypeName>();
             while(!reader.Match(TokenType.CloseParen))
             {
-                parameters.Add(ParseTypeName(ref reader));
+                var typeParameter = ParseTypeName(ref reader);
+                if (typeParameter.IsError())
+                    return typeParameter.Error;
+
+                parameters.Add(typeParameter.Value);
                 if (reader.CurrentType != TokenType.CloseParen)
                     reader.Consume(TokenType.Comma);
             }
 
             Token closeParen = reader.Previous();
-            Token arrow = reader.Consume(TokenType.RightThinArrow);
-            TypeName returnType = ParseTypeName(ref reader);
+            var arrow = reader.Consume(TokenType.RightThinArrow);
+            if (arrow.IsError())
+                return arrow.Error;
 
-            return new FuncPtr(funcToken, lifetimes, openParen, parameters, closeParen, arrow, returnType);
+            var returnType = ParseTypeName(ref reader);
+            if (returnType.IsError())
+                return returnType.Error;
+
+            return new FuncPtr(funcToken.Value, lifetimes, openParen.Value, parameters, closeParen, arrow.Value, returnType.Value);
         }
 
-        private static TypeName ParseGroupedType(ref TokenReader reader)
+        private static Result<TypeName, ParserError> ParseGroupedType(ref TokenReader reader)
         {
-            Token openParen = reader.Consume(TokenType.OpenParen);
-            TypeName type = ParseTypeName(ref reader);
-            Token closeParen = reader.Consume(TokenType.CloseParen);
-            return new GroupedType(openParen, type, closeParen);
+            var openParen = reader.Consume(TokenType.OpenParen);
+            if (openParen.IsError())
+                return openParen.Error;
+
+            var type = ParseTypeName(ref reader);
+            if (type.IsError())
+                return type.Error;
+
+            var closeParen = reader.Consume(TokenType.CloseParen);
+            if (closeParen.IsError())
+                return closeParen.Error;
+
+            return new GroupedType(openParen.Value, type.Value, closeParen.Value);
         }
     }
 }

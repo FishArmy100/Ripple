@@ -17,9 +17,10 @@ namespace Ripple.AST
 		public readonly MemberFunctionParameters Parameters;
 		public readonly Token Arrow;
 		public readonly TypeName ReturnType;
+		public readonly Option<WhereClause> WhereClause;
 		public readonly BlockStmt Body;
 
-		public MemberFunctionDecl(Token? unsafeToken, Token funcToken, Token nameToken, Option<GenericParameters> genericParameters, MemberFunctionParameters parameters, Token arrow, TypeName returnType, BlockStmt body)
+		public MemberFunctionDecl(Token? unsafeToken, Token funcToken, Token nameToken, Option<GenericParameters> genericParameters, MemberFunctionParameters parameters, Token arrow, TypeName returnType, Option<WhereClause> whereClause, BlockStmt body)
 		{
 			this.UnsafeToken = unsafeToken;
 			this.FuncToken = funcToken;
@@ -28,6 +29,7 @@ namespace Ripple.AST
 			this.Parameters = parameters;
 			this.Arrow = arrow;
 			this.ReturnType = returnType;
+			this.WhereClause = whereClause;
 			this.Body = body;
 		}
 
@@ -55,7 +57,7 @@ namespace Ripple.AST
 		{
 			if(other is MemberFunctionDecl memberFunctionDecl)
 			{
-				return UnsafeToken.Equals(memberFunctionDecl.UnsafeToken) && FuncToken.Equals(memberFunctionDecl.FuncToken) && NameToken.Equals(memberFunctionDecl.NameToken) && GenericParameters.Equals(memberFunctionDecl.GenericParameters) && Parameters.Equals(memberFunctionDecl.Parameters) && Arrow.Equals(memberFunctionDecl.Arrow) && ReturnType.Equals(memberFunctionDecl.ReturnType) && Body.Equals(memberFunctionDecl.Body);
+				return UnsafeToken.Equals(memberFunctionDecl.UnsafeToken) && FuncToken.Equals(memberFunctionDecl.FuncToken) && NameToken.Equals(memberFunctionDecl.NameToken) && GenericParameters.Equals(memberFunctionDecl.GenericParameters) && Parameters.Equals(memberFunctionDecl.Parameters) && Arrow.Equals(memberFunctionDecl.Arrow) && ReturnType.Equals(memberFunctionDecl.ReturnType) && WhereClause.Equals(memberFunctionDecl.WhereClause) && Body.Equals(memberFunctionDecl.Body);
 			}
 			return false;
 		}
@@ -70,6 +72,7 @@ namespace Ripple.AST
 			code.Add(Parameters);
 			code.Add(Arrow);
 			code.Add(ReturnType);
+			code.Add(WhereClause);
 			code.Add(Body);
 			return code.ToHashCode();
 		}
