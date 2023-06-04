@@ -17,22 +17,15 @@ namespace Ripple.Parsing
         {
             length = 0;
             TokenReader typeReader = new TokenReader(reader.GetTokens(), reader.Index + beginOffset);
-            try
-            {
-                int initialIndex = typeReader.Index;
-                _ = ParseTypeName(ref typeReader);
-                int newIndex = typeReader.Index;
-                length = newIndex - initialIndex;
-                return true;
-            }
-            catch(ReaderAtEndExeption)
-            {
+            int initialIndex = typeReader.Index;
+
+            var result = ParseTypeName(ref typeReader);
+            if (result.IsError())
                 return false;
-            }
-            catch(ParserExeption)
-            {
-                return false;
-            }
+
+            int newIndex = typeReader.Index;
+            length = newIndex - initialIndex;
+            return true;
         }
 
         public static Result<TypeName, ParserError> ParseTypeName(ref TokenReader reader)
@@ -114,8 +107,7 @@ namespace Ripple.Parsing
             }
             else
             {
-                ParserError error = new ExpectedTypeNameError(reader.CurrentLocation());
-                throw new ParserExeption(error);
+                return new ExpectedTypeNameError(reader.CurrentLocation());
             }
         }
 

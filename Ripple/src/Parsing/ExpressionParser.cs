@@ -15,14 +15,7 @@ namespace Ripple.Parsing
     {
         public static Result<Expression, ParserError> ParseExpression(ref TokenReader reader)
         {
-            try
-            {
-                return ParseAssignment(reader);
-            }
-            catch(ParserExeption e)
-            {
-                return e.Error;
-            }
+            return ParseAssignment(reader);
         }
 
         private static Result<Expression, ParserError> ParseAssignment(TokenReader reader)
@@ -83,8 +76,7 @@ namespace Ripple.Parsing
 
                         if (anpersand1.HasSpaceAfter)
                         {
-                            ParserError error = new CannotHaveSpaceError(reader.CurrentLocation(), anpersand1.Type);
-                            throw new ParserExeption(error);
+                            return new CannotHaveSpaceError(reader.CurrentLocation(), anpersand1.Type);
                         }
 
                         SourceLocation location = anpersand1.Location + anpersand2.Location;
@@ -145,7 +137,7 @@ namespace Ripple.Parsing
                 if (anpersand.HasSpaceAfter)
                     return new CannotHaveSpaceError(reader.CurrentLocation(), anpersand.Type);
 
-                ParseUnaryExpr(reader).Match(
+                return ParseUnaryExpr(reader).Match(
                     expression => 
                     {
                         SourceLocation location = anpersand.Location + mut.Location;
@@ -358,6 +350,7 @@ namespace Ripple.Parsing
                     return new Option<Result<Expression, ParserError>>(closeParen.Error);
 
                 Grouping group = new Grouping(openParen, groupedExpr.Value, closeParen.Value);
+                return new Option<Result<Expression, ParserError>>(group);
             }
 
             return new Option<Result<Expression, ParserError>>();

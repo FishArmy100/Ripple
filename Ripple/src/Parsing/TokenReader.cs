@@ -56,6 +56,14 @@ namespace Ripple.Parsing
             return Peek(offset) is Token t && t.IsType(types);
         }
 
+        public bool CurrentIs(params TokenType[] types)
+        {
+            if (IsAtEnd())
+                return false;
+
+            return types.Contains(Current().Type);
+        }
+
         public Token? TryMatch(params TokenType[] types)
         {
             if (Match(types))
@@ -64,17 +72,22 @@ namespace Ripple.Parsing
             return null;
         }
 
-        public bool CheckSequence(params TokenType[] types)
+        public bool CheckSequence(int offset, params TokenType[] types)
         {
-            for(int i = 0; i < types.Length; i++)
+            for (int i = 0; i < types.Length; i++)
             {
-                if (Peek(i) is Token t && t.Type == types[i])
+                if (Peek(i + offset) is Token t && t.Type == types[i])
                     continue;
                 else
                     return false;
             }
 
             return true;
+        }
+
+        public bool CheckSequence(params TokenType[] types)
+        {
+            return CheckSequence(0, types);
         }
 
         public Token? Peek(int offset = 1) => Index + offset < m_Tokens.Count ? m_Tokens[Index + offset] : null;
@@ -111,6 +124,10 @@ namespace Ripple.Parsing
             }
         }
 
+        /// <summary>
+        /// Advances the reader until it is either at the end or until the current token is one of the given types
+        /// </summary>
+        /// <param name="types"></param>
         public void SyncronizeTo(params TokenType[] types)
         {
             while (true)
@@ -120,6 +137,17 @@ namespace Ripple.Parsing
 
                 Advance();
             }
+        }
+        /// <summary>
+        /// Advances the reader until it is either at the end or until the previous token is the one of the given types
+        /// </summary>
+        /// <param name="types"></param>
+        public void SyncronizeToAndAdvance(params TokenType[] types)
+        {
+            SyncronizeTo(types);
+
+            if (!IsAtEnd())
+                Advance();
         }
     }
 }

@@ -1,2 +1,0 @@
-﻿
-extern "C" func printf(char* fmt) -> void;
