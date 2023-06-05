@@ -26,6 +26,8 @@ namespace Ripple.AST
 		public abstract void VisitMemberFunctionDecl(MemberFunctionDecl memberFunctionDecl);
 		public abstract void VisitMemberDecl(MemberDecl memberDecl);
 		public abstract void VisitClassDecl(ClassDecl classDecl);
+		public abstract void VisitExternClassMemberDecl(ExternClassMemberDecl externClassMemberDecl);
+		public abstract void VisitExternClassDecl(ExternClassDecl externClassDecl);
 		public abstract void VisitFileStmt(FileStmt fileStmt);
 		public abstract void VisitProgramStmt(ProgramStmt programStmt);
 	}
@@ -54,6 +56,8 @@ namespace Ripple.AST
 		public abstract T VisitMemberFunctionDecl(MemberFunctionDecl memberFunctionDecl);
 		public abstract T VisitMemberDecl(MemberDecl memberDecl);
 		public abstract T VisitClassDecl(ClassDecl classDecl);
+		public abstract T VisitExternClassMemberDecl(ExternClassMemberDecl externClassMemberDecl);
+		public abstract T VisitExternClassDecl(ExternClassDecl externClassDecl);
 		public abstract T VisitFileStmt(FileStmt fileStmt);
 		public abstract T VisitProgramStmt(ProgramStmt programStmt);
 	}
@@ -82,6 +86,8 @@ namespace Ripple.AST
 		public abstract TReturn VisitMemberFunctionDecl(MemberFunctionDecl memberFunctionDecl, TArg arg);
 		public abstract TReturn VisitMemberDecl(MemberDecl memberDecl, TArg arg);
 		public abstract TReturn VisitClassDecl(ClassDecl classDecl, TArg arg);
+		public abstract TReturn VisitExternClassMemberDecl(ExternClassMemberDecl externClassMemberDecl, TArg arg);
+		public abstract TReturn VisitExternClassDecl(ExternClassDecl externClassDecl, TArg arg);
 		public abstract TReturn VisitFileStmt(FileStmt fileStmt, TArg arg);
 		public abstract TReturn VisitProgramStmt(ProgramStmt programStmt, TArg arg);
 	}
@@ -109,6 +115,8 @@ namespace Ripple.AST
 		public abstract void VisitMemberFunctionDecl(MemberFunctionDecl memberFunctionDecl, TArg arg);
 		public abstract void VisitMemberDecl(MemberDecl memberDecl, TArg arg);
 		public abstract void VisitClassDecl(ClassDecl classDecl, TArg arg);
+		public abstract void VisitExternClassMemberDecl(ExternClassMemberDecl externClassMemberDecl, TArg arg);
+		public abstract void VisitExternClassDecl(ExternClassDecl externClassDecl, TArg arg);
 		public abstract void VisitFileStmt(FileStmt fileStmt, TArg arg);
 		public abstract void VisitProgramStmt(ProgramStmt programStmt, TArg arg);
 	}

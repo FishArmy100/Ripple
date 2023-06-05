@@ -126,6 +126,9 @@ namespace ASTGeneration
                 "MemberDecl : Token? VisibilityToken; Statement Declaration",
                 "ClassDecl : Token? UnsafeToken; Token ClassToken; Token Name; Option<GenericParameters> GenericParameters; Token OpenBrace; List<MemberDecl> Members; Token CloseBrace",
 
+                "ExternClassMemberDecl : Token Visibility; Token? UnsafeToken; TypeName Type; Token Name; Token SemiColon",
+                "ExternClassDecl : Token? UnsafeToken; Token ExternToken; Token Specifier; Token ClassToken; Token Name; Token OpenBrace; List<ExternClassMemberDecl> Members; Token CloseBrace",
+
                 "FileStmt : List<Statement> Statements; string RelativePath; Token EOFTok",
                 "ProgramStmt : List<FileStmt> Files; string Path"
             }, additionalUsings);

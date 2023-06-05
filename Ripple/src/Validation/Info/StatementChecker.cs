@@ -497,5 +497,15 @@ namespace Ripple.Validation.Info
         {
             throw new NotImplementedException();
         }
+
+        public Result<TypedStatement, List<ValidationError>> VisitExternClassMemberDecl(ExternClassMemberDecl externClassMemberDecl)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Result<TypedStatement, List<ValidationError>> VisitExternClassDecl(ExternClassDecl externClassDecl)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

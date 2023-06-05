@@ -336,6 +336,19 @@ namespace Ripple.AST.Utils
             TabLeft();
         }
 
+        public void VisitExternClassMemberDecl(ExternClassMemberDecl externClassMemberDecl)
+        {
+            PrintLine($"{TypeNamePrinter.PrintType(externClassMemberDecl.Type)} {externClassMemberDecl.Name.Text}");
+        }
+
+        public void VisitExternClassDecl(ExternClassDecl externClassDecl)
+        {
+            PrintLine($"External Class Declaration: {externClassDecl.Name.Text}");
+            TabRight();
+            externClassDecl.Members.ForEach(m => m.Accept(this));
+            TabLeft();
+        }
+
         public void VisitProgramStmt(ProgramStmt program)
         {
             PrintLine("Program:");

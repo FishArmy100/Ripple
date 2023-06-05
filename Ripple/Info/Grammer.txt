@@ -108,6 +108,9 @@ grammer Ripple
 	MemberDecl = ClassVisibility (FuncDecl | MemberFuncDecl | Constructor | Destructor);
 	ClassDecl = "unsafe"? "class" IDENTIFIER GenericParams? WhereClause? "{" MemberDecl* "}";
 
+	ExternClassMemberDecl = "public" TypeName IDENTIFIER ";";
+	ExternClassDecl = "unsafe"? "extern" StringLiteral "class" IDENTIFIER "{" ExternClassMemberDecl* "}";
+
 	Statement = ExprStmt		| 
 				Block			| 
 				IfStmt			| 

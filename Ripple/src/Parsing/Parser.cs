@@ -107,6 +107,14 @@ namespace Ripple.Parsing
                     error => error);
             }
 
+            var externClassDecl = TryParseExternClassDecl(reader);
+            if(externClassDecl.HasValue())
+            {
+                return externClassDecl.Value.Match(
+                    ok => new Result<Statement, List<ParserError>>(ok), 
+                    error => error);
+            }
+
             ParserError error = new ExpectedDeclarationError(reader.CurrentLocation());
             return new List<ParserError> { error };
         }
@@ -505,6 +513,84 @@ namespace Ripple.Parsing
             return new Option<Result<ThisFunctionParameter, ParserError>>();
         }
 
+        private static Option<Result<ExternClassDecl, List<ParserError>>> TryParseExternClassDecl(TokenReader reader)
+        {
+            bool isExternClassDecl = reader.CheckSequence(TokenType.Unsafe, TokenType.Extern, TokenType.StringLiteral, TokenType.Class) ||
+                                     reader.CheckSequence(TokenType.Extern, TokenType.StringLiteral, TokenType.Class);
+
+            if (!isExternClassDecl)
+                return new Option<Result<ExternClassDecl, List<ParserError>>>();
+
+            Token? unsafeToken = reader.TryMatch(TokenType.Unsafe);
+            Token externToken = reader.Advance();
+            Token specifier = reader.Advance();
+            Token classToken = reader.Advance();
+
+            var nameToken = reader.Consume(TokenType.Identifier);
+            if (nameToken.IsError())
+                return new Option<Result<ExternClassDecl, List<ParserError>>>(new List<ParserError> { nameToken.Error });
+
+            var openBrace = reader.Consume(TokenType.OpenBrace);
+            if (openBrace.IsError())
+                return new Option<Result<ExternClassDecl, List<ParserError>>>(new List<ParserError> { openBrace.Error });
+
+
+            List<ParserError> errors = new List<ParserError>();
+            List<ExternClassMemberDecl> members = new List<ExternClassMemberDecl>();
+
+            while(true)
+            {
+                var member = TryParseExternClassMemberDecl(reader);
+                if (member.HasValue())
+                {
+                    if (member.Value.IsError())
+                    {
+                        errors.Add(member.Value.Error);
+                    }
+                    else
+                    {
+                        members.Add(member.Value.Value);
+                        reader.SyncronizeTo(TokenType.Public, TokenType.Private, TokenType.CloseBrace);
+                    }
+                }
+                else break;
+            }
+
+            var closeBrace = reader.Consume(TokenType.CloseBrace);
+            if (closeBrace.IsError())
+                errors.Add(closeBrace.Error);
+
+            if (errors.Any())
+                return new Option<Result<ExternClassDecl, List<ParserError>>>(errors);
+
+            ExternClassDecl externClassDecl = new ExternClassDecl(unsafeToken, externToken, specifier, classToken, nameToken.Value, openBrace.Value, members, closeBrace.Value);
+            return new Option<Result<ExternClassDecl, List<ParserError>>>(externClassDecl);
+        }
+
+        private static Option<Result<ExternClassMemberDecl, ParserError>> TryParseExternClassMemberDecl(TokenReader reader)
+        {
+            if (!reader.Match(TokenType.Public, TokenType.Private))
+                return new Option<Result<ExternClassMemberDecl, ParserError>>();
+
+            Token visibility = reader.Previous();
+            var type = TypeNameParser.ParseTypeName(ref reader);
+            if (type.IsError())
+                return new Option<Result<ExternClassMemberDecl, ParserError>>(type.Error);
+
+            Token? unsafeToken = reader.TryMatch(TokenType.Unsafe);
+
+            var name = reader.Consume(TokenType.Identifier);
+            if (name.IsError())
+                return new Option<Result<ExternClassMemberDecl, ParserError>>(name.Error);
+
+            var semiColon = reader.Consume(TokenType.SemiColon);
+            if (semiColon.IsError())
+                return new Option<Result<ExternClassMemberDecl, ParserError>>(semiColon.Error);
+
+            ExternClassMemberDecl member = new ExternClassMemberDecl(visibility, unsafeToken, type.Value, name.Value, semiColon.Value);
+            return new Option<Result<ExternClassMemberDecl, ParserError>>(member);
+        }
+
         private static Option<Result<FuncDecl, List<ParserError>>> TryParseFunctionDecl(TokenReader reader)
         {
             Token? unsafeToken = null;
@@ -596,22 +682,14 @@ namespace Ripple.Parsing
 
         private static Option<Result<ExternalFuncDecl, ParserError>> TryParseExernalFunctionDecl(ref TokenReader reader)
         {
-            Token? unsafeToken = null;
+            bool isExternFunc = reader.CheckSequence(TokenType.Unsafe, TokenType.Extern, TokenType.StringLiteral, TokenType.Func) ||
+                                reader.CheckSequence(TokenType.Extern, TokenType.StringLiteral, TokenType.Func);
 
-            Token externToken;
-            if (reader.Match(TokenType.Extern))
-            {
-                externToken = reader.Previous();
-            }
-            else if (reader.CheckSequence(TokenType.Unsafe, TokenType.Extern))
-            {
-                unsafeToken = reader.Advance();
-                externToken = reader.Advance();
-            }
-            else
-            {
+            if (!isExternFunc)
                 return new Option<Result<ExternalFuncDecl, ParserError>>();
-            }
+
+            Token? unsafeToken = reader.TryMatch(TokenType.Unsafe);
+            Token externToken = reader.Advance();
 
             var stringLit = reader.Consume(TokenType.StringLiteral);
             if (stringLit.IsError())

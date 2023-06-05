@@ -59,6 +59,13 @@ namespace Ripple.AST.Utils
 
         public virtual void VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl) { }
 
+        public virtual void VisitExternClassDecl(ExternClassDecl externClassDecl)
+        {
+            externClassDecl.Members.ForEach(m => m.Accept(this));
+        }
+
+        public virtual void VisitExternClassMemberDecl(ExternClassMemberDecl externClassMemberDecl) { }
+
         public virtual void VisitFileStmt(FileStmt fileStmt)
         {
             foreach (Statement statement in fileStmt.Statements)
