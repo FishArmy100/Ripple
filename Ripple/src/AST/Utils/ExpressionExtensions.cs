@@ -56,14 +56,14 @@ namespace Ripple.AST.Utils
                 return literal.Val.Location;
             }
 
+            public SourceLocation VisitMemberAccess(MemberAccess memberAccess)
+            {
+                return memberAccess.Expression.Accept(this) + memberAccess.MemberName.Location;
+            }
+
             public SourceLocation VisitSizeOf(SizeOf sizeOf)
             {
                 return sizeOf.SizeofToken.Location + sizeOf.CloseParen.Location;
-            }
-
-            public SourceLocation VisitTypeExpression(TypeExpression typeExpression)
-            {
-                throw new NotImplementedException();
             }
 
             public SourceLocation VisitUnary(Unary unary)

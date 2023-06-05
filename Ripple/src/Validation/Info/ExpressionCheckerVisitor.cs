@@ -408,11 +408,6 @@ namespace Ripple.Validation.Info
             }, () => GetSizeOfPair(typeToCastTo));
         }
 
-        public Pair<ValueInfo, TypedExpression> VisitTypeExpression(TypeExpression typeExpression, Option<ExpectedValue> expected)
-        {
-            throw new NotImplementedException();
-        }
-
         private static Pair<ValueInfo, TypedExpression> GetVariablePair(VariableInfo variableInfo)
 		{
             ValueInfo value = new ValueInfo(variableInfo.Type, variableInfo.Lifetime, variableInfo.IsMutable, ValueCatagory.LValue);
@@ -445,6 +440,11 @@ namespace Ripple.Validation.Info
         {
             return TypeInfoUtils.FromASTType(type, m_Primaries, m_ActiveLifetimes, m_SafetyContext)
                 .Match(ok => ok, fail => throw new ExpressionCheckerException(fail));
+        }
+
+        public Pair<ValueInfo, TypedExpression> VisitMemberAccess(MemberAccess memberAccess, Option<ExpectedValue> arg)
+        {
+            throw new NotImplementedException();
         }
     }
 }

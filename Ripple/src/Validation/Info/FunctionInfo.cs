@@ -46,7 +46,7 @@ namespace Ripple.Validation.Info
                     ok => ok.Lifetimes.Select(l => l).ToList(),
                     () => new List<Token>());
 
-                List<Token> parameterNames = funcDecl.Param.ParamList.Select(p => p.Item2).ToList();
+                List<Token> parameterNames = funcDecl.Param.ParamList.Select(p => p.Second).ToList();
 
                 List<ParameterInfo> parameterInfos = funcPtr.Parameters.Zip(parameterNames, (t, n) => new ParameterInfo(n, t)).ToList();
 
@@ -66,7 +66,7 @@ namespace Ripple.Validation.Info
             {
                 FuncPtrInfo funcPtr = ok as FuncPtrInfo;
 
-                List<Token> parameterNames = funcDecl.Parameters.ParamList.Select(p => p.Item2).ToList();
+                List<Token> parameterNames = funcDecl.Parameters.ParamList.Select(p => p.Second).ToList();
 
                 List<ParameterInfo> parameterInfos = funcPtr.Parameters.Zip(parameterNames, (t, n) => new ParameterInfo(n, t)).ToList();
 

@@ -1,0 +1,6 @@
+﻿
+extern "C" class Vec2
+{
+	public f32 x;
+	public f32 y;
+}

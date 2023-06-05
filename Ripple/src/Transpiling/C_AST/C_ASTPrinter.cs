@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Utils;
 using Raucse;
+using Raucse.Strings;
 
 namespace Ripple.Transpiling.C_AST
 {

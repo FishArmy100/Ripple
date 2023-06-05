@@ -462,5 +462,50 @@ namespace Ripple.Validation.Info
         {
             return new Result<T, List<ValidationError>>(new List<ValidationError> { error });
         }
+
+        public Result<TypedStatement, List<ValidationError>> VisitConstructorDecl(ConstructorDecl constructorDecl)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Result<TypedStatement, List<ValidationError>> VisitDestructorDecl(DestructorDecl destructorDecl)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Result<TypedStatement, List<ValidationError>> VisitThisFunctionParameter(ThisFunctionParameter thisFunctionParameter)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Result<TypedStatement, List<ValidationError>> VisitMemberFunctionParameters(MemberFunctionParameters memberFunctionParameters)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Result<TypedStatement, List<ValidationError>> VisitMemberFunctionDecl(MemberFunctionDecl memberFunctionDecl)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Result<TypedStatement, List<ValidationError>> VisitMemberDecl(MemberDecl memberDecl)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Result<TypedStatement, List<ValidationError>> VisitClassDecl(ClassDecl classDecl)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Result<TypedStatement, List<ValidationError>> VisitExternClassMemberDecl(ExternClassMemberDecl externClassMemberDecl)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Result<TypedStatement, List<ValidationError>> VisitExternClassDecl(ExternClassDecl externClassDecl)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

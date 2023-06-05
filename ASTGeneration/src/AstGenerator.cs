@@ -17,6 +17,7 @@ namespace ASTGeneration
             var props = ParseBaseProperties(baseProperties);
             BasicCodeData codeData = new BasicCodeData(directoryName, namespaceName, baseName, props);
             CodeGenerator.GenerateCode(codeData, nodes, additionalUsings);
+            ConsoleHelper.WriteMessage($"Created {baseName} AST");
         }
 
         private static List<Pair<string, string>> ParseBaseProperties(string baseProperties)

@@ -19,6 +19,15 @@ namespace Ripple.AST
 		public abstract void VisitUnsafeBlock(UnsafeBlock unsafeBlock);
 		public abstract void VisitFuncDecl(FuncDecl funcDecl);
 		public abstract void VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl);
+		public abstract void VisitConstructorDecl(ConstructorDecl constructorDecl);
+		public abstract void VisitDestructorDecl(DestructorDecl destructorDecl);
+		public abstract void VisitThisFunctionParameter(ThisFunctionParameter thisFunctionParameter);
+		public abstract void VisitMemberFunctionParameters(MemberFunctionParameters memberFunctionParameters);
+		public abstract void VisitMemberFunctionDecl(MemberFunctionDecl memberFunctionDecl);
+		public abstract void VisitMemberDecl(MemberDecl memberDecl);
+		public abstract void VisitClassDecl(ClassDecl classDecl);
+		public abstract void VisitExternClassMemberDecl(ExternClassMemberDecl externClassMemberDecl);
+		public abstract void VisitExternClassDecl(ExternClassDecl externClassDecl);
 		public abstract void VisitFileStmt(FileStmt fileStmt);
 		public abstract void VisitProgramStmt(ProgramStmt programStmt);
 	}
@@ -40,6 +49,15 @@ namespace Ripple.AST
 		public abstract T VisitUnsafeBlock(UnsafeBlock unsafeBlock);
 		public abstract T VisitFuncDecl(FuncDecl funcDecl);
 		public abstract T VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl);
+		public abstract T VisitConstructorDecl(ConstructorDecl constructorDecl);
+		public abstract T VisitDestructorDecl(DestructorDecl destructorDecl);
+		public abstract T VisitThisFunctionParameter(ThisFunctionParameter thisFunctionParameter);
+		public abstract T VisitMemberFunctionParameters(MemberFunctionParameters memberFunctionParameters);
+		public abstract T VisitMemberFunctionDecl(MemberFunctionDecl memberFunctionDecl);
+		public abstract T VisitMemberDecl(MemberDecl memberDecl);
+		public abstract T VisitClassDecl(ClassDecl classDecl);
+		public abstract T VisitExternClassMemberDecl(ExternClassMemberDecl externClassMemberDecl);
+		public abstract T VisitExternClassDecl(ExternClassDecl externClassDecl);
 		public abstract T VisitFileStmt(FileStmt fileStmt);
 		public abstract T VisitProgramStmt(ProgramStmt programStmt);
 	}
@@ -61,6 +79,15 @@ namespace Ripple.AST
 		public abstract TReturn VisitUnsafeBlock(UnsafeBlock unsafeBlock, TArg arg);
 		public abstract TReturn VisitFuncDecl(FuncDecl funcDecl, TArg arg);
 		public abstract TReturn VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl, TArg arg);
+		public abstract TReturn VisitConstructorDecl(ConstructorDecl constructorDecl, TArg arg);
+		public abstract TReturn VisitDestructorDecl(DestructorDecl destructorDecl, TArg arg);
+		public abstract TReturn VisitThisFunctionParameter(ThisFunctionParameter thisFunctionParameter, TArg arg);
+		public abstract TReturn VisitMemberFunctionParameters(MemberFunctionParameters memberFunctionParameters, TArg arg);
+		public abstract TReturn VisitMemberFunctionDecl(MemberFunctionDecl memberFunctionDecl, TArg arg);
+		public abstract TReturn VisitMemberDecl(MemberDecl memberDecl, TArg arg);
+		public abstract TReturn VisitClassDecl(ClassDecl classDecl, TArg arg);
+		public abstract TReturn VisitExternClassMemberDecl(ExternClassMemberDecl externClassMemberDecl, TArg arg);
+		public abstract TReturn VisitExternClassDecl(ExternClassDecl externClassDecl, TArg arg);
 		public abstract TReturn VisitFileStmt(FileStmt fileStmt, TArg arg);
 		public abstract TReturn VisitProgramStmt(ProgramStmt programStmt, TArg arg);
 	}
@@ -81,6 +108,15 @@ namespace Ripple.AST
 		public abstract void VisitUnsafeBlock(UnsafeBlock unsafeBlock, TArg arg);
 		public abstract void VisitFuncDecl(FuncDecl funcDecl, TArg arg);
 		public abstract void VisitExternalFuncDecl(ExternalFuncDecl externalFuncDecl, TArg arg);
+		public abstract void VisitConstructorDecl(ConstructorDecl constructorDecl, TArg arg);
+		public abstract void VisitDestructorDecl(DestructorDecl destructorDecl, TArg arg);
+		public abstract void VisitThisFunctionParameter(ThisFunctionParameter thisFunctionParameter, TArg arg);
+		public abstract void VisitMemberFunctionParameters(MemberFunctionParameters memberFunctionParameters, TArg arg);
+		public abstract void VisitMemberFunctionDecl(MemberFunctionDecl memberFunctionDecl, TArg arg);
+		public abstract void VisitMemberDecl(MemberDecl memberDecl, TArg arg);
+		public abstract void VisitClassDecl(ClassDecl classDecl, TArg arg);
+		public abstract void VisitExternClassMemberDecl(ExternClassMemberDecl externClassMemberDecl, TArg arg);
+		public abstract void VisitExternClassDecl(ExternClassDecl externClassDecl, TArg arg);
 		public abstract void VisitFileStmt(FileStmt fileStmt, TArg arg);
 		public abstract void VisitProgramStmt(ProgramStmt programStmt, TArg arg);
 	}

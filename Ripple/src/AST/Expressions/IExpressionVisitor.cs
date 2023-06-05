@@ -12,8 +12,8 @@ namespace Ripple.AST
 		public abstract void VisitUnary(Unary unary);
 		public abstract void VisitBinary(Binary binary);
 		public abstract void VisitIdentifier(Identifier identifier);
-		public abstract void VisitTypeExpression(TypeExpression typeExpression);
 		public abstract void VisitInitializerList(InitializerList initializerList);
+		public abstract void VisitMemberAccess(MemberAccess memberAccess);
 		public abstract void VisitSizeOf(SizeOf sizeOf);
 	}
 
@@ -27,8 +27,8 @@ namespace Ripple.AST
 		public abstract T VisitUnary(Unary unary);
 		public abstract T VisitBinary(Binary binary);
 		public abstract T VisitIdentifier(Identifier identifier);
-		public abstract T VisitTypeExpression(TypeExpression typeExpression);
 		public abstract T VisitInitializerList(InitializerList initializerList);
+		public abstract T VisitMemberAccess(MemberAccess memberAccess);
 		public abstract T VisitSizeOf(SizeOf sizeOf);
 	}
 
@@ -42,8 +42,8 @@ namespace Ripple.AST
 		public abstract TReturn VisitUnary(Unary unary, TArg arg);
 		public abstract TReturn VisitBinary(Binary binary, TArg arg);
 		public abstract TReturn VisitIdentifier(Identifier identifier, TArg arg);
-		public abstract TReturn VisitTypeExpression(TypeExpression typeExpression, TArg arg);
 		public abstract TReturn VisitInitializerList(InitializerList initializerList, TArg arg);
+		public abstract TReturn VisitMemberAccess(MemberAccess memberAccess, TArg arg);
 		public abstract TReturn VisitSizeOf(SizeOf sizeOf, TArg arg);
 	}
 	public interface IExpressionVisitorWithArg<TArg>
@@ -56,8 +56,8 @@ namespace Ripple.AST
 		public abstract void VisitUnary(Unary unary, TArg arg);
 		public abstract void VisitBinary(Binary binary, TArg arg);
 		public abstract void VisitIdentifier(Identifier identifier, TArg arg);
-		public abstract void VisitTypeExpression(TypeExpression typeExpression, TArg arg);
 		public abstract void VisitInitializerList(InitializerList initializerList, TArg arg);
+		public abstract void VisitMemberAccess(MemberAccess memberAccess, TArg arg);
 		public abstract void VisitSizeOf(SizeOf sizeOf, TArg arg);
 	}
 }

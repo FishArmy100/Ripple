@@ -56,7 +56,7 @@ namespace Ripple.Validation.Info
             if (result.IsError())
                 return result.Error;
 
-            var expressionResult = CheckExpression(varDecl.Expr, visitor, result.Value);
+            var expressionResult = CheckExpression(varDecl.Expr.Value, visitor, result.Value);
             return expressionResult.Match(ok =>
             {
                 TypeInfo type = ok.First.Type;
