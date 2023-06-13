@@ -1,25 +1,32 @@
 ﻿
-extern "C" func printf(char* fmt) -> void;
+unsafe extern "C" func printf(char* msg) -> void;
 
-class Test
+func print(String& msg) -> void
 {
-	public func Hello() -> void 
-	{
-		InternalHello();
-	}
-
-	private func InternalHello() -> void
-	{
-		unsafe
-		{
-			printf(c"Hello World!");
-		}
-	}
+    unsafe { printf(msg.c_str()); }
 }
 
-func main() -> int
+func println(String& msg) -> void
 {
-	Test t = Test();
-	t.Hello();
-	return 0;
+    unsafe 
+    {
+        print(msg);
+        print("\n");
+    }
+}
+
+class Test<'a>
+{
+    int&'a my_int;
+
+    Test(int&'a my_int)
+    {
+        this.my_int = my_int;
+    }
+
+    public func hello<'a>(this&'a) -> void
+    {
+        print("Hi!, here is my int: ");
+        println(my_int.to_string());
+    }
 }

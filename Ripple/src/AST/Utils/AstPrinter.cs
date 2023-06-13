@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Lexing;
 using Raucse.Extensions;
-using Ripple.Utils.Extensions;
+using Raucse.Extensions.Nullables;
 
 namespace Ripple.AST.Utils
 {

@@ -77,12 +77,12 @@ class StringSlice<'a>
         m_end = end;
     }
 
-    public func at(this&, usize index) -> void
+    public func at(this&, int index) -> void
     {
         assert(index < m_length);
         return m_string.at(index + m_start);
     }
 
-    public func start(this&) -> usize { return m_start; }
-    public func length(this&) -> usize { return m_length; }
+    public func start(this&) -> int { return m_start; }
+    public func length(this&) -> int { return m_length; }
 }
