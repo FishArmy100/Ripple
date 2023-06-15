@@ -3,7 +3,7 @@ using Ripple.Lexing;
 using System.Collections.Generic;
 using Ripple.Validation.Errors;
 
-namespace Ripple.Validation.Info
+namespace Ripple.Validation.Info.Checking
 {
     class ExpressionCheckerException : Exception
     {

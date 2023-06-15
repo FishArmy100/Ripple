@@ -13,6 +13,10 @@ using Raucse.Extensions;
 using Ripple.AST;
 using Ripple.Core;
 using Ripple.Validation.Errors;
+using Ripple.Validation.Info.Functions;
+using Ripple.Validation.Info.Lifetimes;
+using Ripple.Validation.Info.Checking;
+using Ripple.Validation.Info.Values;
 
 namespace Ripple.Validation
 {
@@ -409,11 +413,6 @@ namespace Ripple.Validation
             Parameters parameters = new Parameters(new Token(), paramaters.Select(p => new Pair<TypeName, Token>(p.Item1, GenIdTok(p.Item2))).ToList(), new Token());
             var result = FunctionInfo.FromASTExternalFunction(new ExternalFuncDecl(new Token(), new Token(), new Token(), new Token(), GenIdTok(name), parameters, new Token(), GenBasicTypeName(returnTypeName), new Token()), GetPrimitives());
             return result.Value;
-        }
-
-        private static TypeInfo GenBasicType(string name)
-        {
-            return new BasicTypeInfo(name);
         }
     }
 }

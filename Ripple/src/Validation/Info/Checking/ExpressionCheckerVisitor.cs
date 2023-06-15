@@ -10,8 +10,11 @@ using Ripple.Validation.Info.Expressions;
 using Raucse;
 using Ripple.Validation.Errors;
 using Ripple.Validation.Errors.ExpressionErrors;
+using Ripple.Validation.Info.Functions;
+using Ripple.Validation.Info.Values;
+using Ripple.Validation.Info.Lifetimes;
 
-namespace Ripple.Validation.Info
+namespace Ripple.Validation.Info.Checking
 {
     public class ExpressionCheckerVisitor : IExpressionVisitor<Pair<ValueInfo, TypedExpression>, Option<ExpectedValue>>
     {

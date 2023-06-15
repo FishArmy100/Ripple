@@ -1,32 +1,5 @@
 ﻿
-unsafe extern "C" func printf(char* msg) -> void;
-
-func print(String& msg) -> void
+class Test<'a, 'b>
 {
-    unsafe { printf(msg.c_str()); }
-}
-
-func println(String& msg) -> void
-{
-    unsafe 
-    {
-        print(msg);
-        print("\n");
-    }
-}
-
-class Test<'a>
-{
-    int&'a my_int;
-
-    Test(int&'a my_int)
-    {
-        this.my_int = my_int;
-    }
-
-    public func hello<'a>(this&'a) -> void
-    {
-        print("Hi!, here is my int: ");
-        println(my_int.to_string());
-    }
+    
 }

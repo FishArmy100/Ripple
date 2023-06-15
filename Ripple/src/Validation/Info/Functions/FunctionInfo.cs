@@ -10,7 +10,7 @@ using Ripple.AST;
 using Raucse;
 using Ripple.Validation.Errors;
 
-namespace Ripple.Validation.Info
+namespace Ripple.Validation.Info.Functions
 {
     public class FunctionInfo
     {
@@ -64,13 +64,11 @@ namespace Ripple.Validation.Info
             var result = TypeInfoGeneratorVisitor.GenerateFromExternalFuncDecl(funcDecl, primaries);
             return result.Match(ok =>
             {
-                FuncPtrInfo funcPtr = ok as FuncPtrInfo;
-
                 List<Token> parameterNames = funcDecl.Parameters.ParamList.Select(p => p.Second).ToList();
 
-                List<ParameterInfo> parameterInfos = funcPtr.Parameters.Zip(parameterNames, (t, n) => new ParameterInfo(n, t)).ToList();
+                List<ParameterInfo> parameterInfos = ok.Parameters.Zip(parameterNames, (t, n) => new ParameterInfo(n, t)).ToList();
 
-                FunctionInfo info = new FunctionInfo(ok, true, funcDecl.Name, new List<Token>(), parameterInfos, funcPtr.Returned);
+                FunctionInfo info = new FunctionInfo(ok, true, funcDecl.Name, new List<Token>(), parameterInfos, ok.Returned);
                 return new Result<FunctionInfo, List<ValidationError>>(info);
             },
             fail =>

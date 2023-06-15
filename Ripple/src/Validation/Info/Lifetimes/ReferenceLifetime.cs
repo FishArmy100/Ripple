@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Ripple.Utils;
 using Raucse;
 
-namespace Ripple.Validation.Info
+namespace Ripple.Validation.Info.Lifetimes
 {
 	public class ReferenceLifetime
 	{

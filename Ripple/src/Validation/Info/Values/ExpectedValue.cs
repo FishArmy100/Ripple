@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Validation.Info.Types;
 
-namespace Ripple.Validation.Info
+namespace Ripple.Validation.Info.Values
 {
-    public class ExpectedValue
+    public class ExpectedValue 
     {
         public readonly TypeInfo Type;
         public readonly bool IsMutable;

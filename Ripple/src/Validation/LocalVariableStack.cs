@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Ripple.Validation.Info;
 using Ripple.Lexing;
+using Ripple.Validation.Info.Lifetimes;
 
 namespace Ripple.Validation
 {

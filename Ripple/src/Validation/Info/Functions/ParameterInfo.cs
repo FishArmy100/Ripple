@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Ripple.Lexing;
 using Ripple.Validation.Info.Types;
 
-namespace Ripple.Validation.Info
+namespace Ripple.Validation.Info.Functions
 {
     public class ParameterInfo
     {

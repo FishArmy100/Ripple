@@ -12,6 +12,8 @@ using Ripple.Validation.Info;
 using Ripple.Validation.Info.Statements;
 using Raucse;
 using Ripple.Validation.Errors;
+using Ripple.Validation.Info.Checking;
+using Ripple.Validation.Info.Functions;
 
 namespace Ripple.Validation
 {

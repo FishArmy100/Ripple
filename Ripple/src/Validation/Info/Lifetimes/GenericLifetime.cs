@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple.Validation.Info
+namespace Ripple.Validation.Info.Lifetimes
 {
 	public struct GenericLifetime
 	{

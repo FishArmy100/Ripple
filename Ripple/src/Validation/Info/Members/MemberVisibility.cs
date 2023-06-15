@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ripple.Validation.Info
+namespace Ripple.Validation.Info.Members
 {
-    public enum ValueCatagory
+    public enum MemberVisibility
     {
-        RValue,
-        LValue,
+        Public,
+        Private
     }
 }

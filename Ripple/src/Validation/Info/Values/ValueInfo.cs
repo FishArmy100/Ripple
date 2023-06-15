@@ -8,8 +8,9 @@ using Ripple.Utils;
 using Ripple.Lexing;
 using Ripple.Validation.Info.Types;
 using Ripple.AST;
+using Ripple.Validation.Info.Lifetimes;
 
-namespace Ripple.Validation.Info
+namespace Ripple.Validation.Info.Values
 {
     public class ValueInfo
     {

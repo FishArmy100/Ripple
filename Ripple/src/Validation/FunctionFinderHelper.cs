@@ -8,6 +8,7 @@ using Ripple.AST.Utils;
 using Ripple.Lexing;
 using Ripple.Validation.Info;
 using Ripple.Validation.Errors;
+using Ripple.Validation.Info.Functions;
 
 namespace Ripple.Validation
 {

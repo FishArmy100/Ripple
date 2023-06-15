@@ -9,7 +9,7 @@ using Ripple.Validation.Info.Types;
 using Raucse;
 using Raucse.Extensions;
 
-namespace Ripple.Validation.Info
+namespace Ripple.Validation.Info.Functions
 {
     public class FunctionList
     {

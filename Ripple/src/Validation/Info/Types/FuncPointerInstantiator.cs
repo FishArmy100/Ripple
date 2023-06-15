@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Utils;
 using Raucse;
+using Ripple.Validation.Info.Lifetimes;
 
 namespace Ripple.Validation.Info.Types
 {

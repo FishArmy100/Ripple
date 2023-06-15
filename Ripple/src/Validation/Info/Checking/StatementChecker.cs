@@ -14,8 +14,9 @@ using Raucse;
 using Raucse.Extensions;
 using Ripple.Validation.Errors;
 using Ripple.Core;
+using Ripple.Validation.Info.Functions;
 
-namespace Ripple.Validation.Info
+namespace Ripple.Validation.Info.Checking
 {
     class StatementChecker : IStatementVisitor<Result<TypedStatement, List<ValidationError>>>
     {

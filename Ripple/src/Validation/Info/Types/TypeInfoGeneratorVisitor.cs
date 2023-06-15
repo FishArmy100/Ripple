@@ -9,6 +9,9 @@ using Ripple.AST.Utils;
 using Ripple.AST;
 using Raucse;
 using Ripple.Validation.Errors;
+using Ripple.Validation.Info.Lifetimes;
+using Ripple.Validation.Info.Members;
+using Ripple.Core;
 
 namespace Ripple.Validation.Info.Types
 {
@@ -52,6 +55,36 @@ namespace Ripple.Validation.Info.Types
             List<TypeName> parameterTypes = funcDecl.Parameters.ParamList.Select(p => p.First).ToList();
             FuncPtr funcPtr = new FuncPtr(new Token(), new Option<List<Token>>(), new Token(), parameterTypes, new Token(), new Token(), funcDecl.ReturnType);
             return funcPtr.Accept(visitor).Match(ok => new Result<FuncPtrInfo, List<ValidationError>>(ok as FuncPtrInfo), fail => new Result<FuncPtrInfo, List<ValidationError>>(fail));
+        }
+
+        public static Result<FuncPtrInfo, List<ValidationError>> GenerateFromMemberFuncDecl(MemberFunctionDecl memberFunc, IReadOnlyList<string> primaryTypes, string declaringTypeName)
+        {
+            SafetyContext context = new SafetyContext(!memberFunc.UnsafeToken.HasValue);
+            TypeInfoGeneratorVisitor visitor = new TypeInfoGeneratorVisitor(primaryTypes, new List<string>(), true, context);
+
+            List<Token> lifetimes = memberFunc.GenericParameters.Match(
+                ok => ok.Lifetimes.Select(l => l).ToList(),
+                () => new List<Token>());
+
+            List<TypeName> parameterTypes = new List<TypeName>();
+
+            memberFunc.Parameters.ThisParameter.Match(ok =>
+            {
+                TypeName thisType = new BasicType(new Token(declaringTypeName, new SourceLocation(), TokenType.Identifier, false));
+                if(ok.RefToken.HasValue)
+                {
+                    thisType = new ReferenceType(thisType, ok.MutToken, ok.RefToken.Value, ok.LifetimeToken);
+                }
+
+                parameterTypes.Add(thisType);
+            });
+
+            parameterTypes.AddRange(memberFunc.Parameters.ParamList.Select(p => p.First).ToList());
+
+            FuncPtr funcPtr = new FuncPtr(new Token(), lifetimes, new Token(), parameterTypes, new Token(), new Token(), memberFunc.ReturnType);
+            return funcPtr.Accept(visitor).Match(
+                ok => new Result<FuncPtrInfo, List<ValidationError>>(ok as FuncPtrInfo), 
+                fail => new Result<FuncPtrInfo, List<ValidationError>>(fail));
         }
 
         public Result<TypeInfo, List<ValidationError>> VisitArrayType(ArrayType arrayType)

@@ -10,8 +10,9 @@ using Ripple.Validation.Info.Types;
 using Ripple.Validation.Info.Expressions;
 using Raucse;
 using Ripple.Validation.Errors;
+using Ripple.Validation.Info.Values;
 
-namespace Ripple.Validation.Info
+namespace Ripple.Validation.Info.Checking
 {
     static class ExpressionChecker
     {

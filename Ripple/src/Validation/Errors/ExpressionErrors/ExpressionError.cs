@@ -9,6 +9,7 @@ using Ripple.Validation.Info;
 using Raucse;
 using Ripple.Lexing;
 using Raucse.Extensions;
+using Ripple.Validation.Info.Values;
 
 namespace Ripple.Validation.Errors.ExpressionErrors
 {

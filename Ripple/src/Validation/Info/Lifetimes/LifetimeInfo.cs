@@ -8,7 +8,7 @@ using Ripple.Utils;
 using Raucse;
 using Ripple.Core;
 
-namespace Ripple.Validation.Info
+namespace Ripple.Validation.Info.Lifetimes
 {
     public class LifetimeInfo
     {

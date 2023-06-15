@@ -7,6 +7,7 @@ using Ripple.Transpiling.C_AST;
 using Ripple.Validation.Info;
 using Ripple.Validation.Info.Statements;
 using Ripple.Transpiling.ASTConversion;
+using Ripple.Validation.Info.Functions;
 
 namespace Ripple.Transpiling.SourceGeneration
 {
