@@ -255,7 +255,12 @@ namespace Ripple.Validation.Info.Types
             return new Result<T, List<ValidationError>>(errors);
 		}
 
-		private struct FunctionLifetimes
+        public Result<TypeInfo, List<ValidationError>> VisitGenericType(GenericType genericType)
+        {
+            throw new NotImplementedException();
+        }
+
+        private struct FunctionLifetimes
 		{
             public readonly int FunctionIndex;
             public readonly List<string> Lifetimes;

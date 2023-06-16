@@ -137,6 +137,7 @@ namespace ASTGeneration
             AstGenerator.Generate("C:\\dev\\Ripple\\Ripple\\src\\AST\\Types", "Ripple.AST", "TypeName", "", new List<string>
             {
                 "BasicType : Token Identifier",
+                "GenericType : Token Identifier; Token LessThan; List<Token> Lifetimes; Token GreaterThan", 
                 "GroupedType : Token OpenParen; TypeName Type; Token CloseParen",
                 "PointerType : TypeName BaseType; Token? MutToken; Token Star",
                 "ReferenceType : TypeName BaseType; Token? MutToken; Token Ampersand; Token? Lifetime",

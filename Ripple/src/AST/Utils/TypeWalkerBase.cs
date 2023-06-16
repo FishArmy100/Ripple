@@ -22,6 +22,8 @@ namespace Ripple.AST.Utils
             funcPtr.ReturnType.Accept(this);
         }
 
+        public void VisitGenericType(GenericType genericType) { }
+
         public virtual void VisitGroupedType(GroupedType groupedType)
         {
             groupedType.Type.Accept(this);

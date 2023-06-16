@@ -39,6 +39,15 @@ namespace Ripple.AST.Utils
                 return locations;
             }
 
+            public List<SourceLocation> VisitGenericType(GenericType genericType)
+            {
+                return new List<SourceLocation>
+                {
+                    genericType.Identifier.Location,
+                    genericType.GreaterThan.Location
+                };
+            }
+
             public List<SourceLocation> VisitGroupedType(GroupedType groupedType)
             {
                 return new List<SourceLocation>

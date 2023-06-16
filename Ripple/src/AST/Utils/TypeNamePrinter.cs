@@ -49,6 +49,11 @@ namespace Ripple.AST.Utils
                 return str;
             }
 
+            public string VisitGenericType(GenericType genericType)
+            {
+                return $"{genericType.Identifier.Text}<{genericType.Lifetimes.Select(l => l.Text).Concat(", ")}>";
+            }
+
             public string VisitGroupedType(GroupedType groupedType)
             {
                 return "(" + groupedType.Type.Accept(this) + ")";

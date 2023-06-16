@@ -1,5 +1,17 @@
-﻿
-class Test<'a, 'b>
+﻿class Ref<'a>
 {
-    
+    public int&'a ref;
+    public Ref(int&'a r)
+    {
+        ref = r;
+    }
+}
+
+class Test<'a>
+{
+    Ref<'a> ref;
+    public Test(int&'a number)
+    {
+        ref = Ref(number);
+    }
 }

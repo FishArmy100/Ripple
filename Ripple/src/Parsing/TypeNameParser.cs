@@ -38,6 +38,30 @@ namespace Ripple.Parsing
 
         private static Result<TypeName, ParserError> ParseSimpleTypeName(ref TokenReader reader)
         {
+            if(reader.CheckSequence(TokenType.Identifier, TokenType.LessThan, TokenType.Lifetime))
+            {
+                Token name = reader.Advance();
+                Token lessThan = reader.Advance();
+                List<Token> lifetimes = new List<Token>();
+                lifetimes.Add(reader.Advance());
+
+                while(!reader.CurrentIs(TokenType.GreaterThan))
+                {
+                    var comma = reader.Consume(TokenType.Comma);
+                    if (comma.IsError())
+                        return comma.Error;
+
+                    var lifetime = reader.Consume(TokenType.Lifetime);
+                    if (lifetime.IsError())
+                        return lifetime.Error;
+
+                    lifetimes.Add(lifetime.Value);
+                }
+
+                var greaterThan = reader.Advance();
+                return new GenericType(name, lessThan, lifetimes, greaterThan);
+            }
+
             var identifier = reader.Consume(TokenType.Identifier);
             if (identifier.IsError())
                 return identifier.Error;

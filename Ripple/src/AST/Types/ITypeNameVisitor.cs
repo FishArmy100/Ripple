@@ -5,6 +5,7 @@ namespace Ripple.AST
 	public interface ITypeNameVisitor
 	{
 		public abstract void VisitBasicType(BasicType basicType);
+		public abstract void VisitGenericType(GenericType genericType);
 		public abstract void VisitGroupedType(GroupedType groupedType);
 		public abstract void VisitPointerType(PointerType pointerType);
 		public abstract void VisitReferenceType(ReferenceType referenceType);
@@ -15,6 +16,7 @@ namespace Ripple.AST
 	public interface ITypeNameVisitor<T>
 	{
 		public abstract T VisitBasicType(BasicType basicType);
+		public abstract T VisitGenericType(GenericType genericType);
 		public abstract T VisitGroupedType(GroupedType groupedType);
 		public abstract T VisitPointerType(PointerType pointerType);
 		public abstract T VisitReferenceType(ReferenceType referenceType);
@@ -25,6 +27,7 @@ namespace Ripple.AST
 	public interface ITypeNameVisitor<TReturn, TArg>
 	{
 		public abstract TReturn VisitBasicType(BasicType basicType, TArg arg);
+		public abstract TReturn VisitGenericType(GenericType genericType, TArg arg);
 		public abstract TReturn VisitGroupedType(GroupedType groupedType, TArg arg);
 		public abstract TReturn VisitPointerType(PointerType pointerType, TArg arg);
 		public abstract TReturn VisitReferenceType(ReferenceType referenceType, TArg arg);
@@ -34,6 +37,7 @@ namespace Ripple.AST
 	public interface ITypeNameVisitorWithArg<TArg>
 	{
 		public abstract void VisitBasicType(BasicType basicType, TArg arg);
+		public abstract void VisitGenericType(GenericType genericType, TArg arg);
 		public abstract void VisitGroupedType(GroupedType groupedType, TArg arg);
 		public abstract void VisitPointerType(PointerType pointerType, TArg arg);
 		public abstract void VisitReferenceType(ReferenceType referenceType, TArg arg);

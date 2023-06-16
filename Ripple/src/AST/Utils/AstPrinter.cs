@@ -329,7 +329,7 @@ namespace Ripple.AST.Utils
 
         public void VisitClassDecl(ClassDecl classDecl)
         {
-            PrintLine("Class Declaration:");
+            PrintLine($"Class Declaration: {classDecl.Name.Text}");
             TabRight();
             foreach (var member in classDecl.Members)
                 member.Accept(this);
