@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ripple.Core;
 using Ripple.Lexing;
+using Raucse.Extensions.Nullables;
 
 namespace Ripple.AST.Utils
 {
@@ -13,6 +14,38 @@ namespace Ripple.AST.Utils
         public static SourceLocation GetLocation(this TypeName type)
         {
             return type.Accept(new LocationFinderVisitor()).Sum();
+        }
+
+        private static List<Token> GetAllLifetimesInternal(this TypeName type)
+        {
+            if (type is BasicType)
+            {
+                return new List<Token>();
+            }
+            else if (type is ReferenceType r)
+            {
+                var lifetimes = r.BaseType.GetAllLifetimesInternal();
+                r.Lifetime.Match(ok => lifetimes.Add(ok));
+                return lifetimes;
+            }
+            else if (type is PointerType p)
+            {
+                return p.BaseType.GetAllLifetimesInternal();
+            }
+            else if (type is ArrayType a)
+            {
+                return a.BaseType.GetAllLifetimesInternal();
+            }
+            else if (type is GroupedType g)
+            {
+                return g.Type.GetAllLifetimesInternal();
+            }
+            else if (type is FuncPtr fp)
+            {
+
+            }
+
+            throw new NotImplementedException();
         }
 
         private class LocationFinderVisitor : ITypeNameVisitor<List<SourceLocation>>

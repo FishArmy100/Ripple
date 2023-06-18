@@ -40,7 +40,7 @@ namespace Ripple.Validation.Info.Members
 
         public static Result<MemberFunctionInfo, List<ValidationError>> FromASTMemberFunction(MemberFunctionDecl memberFunc, IReadOnlyList<string> primaries, string declaringTypeName, IReadOnlyList<Token> declaringTypeLifetimes, MemberVisibility visibility)
         {
-            var info = TypeInfoGeneratorVisitor.GenerateFromMemberFuncDecl(memberFunc, primaries, declaringTypeName);
+            var info = TypeInfoGeneratorVisitor.GenerateFromMemberFuncDecl(memberFunc, primaries, declaringTypeName, declaringTypeLifetimes.Select(l => l.Text).ToList());
             return info.Match(
                 ok =>
                 {
@@ -48,12 +48,7 @@ namespace Ripple.Validation.Info.Members
                     List<ParameterInfo> parameterInfos = ok.Parameters.Zip(parameterNames, (t, n) => new ParameterInfo(n, t)).ToList();
                     Option<ThisMemberFuncParamType> thisType = GetThisParamType(memberFunc.Parameters.ThisParameter);
 
-                    var (lifetimes, errors) = CheckLifetimes(memberFunc.GenericParameters, declaringTypeLifetimes);
-
-                    if (errors.Any())
-                        return errors;
-
-                    return new MemberFunctionInfo(declaringTypeName, visibility, memberFunc.UnsafeToken.HasValue, memberFunc.NameToken, thisType, parameterInfos, lifetimes, ok.Returned, ok);
+                    return new MemberFunctionInfo(declaringTypeName, visibility, memberFunc.UnsafeToken.HasValue, memberFunc.NameToken, thisType, parameterInfos, declaringTypeLifetimes, ok.Returned, ok);
                 },
                 fail =>
                 {

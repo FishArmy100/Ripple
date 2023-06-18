@@ -25,7 +25,7 @@ namespace Ripple.Validation.Info.Types
         private readonly bool m_RequireLifetimes;
         private readonly SafetyContext m_SafetyContext;
 
-        public TypeInfoGeneratorVisitor(IReadOnlyList<string> primaryTypes, List<string> externalLifetimes, bool requireLifetimes, SafetyContext safetyContext)
+        public TypeInfoGeneratorVisitor(IReadOnlyList<string> primaryTypes, IReadOnlyList<string> externalLifetimes, bool requireLifetimes, SafetyContext safetyContext)
         {
             m_PrimaryTypes = primaryTypes;
             m_ExternalLifetimes.AddRange(externalLifetimes);
@@ -43,7 +43,7 @@ namespace Ripple.Validation.Info.Types
                 () => new List<Token>());
 
 			List<TypeName> parameterTypes = funcDecl.Param.ParamList.Select(p => p.First).ToList();
-            FuncPtr funcPtr = new FuncPtr(new Token(), lifetimes, new Token(), parameterTypes, new Token(), new Token(), funcDecl.ReturnType);
+            FuncPtr funcPtr = new FuncPtr(funcDecl.FuncTok, lifetimes, funcDecl.Param.OpenParen, parameterTypes, funcDecl.Param.CloseParen, funcDecl.Arrow, funcDecl.ReturnType);
             return funcPtr.Accept(visitor).Match(ok => new Result<FuncPtrInfo, List<ValidationError>>(ok as FuncPtrInfo), fail => new Result<FuncPtrInfo, List<ValidationError>>(fail));
 		}
 
@@ -53,14 +53,14 @@ namespace Ripple.Validation.Info.Types
             TypeInfoGeneratorVisitor visitor = new TypeInfoGeneratorVisitor(primaryTypes, new List<string>(), true, context);
 
             List<TypeName> parameterTypes = funcDecl.Parameters.ParamList.Select(p => p.First).ToList();
-            FuncPtr funcPtr = new FuncPtr(new Token(), new Option<List<Token>>(), new Token(), parameterTypes, new Token(), new Token(), funcDecl.ReturnType);
+            FuncPtr funcPtr = new FuncPtr(funcDecl.FuncToken, new Option<List<Token>>(), funcDecl.Parameters.OpenParen, parameterTypes, funcDecl.Parameters.CloseParen, funcDecl.Arrow, funcDecl.ReturnType);
             return funcPtr.Accept(visitor).Match(ok => new Result<FuncPtrInfo, List<ValidationError>>(ok as FuncPtrInfo), fail => new Result<FuncPtrInfo, List<ValidationError>>(fail));
         }
 
-        public static Result<FuncPtrInfo, List<ValidationError>> GenerateFromMemberFuncDecl(MemberFunctionDecl memberFunc, IReadOnlyList<string> primaryTypes, string declaringTypeName)
+        public static Result<FuncPtrInfo, List<ValidationError>> GenerateFromMemberFuncDecl(MemberFunctionDecl memberFunc, IReadOnlyList<string> primaryTypes, string declaringTypeName, IReadOnlyList<string> predeclaredLifetimes)
         {
             SafetyContext context = new SafetyContext(!memberFunc.UnsafeToken.HasValue);
-            TypeInfoGeneratorVisitor visitor = new TypeInfoGeneratorVisitor(primaryTypes, new List<string>(), true, context);
+            TypeInfoGeneratorVisitor visitor = new TypeInfoGeneratorVisitor(primaryTypes, predeclaredLifetimes, true, context);
 
             List<Token> lifetimes = memberFunc.GenericParameters.Match(
                 ok => ok.Lifetimes.Select(l => l).ToList(),
@@ -81,7 +81,7 @@ namespace Ripple.Validation.Info.Types
 
             parameterTypes.AddRange(memberFunc.Parameters.ParamList.Select(p => p.First).ToList());
 
-            FuncPtr funcPtr = new FuncPtr(new Token(), lifetimes, new Token(), parameterTypes, new Token(), new Token(), memberFunc.ReturnType);
+            FuncPtr funcPtr = new FuncPtr(memberFunc.FuncToken, lifetimes, memberFunc.Parameters.OpenParen, parameterTypes, memberFunc.Parameters.CloseParen, memberFunc.Arrow, memberFunc.ReturnType);
             return funcPtr.Accept(visitor).Match(
                 ok => new Result<FuncPtrInfo, List<ValidationError>>(ok as FuncPtrInfo), 
                 fail => new Result<FuncPtrInfo, List<ValidationError>>(fail));
@@ -119,7 +119,8 @@ namespace Ripple.Validation.Info.Types
             List<string> lifetimes = new List<string>();
 
             funcPtr.Lifetimes.Match(ok => CheckLifetimes(ok, errors, lifetimes));
-            m_ActiveLifetimes.Push(new FunctionLifetimes(m_FunctionPointerIndex, lifetimes));
+            List<Pair<string, bool>> lifetimePairs = lifetimes.Select(l => new Pair<string, bool>(l, false)).ToList();
+            m_ActiveLifetimes.Push(new FunctionLifetimes(m_FunctionPointerIndex, lifetimePairs));
 
             CheckParameters(funcPtr, errors, parameters);
 
@@ -132,6 +133,17 @@ namespace Ripple.Validation.Info.Types
                 errors.AddRange(fail);
                 return new Option<TypeInfo>();
             });
+
+            for (int i = 0; i < m_ActiveLifetimes.Peek().Lifetimes.Count; i++)
+            {
+                var l = m_ActiveLifetimes.Peek().Lifetimes[i];
+                bool wasUsed = l.Second;
+                if(!wasUsed)
+                {
+                    Token lifetimeToken = funcPtr.Lifetimes.Value[i];
+                    errors.Add(new LifetimeNotUsedError(funcPtr.GetLocation(), lifetimeToken));
+                }
+            }
 
             m_ActiveLifetimes.Pop();
 
@@ -179,7 +191,7 @@ namespace Ripple.Validation.Info.Types
 
         private bool IsLifetimeDeclared(string lifetime) => 
             m_ExternalLifetimes.Contains(lifetime) || 
-            m_ActiveLifetimes.Any(l => l.Lifetimes.Contains(lifetime));
+            m_ActiveLifetimes.Any(l => l.Lifetimes.Exists(l => l.First == lifetime));
 
 		public Result<TypeInfo, List<ValidationError>> VisitGroupedType(GroupedType groupedType)
         {
@@ -232,9 +244,13 @@ namespace Ripple.Validation.Info.Types
 
             foreach(FunctionLifetimes lifetimes in m_ActiveLifetimes)
 			{
-                int index = lifetimes.Lifetimes.IndexOf(lifetimeText);
+                int index = lifetimes.Lifetimes.FindIndex(l => l.First == lifetimeText);
                 if (index >= 0)
+                {
+                    var lifetimeData = lifetimes.Lifetimes[index];
+                    lifetimes.Lifetimes[index] = new Pair<string, bool>(lifetimeData.First, true);
                     return new Option<ReferenceLifetime>(new ReferenceLifetime(new GenericLifetime(index, m_FunctionPointerIndex)));
+                }
 			}
 
             return BadResult<Option<ReferenceLifetime>>(new DefinitionError.Lifetime(lifetime.Location, false, lifetimeText));
@@ -260,12 +276,15 @@ namespace Ripple.Validation.Info.Types
             throw new NotImplementedException();
         }
 
-        private struct FunctionLifetimes
+        private class FunctionLifetimes
 		{
             public readonly int FunctionIndex;
-            public readonly List<string> Lifetimes;
+            /// <summary>
+            /// string = name of lifetime; bool = was it used
+            /// </summary>
+            public readonly List<Pair<string, bool>> Lifetimes;
 
-			public FunctionLifetimes(int functionIndex, List<string> lifetimes)
+			public FunctionLifetimes(int functionIndex, List<Pair<string, bool>> lifetimes)
 			{
 				FunctionIndex = functionIndex;
 				Lifetimes = lifetimes;

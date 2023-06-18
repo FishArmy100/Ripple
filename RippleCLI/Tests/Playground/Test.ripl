@@ -1,17 +1,11 @@
-﻿class Ref<'a>
-{
-    public int&'a ref;
-    public Ref(int&'a r)
-    {
-        ref = r;
-    }
-}
+﻿
 
-class Test<'a>
+func main() -> int
 {
-    Ref<'a> ref;
-    public Test(int&'a number)
+    int i = 5;
     {
-        ref = Ref(number);
+        int i = 6;
     }
+
+    return 0;
 }
