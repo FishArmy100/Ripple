@@ -1,0 +1,10 @@
+﻿### -name "Variable Tests" -im
+int mut number = 5;
+number = 6;
+println(number);
+
+### -name "Set Immutable Variable" -nocomp -im
+int number = 5;
+number = 6;
+
+

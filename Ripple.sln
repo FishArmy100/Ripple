@@ -7,7 +7,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ripple", "Ripple\Ripple.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ASTGeneration", "ASTGeneration\ASTGeneration.csproj", "{AEE323F5-2035-4867-85A2-18CD04F7C6D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RippleCLI", "RippleCLI\RippleCLI.csproj", "{0F644FC3-A111-4E50-B604-51F881384EE5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RippleCLI", "RippleCLI\RippleCLI.csproj", "{0F644FC3-A111-4E50-B604-51F881384EE5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RippleUnitTests", "RippleUnitTests\RippleUnitTests.csproj", "{9042A492-1616-4552-B40B-23BF3CEA1C95}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C9EAEC8E-BECF-4C33-AB20-D5B187E7814D} = {C9EAEC8E-BECF-4C33-AB20-D5B187E7814D}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +32,10 @@ Global
 		{0F644FC3-A111-4E50-B604-51F881384EE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F644FC3-A111-4E50-B604-51F881384EE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F644FC3-A111-4E50-B604-51F881384EE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9042A492-1616-4552-B40B-23BF3CEA1C95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9042A492-1616-4552-B40B-23BF3CEA1C95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9042A492-1616-4552-B40B-23BF3CEA1C95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9042A492-1616-4552-B40B-23BF3CEA1C95}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
