@@ -1,10 +1,11 @@
 ﻿using System;
-using RippleUnitTests.Lexing;
+using RippleUnitTests.Parsing;
 using Raucse.FileManagement;
 using System.Collections.Generic;
 using Raucse;
 using System.Linq;
 using Raucse.Extensions;
+using RippleUnitTests.RippleTesting;
 
 namespace RippleUnitTests
 {
@@ -14,16 +15,13 @@ namespace RippleUnitTests
         {
             string filePath = "C:\\dev\\Ripple\\RippleUnitTests\\Tests\\ripple_unit_tests.ripl";
             string source = FileUtils.ReadFromFile(filePath).Value;
-            var result = TestNodeLexer.Lex(source);
+            var result = TestNodeParser.Lex(source);
 
             result.Match(
                 ok =>
                 {
-                    foreach (var val in ok)
-                    {
-                        ConsoleHelper.WriteMessage($"Settings: {val.Arguments.Select(a => $"{a.Type}{a.Value.Match(ok => $":({ok})", () => "")}").Concat(", ")}");
-                        ConsoleHelper.WriteMessage($"Code:\n{val.Code}\n");
-                    }
+                    List<RippleTest> tests = ok.Select(t => RippleTest.FromNode(t)).ToList();
+                    TestRunner.RunTests(tests);
                 },
                 fail => 
                 {
@@ -32,7 +30,6 @@ namespace RippleUnitTests
                         ConsoleHelper.WriteError(error.ToString());
                     }
                 });
-
         }
     }
 }

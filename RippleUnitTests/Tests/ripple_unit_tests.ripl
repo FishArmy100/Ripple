@@ -1,10 +1,25 @@
-﻿### -name "Variable Tests" -im
+﻿### -name "Comments"
+/*
+flags:
+    * -name "My name"   --> sets the name of the test, is required
+    * -im               --> inserts a main function
+    * -nocomp           --> the given test should not compile
+*/
+// here is another comment
+// this needs to be here, because otherwise, testing parser breaks
+
+### -name "Variable Tests" -im
 int mut number = 5;
 number = 6;
-println(number);
 
 ### -name "Set Immutable Variable" -nocomp -im
 int number = 5;
 number = 6;
+
+### -name "External C call" -im
+unsafe 
+{
+    printf(c"Hello World!");
+}
 
 

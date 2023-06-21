@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RippleUnitTests.Lexing
+namespace RippleUnitTests.Parsing
 {
-    class NodeLexingError
+    class NodeParsingError
     {
         public readonly string Message;
 
-        public NodeLexingError(string message)
+        public NodeParsingError(string message)
         {
             Message = message;
         }

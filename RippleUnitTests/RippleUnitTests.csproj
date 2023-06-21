@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="src\Generation\" />
+    <ProjectReference Include="..\Ripple\Ripple.csproj" />
   </ItemGroup>
 
 </Project>
