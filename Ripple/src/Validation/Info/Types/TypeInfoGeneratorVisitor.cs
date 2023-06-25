@@ -57,9 +57,9 @@ namespace Ripple.Validation.Info.Types
             return funcPtr.Accept(visitor).Match(ok => new Result<FuncPtrInfo, List<ValidationError>>(ok as FuncPtrInfo), fail => new Result<FuncPtrInfo, List<ValidationError>>(fail));
         }
 
-        public static Result<FuncPtrInfo, List<ValidationError>> GenerateFromMemberFuncDecl(MemberFunctionDecl memberFunc, IReadOnlyList<string> primaryTypes, string declaringTypeName, IReadOnlyList<string> predeclaredLifetimes)
+        public static Result<FuncPtrInfo, List<ValidationError>> GenerateFromMemberFuncDecl(MemberFunctionDecl memberFunc, IReadOnlyList<string> primaryTypes, string declaringTypeName, IReadOnlyList<string> predeclaredLifetimes, SafetyContext classContext)
         {
-            SafetyContext context = new SafetyContext(!memberFunc.UnsafeToken.HasValue);
+            SafetyContext context = new SafetyContext(!memberFunc.UnsafeToken.HasValue && classContext.IsSafe);
             TypeInfoGeneratorVisitor visitor = new TypeInfoGeneratorVisitor(primaryTypes, predeclaredLifetimes, true, context);
 
             List<Token> lifetimes = memberFunc.GenericParameters.Match(

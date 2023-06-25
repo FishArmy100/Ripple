@@ -105,7 +105,7 @@ grammer Ripple
 	Constructor = "unsafe"? IDENTIFIER GenericParams? Parameters Block;
 	Destructor = "unsafe"? "~" IDENTIFIER "(" ")" Block;
 
-	MemberDecl = ClassVisibility (FuncDecl | MemberFuncDecl | Constructor | Destructor);
+	MemberDecl = ClassVisibility (VarDecl | MemberFuncDecl | Constructor | Destructor);
 	ClassDecl = "unsafe"? "class" IDENTIFIER GenericParams? WhereClause? "{" MemberDecl* "}";
 
 	ExternClassMemberDecl = "public" TypeName IDENTIFIER ";";

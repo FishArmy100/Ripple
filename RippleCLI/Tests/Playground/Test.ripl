@@ -1,11 +1,1 @@
-﻿
-
-func main() -> int
-{
-    int i = 5;
-    {
-        int i = 6;
-    }
-
-    return 0;
-}
+﻿func int(int a, int b) -> void {}

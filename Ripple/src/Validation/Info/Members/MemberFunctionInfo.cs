@@ -9,11 +9,13 @@ using Raucse;
 using Ripple.Validation.Info.Types;
 using Ripple.Validation.Errors;
 using Ripple.AST;
+using Ripple.Utils;
 
 namespace Ripple.Validation.Info.Members
 {
-    public class MemberFunctionInfo : ClassMember
+    public class MemberFunctionInfo
     {
+        public readonly MemberVisibility Visibility;
         public readonly string DeclaringTypeName;
         public readonly bool IsUnsafe;
         public readonly Token NameToken;
@@ -26,8 +28,9 @@ namespace Ripple.Validation.Info.Members
 
         public string Name => NameToken.Text;
 
-        public MemberFunctionInfo(string declaringTypeName, MemberVisibility visibility, bool isUnsafe, Token nameToken, Option<ThisMemberFuncParamType> thisParam, IReadOnlyList<ParameterInfo> parameters, IReadOnlyList<Token> lifetimes, TypeInfo returnType, FuncPtrInfo functionType) : base(visibility)
+        public MemberFunctionInfo(string declaringTypeName, MemberVisibility visibility, bool isUnsafe, Token nameToken, Option<ThisMemberFuncParamType> thisParam, IReadOnlyList<ParameterInfo> parameters, IReadOnlyList<Token> lifetimes, TypeInfo returnType, FuncPtrInfo functionType)
         {
+            Visibility = visibility;
             DeclaringTypeName = declaringTypeName;
             IsUnsafe = isUnsafe;
             NameToken = nameToken;
@@ -38,13 +41,21 @@ namespace Ripple.Validation.Info.Members
             FunctionType = functionType;
         }
 
-        public static Result<MemberFunctionInfo, List<ValidationError>> FromASTMemberFunction(MemberFunctionDecl memberFunc, IReadOnlyList<string> primaries, string declaringTypeName, IReadOnlyList<Token> declaringTypeLifetimes, MemberVisibility visibility)
+        public static Result<MemberFunctionInfo, List<ValidationError>> FromASTMemberFunction(MemberFunctionDecl memberFunc, IReadOnlyList<string> primaries, string declaringTypeName, IReadOnlyList<Token> declaringTypeLifetimes, MemberVisibility visibility, SafetyContext context)
         {
-            var info = TypeInfoGeneratorVisitor.GenerateFromMemberFuncDecl(memberFunc, primaries, declaringTypeName, declaringTypeLifetimes.Select(l => l.Text).ToList());
+            var info = TypeInfoGeneratorVisitor.GenerateFromMemberFuncDecl(memberFunc, primaries, declaringTypeName, declaringTypeLifetimes.Select(l => l.Text).ToList(), context);
             return info.Match(
                 ok =>
                 {
                     List<Token> parameterNames = memberFunc.Parameters.ParamList.Select(p => p.Second).ToList();
+                    var errors = parameterNames.FindDuplicates()
+                    .Select(d => new ParameterWithSameNameError(d.Location, d.Text))
+                    .Cast<ValidationError>()
+                    .ToList();
+
+                    if (errors.Any())
+                        return errors;
+
                     List<ParameterInfo> parameterInfos = ok.Parameters.Zip(parameterNames, (t, n) => new ParameterInfo(n, t)).ToList();
                     Option<ThisMemberFuncParamType> thisType = GetThisParamType(memberFunc.Parameters.ThisParameter);
 

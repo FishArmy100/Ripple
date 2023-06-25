@@ -47,6 +47,13 @@ namespace Ripple.Validation.Info.Functions
                     () => new List<Token>());
 
                 List<Token> parameterNames = funcDecl.Param.ParamList.Select(p => p.Second).ToList();
+                var errors = parameterNames.FindDuplicates()
+                    .Select(d => new ParameterWithSameNameError(d.Location, d.Text))
+                    .Cast<ValidationError>()
+                    .ToList();
+
+                if (errors.Any())
+                    return errors;
 
                 List<ParameterInfo> parameterInfos = funcPtr.Parameters.Zip(parameterNames, (t, n) => new ParameterInfo(n, t)).ToList();
 
